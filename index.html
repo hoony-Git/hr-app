@@ -134,6 +134,31 @@
     background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: 12px;
     font-size: 13px; z-index: 60; opacity: 0; transition: opacity .3s; pointer-events: none; max-width: 90%; text-align: center; }
   .toast.show { opacity: 1; }
+
+  /* 습관 캘린더 */
+  .streak-box { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .streak-fire { font-size: 26px; }
+  .streak-num { font-size: 30px; font-weight: 700; color: var(--z4); font-variant-numeric: tabular-nums; }
+  .streak-txt { font-size: 13px; color: var(--muted); }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-nav button { flex: none; width: 40px; height: 40px; padding: 0; border-radius: 10px; background: var(--surface2); font-size: 18px; }
+  .cal-title { font-size: 15px; font-weight: 600; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .cal-dow { text-align: center; font-size: 11px; color: var(--muted); padding-bottom: 4px; }
+  .cal-cell { aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--surface2); position: relative; }
+  .cal-cell.empty-pad { background: transparent; }
+  .cal-cell.no-data { background: var(--surface2); }
+  .cal-cell.future { opacity: .3; }
+  .cal-cell.today { box-shadow: 0 0 0 2px var(--accent); }
+  .cal-emoji { font-size: 19px; line-height: 1; }
+  .cal-day { font-size: 9px; color: var(--muted); position: absolute; top: 4px; left: 5px; }
+  .cal-cell.green { background: rgba(34,197,94,.18); }
+  .cal-cell.yellow { background: rgba(234,179,8,.18); }
+  .cal-cell.red { background: rgba(239,68,68,.18); }
+  .cal-legend { display: flex; justify-content: center; gap: 16px; margin-top: 16px; font-size: 11px; color: var(--muted); }
+  .cal-legend span { display: flex; align-items: center; gap: 4px; }
+  .cal-month-stat { display: flex; justify-content: center; gap: 18px; margin-top: 14px; font-size: 12px; }
+  .cal-month-stat b { color: var(--text); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -223,6 +248,24 @@
 
 <!-- ===================== 기록 탭 (주간 대시보드) ===================== -->
 <div id="tab-stats" hidden>
+  <div class="card">
+    <div class="streak-box">
+      <span class="streak-fire">🔥</span>
+      <span class="streak-num" id="streakNum">0</span>
+      <span class="streak-txt">일 연속 운동</span>
+    </div>
+    <div class="cal-nav">
+      <button id="calPrev">‹</button>
+      <div class="cal-title" id="calTitle">2026년 6월</div>
+      <button id="calNext">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <span>😊 1시간+</span><span>😐 30분+</span><span>😠 30분 미만</span>
+    </div>
+    <div class="cal-month-stat" id="calMonthStat"></div>
+  </div>
+
   <div class="card">
     <div class="sec-title" style="margin:0 0 14px;">이번 주 Zone 2 누적</div>
     <div class="weekly-head">
@@ -758,13 +801,73 @@ function toast(msg) {
   clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2800);
 }
 
+// ====================== 습관 캘린더 ======================
+let calYear, calMonth;
+function dayKey(d) { return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
+function sessionsByDay() {
+  const map = {};
+  getSessions().forEach(s => {
+    const k = dayKey(new Date(s.date));
+    map[k] = (map[k] || 0) + (s.duration || 0);
+  });
+  return map;
+}
+function dayMood(sec) {
+  const min = sec / 60;
+  if (min >= 60) return { emoji: '😊', cls: 'green' };
+  if (min >= 30) return { emoji: '😐', cls: 'yellow' };
+  if (sec > 0) return { emoji: '😠', cls: 'red' };
+  return null;
+}
+function currentStreak() {
+  const byDay = sessionsByDay();
+  let streak = 0;
+  let d = new Date(); d.setHours(0, 0, 0, 0);
+  if (!byDay[dayKey(d)]) d.setDate(d.getDate() - 1); // 오늘 미운동이면 어제부터 (연속 안 깨뜨림)
+  while (byDay[dayKey(d)] && byDay[dayKey(d)] > 0) { streak++; d.setDate(d.getDate() - 1); }
+  return streak;
+}
+function renderCalendar() {
+  if (calYear === undefined) { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
+  const byDay = sessionsByDay();
+  document.getElementById('streakNum').textContent = currentStreak();
+  document.getElementById('calTitle').textContent = calYear + '년 ' + (calMonth + 1) + '월';
+  const startDow = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const dows = ['일', '월', '화', '수', '목', '금', '토'];
+  let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < startDow; i++) html += '<div class="cal-cell empty-pad"></div>';
+  let cntG = 0, cntY = 0, cntR = 0;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cellDate = new Date(calYear, calMonth, day);
+    const sec = byDay[calYear + '-' + calMonth + '-' + day] || 0;
+    const mood = dayMood(sec);
+    let cls = 'cal-cell';
+    if (mood) { cls += ' ' + mood.cls; if (mood.cls === 'green') cntG++; else if (mood.cls === 'yellow') cntY++; else cntR++; }
+    else cls += ' no-data';
+    if (cellDate.getTime() === today.getTime()) cls += ' today';
+    if (cellDate.getTime() > today.getTime()) cls += ' future';
+    html += `<div class="${cls}"><span class="cal-day">${day}</span>${mood ? `<span class="cal-emoji">${mood.emoji}</span>` : ''}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+  document.getElementById('calMonthStat').innerHTML =
+    `<span>😊 <b>${cntG}</b></span><span>😐 <b>${cntY}</b></span><span>😠 <b>${cntR}</b></span><span>운동 <b>${cntG + cntY + cntR}</b>일</span>`;
+}
+function calShift(delta) {
+  if (calYear === undefined) { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
+  calMonth += delta;
+  if (calMonth < 0) { calMonth = 11; calYear--; } else if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
 // ====================== 탭 전환 ======================
 function switchTab(name) {
   ['workout','measure','stats'].forEach(t => {
     document.getElementById('tab-' + t).hidden = (t !== name);
     document.querySelector(`.tabbar button[data-tab="${t}"]`).classList.toggle('on', t === name);
   });
-  if (name === 'stats') renderWeekly();
+  if (name === 'stats') { renderWeekly(); renderCalendar(); }
   if (name === 'measure') { renderMeasureHistory(); renderHrvChart(); }
 }
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
@@ -807,6 +910,8 @@ document.getElementById('startBtn').onclick = startWorkout;
 document.getElementById('pauseBtn').onclick = pauseWorkout;
 document.getElementById('stopBtn').onclick = stopWorkout;
 document.getElementById('measureBtn').onclick = toggleMeasure;
+document.getElementById('calPrev').onclick = () => calShift(-1);
+document.getElementById('calNext').onclick = () => calShift(1);
 
 // 초기 렌더
 updateLadder(0); renderZoneTime(); renderHistory(); renderMeasureHistory();
