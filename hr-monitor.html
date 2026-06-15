@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>HR Monitor — Zone 2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0b0f14; --surface: #161c24; --surface2: #1f2832; --border: #2a3441;
+    --text: #e8eef5; --muted: #8b97a6; --accent: #3b82f6;
+    --z0: #64748b; --z1: #3b82f6; --z2: #22c55e; --z3: #eab308; --z4: #f97316; --z5: #ef4444;
+  }
+  html, body { background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overscroll-behavior: none; }
+  body { padding: env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px); max-width: 560px; margin: 0 auto; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 2px 10px; }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  header h1 span { color: var(--z2); }
+  .status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #475569; transition: background .3s; }
+  .dot.on { background: var(--z2); box-shadow: 0 0 8px var(--z2); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; }
+
+  /* BPM hero */
+  .hero { text-align: center; padding: 22px 18px; transition: background .4s; }
+  .bpm-num { font-size: 88px; font-weight: 700; line-height: 1; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+  .bpm-unit { font-size: 18px; color: var(--muted); font-weight: 500; margin-top: 2px; }
+  .zone-label { display: inline-block; margin-top: 12px; font-size: 14px; font-weight: 600; padding: 6px 16px; border-radius: 999px; }
+  .pct { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  /* Zone ladder */
+  .ladder { display: flex; gap: 5px; margin-top: 16px; }
+  .lz { flex: 1; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; opacity: .28; transition: opacity .25s, transform .25s; color: #0b0f14; }
+  .lz.active { opacity: 1; transform: scaleY(1.18); }
+
+  /* Chart */
+  .chart-wrap { position: relative; height: 180px; }
+  canvas { width: 100%; height: 100%; display: block; }
+  .chart-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 13px; }
+
+  /* Stats grid */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .stat { background: var(--surface2); border-radius: 10px; padding: 10px 6px; text-align: center; }
+  .stat .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* Buttons */
+  .controls { display: flex; gap: 10px; margin-bottom: 12px; }
+  button { flex: 1; border: none; border-radius: 14px; padding: 16px; font-size: 15px; font-weight: 600;
+    background: var(--surface2); color: var(--text); cursor: pointer; transition: transform .1s, background .2s;
+    display: flex; align-items: center; justify-content: center; gap: 7px; }
+  button:active { transform: scale(.97); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-go { background: var(--z2); color: #06210f; }
+  .btn-stop { background: var(--z5); color: #2a0606; }
+  .btn-wide { flex: none; width: 100%; }
+
+  /* Zone time breakdown */
+  .ztime { margin-top: 4px; }
+  .ztrow { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .ztrow:last-child { margin-bottom: 0; }
+  .zttag { width: 30px; font-size: 12px; font-weight: 700; }
+  .ztbar-bg { flex: 1; height: 10px; background: var(--surface2); border-radius: 5px; overflow: hidden; }
+  .ztbar { height: 100%; border-radius: 5px; transition: width .4s; }
+  .zttime { width: 56px; text-align: right; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* History */
+  .sec-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin: 18px 2px 10px; }
+  .hist-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .hist-date { font-size: 14px; font-weight: 600; }
+  .hist-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .hist-right { display: flex; align-items: center; gap: 12px; }
+  .hist-z2 { text-align: right; }
+  .hist-z2 .b { font-size: 17px; font-weight: 700; color: var(--z2); }
+  .hist-z2 .s { font-size: 10px; color: var(--muted); }
+  .icon-btn { width: 34px; height: 34px; border-radius: 9px; padding: 0; flex: none; background: var(--surface2); font-size: 16px; }
+  .empty-hist { color: var(--muted); font-size: 13px; text-align: center; padding: 24px; }
+
+  /* Settings */
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row label { font-size: 14px; }
+  .settings-row .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  input[type=number] { width: 90px; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px;
+    color: var(--text); font-size: 15px; padding: 9px 11px; text-align: center; font-variant-numeric: tabular-nums; }
+  .toggle { display: flex; background: var(--surface2); border-radius: 9px; padding: 3px; }
+  .toggle button { flex: none; padding: 7px 12px; font-size: 12px; border-radius: 7px; background: transparent; }
+  .toggle button.sel { background: var(--accent); color: #fff; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: flex-end; justify-content: center; z-index: 50; }
+  .modal-bg.show { display: flex; }
+  .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 22px 18px calc(env(safe-area-inset-bottom) + 22px); width: 100%; max-width: 560px; }
+  .modal h2 { font-size: 18px; margin-bottom: 6px; }
+  .modal .sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+
+  .hidden { display: none !important; }
+  .toast { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 20px); left: 50%; transform: translateX(-50%);
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: 12px;
+    font-size: 13px; z-index: 60; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>HR <span>Zone&nbsp;2</span></h1>
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">미연결</span></div>
+</header>
+
+<div class="card hero" id="hero">
+  <div class="bpm-num" id="bpm">--</div>
+  <div class="bpm-unit">BPM</div>
+  <div class="zone-label" id="zoneLabel" style="background:var(--z0);color:#0b0f14;">대기</div>
+  <div class="pct" id="pct">최대심박 대비 --%</div>
+  <div class="ladder" id="ladder"></div>
+</div>
+
+<div class="controls" id="connectRow">
+  <button class="btn-primary btn-wide" id="connectBtn"><span id="connectLabel">⚡ 심박계 연결</span></button>
+</div>
+
+<div class="controls hidden" id="workoutControls">
+  <button class="btn-go" id="startBtn">▶ 운동 시작</button>
+  <button id="pauseBtn" disabled>⏸ 일시정지</button>
+  <button class="btn-stop" id="stopBtn" disabled>⏹ 종료·저장</button>
+</div>
+
+<div class="card">
+  <div class="chart-wrap">
+    <canvas id="chart"></canvas>
+    <div class="chart-empty" id="chartEmpty">운동을 시작하면 그래프가 표시됩니다</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="stats">
+    <div class="stat"><div class="v" id="sTime">0:00</div><div class="l">시간</div></div>
+    <div class="stat"><div class="v" id="sAvg">--</div><div class="l">평균</div></div>
+    <div class="stat"><div class="v" id="sMax">--</div><div class="l">최대</div></div>
+    <div class="stat"><div class="v" style="color:var(--z2)" id="sZ2">0:00</div><div class="l">Zone 2</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="sec-title" style="margin:0 0 12px;">구간별 체류 시간</div>
+  <div class="ztime" id="ztime"></div>
+</div>
+
+<div class="sec-title">운동 기록 <button class="icon-btn" id="settingsBtn" style="float:right;width:30px;height:30px;font-size:14px;">⚙</button></div>
+<div id="history"></div>
+
+<!-- Settings modal -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>설정</h2>
+    <div class="sub">Zone 계산 기준을 설정합니다. 정확한 Zone 2를 위해 안정시 심박수 입력을 권장합니다.</div>
+    <div class="settings-row">
+      <div><label>나이</label><div class="hint">최대심박 = 220 − 나이</div></div>
+      <input type="number" id="ageInput" min="10" max="100" value="42">
+    </div>
+    <div class="settings-row">
+      <div><label>안정시 심박수</label><div class="hint">아침 기상 직후 측정값 (선택)</div></div>
+      <input type="number" id="restInput" min="30" max="100" placeholder="--">
+    </div>
+    <div class="settings-row">
+      <div><label>계산 방식</label><div class="hint">HRR(Karvonen)이 더 정확</div></div>
+      <div class="toggle" id="methodToggle">
+        <button data-m="max">%최대</button>
+        <button data-m="hrr">%HRR</button>
+      </div>
+    </div>
+    <button class="btn-primary btn-wide" id="saveSettings" style="margin-top:16px;">저장</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ====================== 상수 ======================
+const ZONE_COLORS = ['var(--z0)','var(--z1)','var(--z2)','var(--z3)','var(--z4)','var(--z5)'];
+const ZONE_COLORS_HEX = ['#64748b','#3b82f6','#22c55e','#eab308','#f97316','#ef4444'];
+const ZONE_NAMES = ['휴식','Z1 회복','Z2 유산소','Z3 템포','Z4 무산소','Z5 최대'];
+const ZONE_BOUNDS = [0.50, 0.60, 0.70, 0.80, 0.90, 1.00]; // 각 구간 하한 (%)
+
+// ====================== 상태 ======================
+const S = {
+  device: null, char: null, connected: false,
+  active: false, paused: false,
+  bpm: 0, allBPM: [], chartData: [],
+  zoneSec: [0,0,0,0,0,0], elapsed: 0,
+  tick: null, wakeLock: null, lastZ2: null,
+};
+let settings = loadSettings();
+
+// ====================== 설정 저장/로드 ======================
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('hr_settings'));
+    if (s && s.age) return s;
+  } catch(e) {}
+  return { age: 42, rest: null, method: 'max' };
+}
+function saveSettingsObj() { localStorage.setItem('hr_settings', JSON.stringify(settings)); }
+
+// ====================== Zone 계산 ======================
+function maxHR() { return 220 - settings.age; }
+function zoneThresholds() {
+  const mx = maxHR(), r = settings.rest || 0;
+  const karvonen = settings.method === 'hrr' && r > 0;
+  // 인덱스 0..5 = 각 구간 하한 BPM
+  return ZONE_BOUNDS.map(p => karvonen ? Math.round((mx - r) * p + r) : Math.round(mx * p));
+}
+function zoneOf(bpm) {
+  const t = zoneThresholds();
+  if (bpm < t[0]) return 0;
+  if (bpm < t[1]) return 1;
+  if (bpm < t[2]) return 2;
+  if (bpm < t[3]) return 3;
+  if (bpm < t[4]) return 4;
+  return 5;
+}
+function pctOfMax(bpm) { return Math.round(bpm / maxHR() * 100); }
+
+// ====================== Web Bluetooth ======================
+async function connect() {
+  if (!navigator.bluetooth) {
+    toast('이 브라우저는 Web Bluetooth를 지원하지 않습니다 (Android Chrome 필요)');
+    return;
+  }
+  try {
+    setStatus('검색 중…');
+    S.device = await navigator.bluetooth.requestDevice({
+      filters: [{ services: ['heart_rate'] }],
+      optionalServices: ['battery_service']
+    });
+    S.device.addEventListener('gattserverdisconnected', onDisconnect);
+    setStatus('연결 중…');
+    const server = await S.device.gatt.connect();
+    const service = await server.getPrimaryService('heart_rate');
+    S.char = await service.getCharacteristic('heart_rate_measurement');
+    await S.char.startNotifications();
+    S.char.addEventListener('characteristicvaluechanged', onHR);
+    S.connected = true;
+    updateConnUI();
+    toast('연결됨: ' + (S.device.name || '심박계'));
+  } catch (e) {
+    setStatus('미연결');
+    if (e.name !== 'NotFoundError') toast('연결 실패: ' + e.message);
+  }
+}
+function onDisconnect() {
+  S.connected = false;
+  if (S.active) toast('⚠ 심박계 연결 끊김 — 운동은 계속 기록 중');
+  updateConnUI();
+}
+async function reconnect() {
+  if (S.device && S.device.gatt) {
+    try {
+      const server = await S.device.gatt.connect();
+      const service = await server.getPrimaryService('heart_rate');
+      S.char = await service.getCharacteristic('heart_rate_measurement');
+      await S.char.startNotifications();
+      S.char.addEventListener('characteristicvaluechanged', onHR);
+      S.connected = true; updateConnUI(); toast('재연결됨');
+    } catch (e) { toast('재연결 실패'); }
+  } else { connect(); }
+}
+
+// BLE Heart Rate Measurement 파싱 (spec 0x2A37)
+function onHR(event) {
+  const v = event.target.value;
+  const flags = v.getUint8(0);
+  const is16 = flags & 0x01;
+  const bpm = is16 ? v.getUint16(1, true) : v.getUint8(1);
+  if (bpm > 0 && bpm < 250) updateBPM(bpm);
+}
+
+// ====================== BPM 처리 / UI ======================
+function updateBPM(bpm) {
+  S.bpm = bpm;
+  const z = zoneOf(bpm);
+  document.getElementById('bpm').textContent = bpm;
+  document.getElementById('bpm').style.color = ZONE_COLORS[z];
+  const lbl = document.getElementById('zoneLabel');
+  lbl.textContent = ZONE_NAMES[z];
+  lbl.style.background = ZONE_COLORS[z];
+  lbl.style.color = z === 0 ? '#0b0f14' : '#06210f';
+  document.getElementById('pct').textContent = '최대심박 대비 ' + pctOfMax(bpm) + '%';
+  updateLadder(z);
+
+  // Zone 2 이탈 알림 (운동 중만)
+  if (S.active && !S.paused) {
+    const inZ2 = (z === 2);
+    if (S.lastZ2 === true && !inZ2) {
+      navigator.vibrate && navigator.vibrate([120, 60, 120]);
+    }
+    S.lastZ2 = inZ2;
+  }
+}
+function updateLadder(active) {
+  const lad = document.getElementById('ladder');
+  if (lad.children.length === 0) {
+    for (let i = 1; i <= 5; i++) {
+      const d = document.createElement('div');
+      d.className = 'lz'; d.style.background = ZONE_COLORS[i];
+      d.textContent = 'Z' + i; lad.appendChild(d);
+    }
+  }
+  [...lad.children].forEach((el, i) => el.classList.toggle('active', i + 1 === active));
+}
+
+// ====================== 운동 세션 ======================
+function startWorkout() {
+  S.active = true; S.paused = false;
+  S.allBPM = []; S.chartData = []; S.zoneSec = [0,0,0,0,0,0]; S.elapsed = 0; S.lastZ2 = null;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('pauseBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = false;
+  document.getElementById('chartEmpty').classList.add('hidden');
+  requestWakeLock();
+  S.tick = setInterval(onTick, 1000);
+  toast('운동 시작 — 화면이 꺼지지 않습니다');
+}
+function onTick() {
+  if (S.paused) return;
+  S.elapsed++;
+  if (S.bpm > 0) {
+    S.allBPM.push(S.bpm);
+    S.chartData.push(S.bpm);
+    S.zoneSec[zoneOf(S.bpm)]++;
+  }
+  renderStats();
+  renderChart();
+  renderZoneTime();
+}
+function pauseWorkout() {
+  S.paused = !S.paused;
+  document.getElementById('pauseBtn').textContent = S.paused ? '▶ 재개' : '⏸ 일시정지';
+}
+function stopWorkout() {
+  if (S.elapsed < 5) { toast('기록이 너무 짧습니다'); return; }
+  clearInterval(S.tick); S.tick = null;
+  releaseWakeLock();
+  saveSession();
+  S.active = false; S.paused = false;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('pauseBtn').disabled = true;
+  document.getElementById('pauseBtn').textContent = '⏸ 일시정지';
+  document.getElementById('stopBtn').disabled = true;
+  toast('운동 기록 저장됨');
+  renderHistory();
+}
+
+// ====================== 통계 렌더 ======================
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+function renderStats() {
+  document.getElementById('sTime').textContent = fmtTime(S.elapsed);
+  if (S.allBPM.length) {
+    const avg = Math.round(S.allBPM.reduce((a, b) => a + b, 0) / S.allBPM.length);
+    const mx = Math.max(...S.allBPM);
+    document.getElementById('sAvg').textContent = avg;
+    document.getElementById('sMax').textContent = mx;
+  }
+  document.getElementById('sZ2').textContent = fmtTime(S.zoneSec[2]);
+}
+function renderZoneTime() {
+  const wrap = document.getElementById('ztime');
+  const total = S.zoneSec.reduce((a, b) => a + b, 0) || 1;
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const pct = Math.round(S.zoneSec[i] / total * 100);
+    html += `<div class="ztrow">
+      <div class="zttag" style="color:${ZONE_COLORS[i]}">Z${i}</div>
+      <div class="ztbar-bg"><div class="ztbar" style="width:${pct}%;background:${ZONE_COLORS[i]}"></div></div>
+      <div class="zttime">${fmtTime(S.zoneSec[i])}</div></div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+// ====================== 차트 (캔버스, 외부 라이브러리 없음) ======================
+function renderChart() {
+  const cv = document.getElementById('chart');
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+  if (S.chartData.length < 2) return;
+
+  const mx = maxHR();
+  const yMin = 40, yMax = mx + 15;
+  const t = zoneThresholds();
+  // 구간 배경 밴드
+  const bands = [[t[0], t[1], ZONE_COLORS_HEX[1]], [t[1], t[2], ZONE_COLORS_HEX[2]],
+                 [t[2], t[3], ZONE_COLORS_HEX[3]], [t[3], t[4], ZONE_COLORS_HEX[4]], [t[4], yMax, ZONE_COLORS_HEX[5]]];
+  const yOf = v => h - (v - yMin) / (yMax - yMin) * h;
+  bands.forEach(([lo, hi, col]) => {
+    ctx.fillStyle = col + '1a';
+    ctx.fillRect(0, yOf(hi), w, yOf(lo) - yOf(hi));
+  });
+  // Zone 2 강조 경계선
+  ctx.strokeStyle = ZONE_COLORS_HEX[2] + '88'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(0, yOf(t[1])); ctx.lineTo(w, yOf(t[1])); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, yOf(t[2])); ctx.lineTo(w, yOf(t[2])); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 데이터 다운샘플 (폭에 맞춤)
+  const data = S.chartData;
+  const step = Math.max(1, Math.ceil(data.length / w));
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i < data.length; i += step) {
+    const x = i / (data.length - 1) * w;
+    const y = yOf(data[i]);
+    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = '#e8eef5'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+}
+
+// ====================== Wake Lock (화면 켜짐 유지) ======================
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) S.wakeLock = await navigator.wakeLock.request('screen');
+  } catch (e) {}
+}
+function releaseWakeLock() {
+  if (S.wakeLock) { S.wakeLock.release().catch(() => {}); S.wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && S.active && !S.wakeLock) requestWakeLock();
+});
+
+// ====================== 기록 저장 / 히스토리 ======================
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem('hr_sessions')) || []; } catch (e) { return []; }
+}
+function saveSession() {
+  const sessions = getSessions();
+  const avg = S.allBPM.length ? Math.round(S.allBPM.reduce((a, b) => a + b, 0) / S.allBPM.length) : 0;
+  sessions.unshift({
+    date: Date.now(),
+    duration: S.elapsed,
+    avg, max: S.allBPM.length ? Math.max(...S.allBPM) : 0,
+    zoneSec: [...S.zoneSec],
+    raw: [...S.allBPM]
+  });
+  localStorage.setItem('hr_sessions', JSON.stringify(sessions.slice(0, 100)));
+}
+function renderHistory() {
+  const wrap = document.getElementById('history');
+  const sessions = getSessions();
+  if (!sessions.length) { wrap.innerHTML = '<div class="empty-hist">아직 운동 기록이 없습니다</div>'; return; }
+  wrap.innerHTML = sessions.map((s, i) => {
+    const d = new Date(s.date);
+    const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const z2pct = Math.round(s.zoneSec[2] / (s.duration || 1) * 100);
+    return `<div class="hist-item">
+      <div><div class="hist-date">${dateStr}</div>
+        <div class="hist-sub">${fmtTime(s.duration)} · 평균 ${s.avg} · 최대 ${s.max} BPM</div></div>
+      <div class="hist-right">
+        <div class="hist-z2"><div class="b">${z2pct}%</div><div class="s">Zone 2</div></div>
+        <button class="icon-btn" onclick="exportCSV(${i})" title="CSV">⬇</button>
+        <button class="icon-btn" onclick="deleteSession(${i})" title="삭제">✕</button>
+      </div></div>`;
+  }).join('');
+}
+function deleteSession(i) {
+  const sessions = getSessions();
+  sessions.splice(i, 1);
+  localStorage.setItem('hr_sessions', JSON.stringify(sessions));
+  renderHistory();
+}
+function exportCSV(i) {
+  const s = getSessions()[i];
+  let csv = 'second,bpm\n';
+  s.raw.forEach((b, idx) => { csv += `${idx + 1},${b}\n`; });
+  const d = new Date(s.date);
+  const fname = `hr_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}.csv`;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ====================== UI 헬퍼 ======================
+function setStatus(t) { document.getElementById('statusText').textContent = t; }
+function updateConnUI() {
+  document.getElementById('dot').classList.toggle('on', S.connected);
+  setStatus(S.connected ? (S.device?.name || '연결됨') : '미연결');
+  document.getElementById('connectRow').classList.toggle('hidden', S.connected);
+  document.getElementById('workoutControls').classList.toggle('hidden', !S.connected);
+  if (!S.connected && S.device) {
+    document.getElementById('connectLabel').textContent = '⚡ 재연결';
+  }
+}
+let toastT;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ====================== 설정 모달 ======================
+function openSettings() {
+  document.getElementById('ageInput').value = settings.age;
+  document.getElementById('restInput').value = settings.rest || '';
+  document.querySelectorAll('#methodToggle button').forEach(b =>
+    b.classList.toggle('sel', b.dataset.m === settings.method));
+  document.getElementById('settingsModal').classList.add('show');
+}
+document.getElementById('settingsBtn').onclick = openSettings;
+document.getElementById('settingsModal').onclick = e => {
+  if (e.target.id === 'settingsModal') e.target.classList.remove('show');
+};
+document.querySelectorAll('#methodToggle button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#methodToggle button').forEach(x => x.classList.remove('sel'));
+  b.classList.add('sel');
+});
+document.getElementById('saveSettings').onclick = () => {
+  settings.age = parseInt(document.getElementById('ageInput').value) || 42;
+  const r = parseInt(document.getElementById('restInput').value);
+  settings.rest = r > 0 ? r : null;
+  settings.method = document.querySelector('#methodToggle button.sel').dataset.m;
+  saveSettingsObj();
+  document.getElementById('settingsModal').classList.remove('show');
+  if (S.bpm) updateBPM(S.bpm);
+  toast('설정 저장됨');
+};
+
+// ====================== 이벤트 바인딩 ======================
+document.getElementById('connectBtn').onclick = () => S.device ? reconnect() : connect();
+document.getElementById('startBtn').onclick = startWorkout;
+document.getElementById('pauseBtn').onclick = pauseWorkout;
+document.getElementById('stopBtn').onclick = stopWorkout;
+
+// 초기 렌더
+updateLadder(0);
+renderZoneTime();
+renderHistory();
+</script>
+</body>
+</html>
