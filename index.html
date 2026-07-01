@@ -188,6 +188,7 @@
     <button class="btn-stop" id="stopBtn" disabled>⏹ 종료</button>
   </div>
 
+
   <div class="card">
     <div class="chart-wrap">
       <canvas id="chart"></canvas>
@@ -341,7 +342,7 @@ const S = {
   device: null, char: null, connected: false, hasRR: false,
   active: false, paused: false,
   bpm: 0, allBPM: [], chartData: [], zoneSec: [0,0,0,0,0,0], elapsed: 0, kcal: 0,
-  tick: null, wakeLock: null, lastZ2: null,
+  tick: null, wakeLock: null, lastZ2: null, startTime: 0,
   // 측정 모드
   measuring: false, measRR: [], measBPM: [], measCountdown: 0, measTick: null, lastRRtime: 0,
 };
@@ -499,7 +500,7 @@ function updateLadder(active) {
 
 // ====================== 운동 세션 ======================
 function startWorkout() {
-  S.active = true; S.paused = false;
+  S.active = true; S.paused = false; S.startTime = Date.now();
   S.allBPM = []; S.chartData = []; S.zoneSec = [0,0,0,0,0,0]; S.elapsed = 0; S.kcal = 0; S.lastZ2 = null;
   document.getElementById('startBtn').disabled = true;
   document.getElementById('pauseBtn').disabled = false;
@@ -517,6 +518,7 @@ function onTick() {
     S.kcal += kcalPerMin(S.bpm) / 60;
   }
   renderStats(); renderChart(); renderZoneTime();
+  if (S.elapsed % 5 === 0) autosaveActive();  // 5초마다 진행 상황 자동저장 (크래시 대비)
 }
 function pauseWorkout() {
   S.paused = !S.paused;
@@ -526,13 +528,41 @@ function stopWorkout() {
   if (S.elapsed < 5) { toast('기록이 너무 짧습니다'); return; }
   clearInterval(S.tick); S.tick = null; releaseWakeLock();
   saveSession();
+  localStorage.removeItem('hr_active_session');  // 정상 종료 시 임시본 제거
   S.active = false; S.paused = false;
   document.getElementById('startBtn').disabled = false;
   document.getElementById('pauseBtn').disabled = true;
   document.getElementById('pauseBtn').textContent = '⏸ 정지';
   document.getElementById('stopBtn').disabled = true;
+  updateConnUI();  // 연결 끊긴 채 종료했다면 연결 UI 갱신
   toast('운동 기록 저장됨');
   renderHistory();
+}
+// 진행 중 운동을 별도 키에 저장 (크롬 강제 종료·메모리 정리 대비)
+function autosaveActive() {
+  try {
+    localStorage.setItem('hr_active_session', JSON.stringify({
+      startTime: S.startTime, elapsed: S.elapsed, allBPM: S.allBPM,
+      zoneSec: S.zoneSec, kcal: S.kcal, savedAt: Date.now()
+    }));
+  } catch(e) {}
+}
+// 앱 재시작 시 중단된 운동을 완료 세션으로 복구
+function recoverActiveSession() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem('hr_active_session')); } catch(e) {}
+  if (!saved || !saved.elapsed || saved.elapsed < 5) { localStorage.removeItem('hr_active_session'); return; }
+  const sessions = getSessions();
+  const bpm = saved.allBPM || [];
+  const avg = bpm.length ? Math.round(bpm.reduce((a,b)=>a+b,0)/bpm.length) : 0;
+  sessions.unshift({
+    date: saved.startTime || saved.savedAt || Date.now(), duration: saved.elapsed, avg,
+    max: bpm.length ? Math.max(...bpm) : 0, kcal: Math.round(saved.kcal || 0),
+    zoneSec: saved.zoneSec || [0,0,0,0,0,0], raw: bpm
+  });
+  localStorage.setItem('hr_sessions', JSON.stringify(sessions.slice(0,100)));
+  localStorage.removeItem('hr_active_session');
+  setTimeout(() => toast('⚠ 중단된 운동 ' + fmtTime(saved.elapsed) + ' 자동 복구됨'), 600);
 }
 
 // ====================== 측정 세션 (안정시 + HRV) ======================
@@ -774,20 +804,32 @@ function exportCSV(i) {
 
 // ====================== Wake Lock ======================
 async function requestWakeLock() {
-  try { if ('wakeLock' in navigator) S.wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+  try {
+    if ('wakeLock' in navigator) {
+      S.wakeLock = await navigator.wakeLock.request('screen');
+      // OS가 백그라운드 전환 등으로 해제하면 참조를 비워 재획득 조건이 걸리게 함
+      S.wakeLock.addEventListener('release', () => { S.wakeLock = null; });
+    }
+  } catch(e) {}
 }
 function releaseWakeLock() { if (S.wakeLock) { S.wakeLock.release().catch(()=>{}); S.wakeLock = null; } }
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && (S.active || S.measuring) && !S.wakeLock) requestWakeLock();
+  // 백그라운드로 갈 때(카톡 확인·창 닫힘 직전) 진행 중 운동을 즉시 자동저장
+  if (document.visibilityState === 'hidden' && S.active) autosaveActive();
+  // 다시 돌아오면 화면 꺼짐 방지를 재획득 (해제됐거나 released 상태면 재요청)
+  if (document.visibilityState === 'visible' && (S.active || S.measuring)) {
+    if (!S.wakeLock || S.wakeLock.released) requestWakeLock();
+  }
 });
 
 // ====================== UI 헬퍼 ======================
 function setStatus(t) { document.getElementById('statusText').textContent = t; }
 function updateConnUI() {
   document.getElementById('dot').classList.toggle('on', S.connected);
-  setStatus(S.connected ? (S.device?.name || '연결됨') : '미연결');
-  document.getElementById('connectRow').classList.toggle('hidden', S.connected);
-  document.getElementById('workoutControls').classList.toggle('hidden', !S.connected);
+  setStatus(S.connected ? (S.device?.name || '연결됨') : (S.active ? '연결 끊김 (기록 중)' : '미연결'));
+  // 운동 중(S.active)이면 연결이 끊겨도 종료 버튼을 유지해 저장 가능하게 함
+  document.getElementById('connectRow').classList.toggle('hidden', S.connected || S.active);
+  document.getElementById('workoutControls').classList.toggle('hidden', !S.connected && !S.active);
   const mb = document.getElementById('measureBtn');
   mb.disabled = !S.connected;
   if (S.connected) mb.textContent = '🛌 측정 시작 (2분)';
@@ -914,6 +956,7 @@ document.getElementById('calPrev').onclick = () => calShift(-1);
 document.getElementById('calNext').onclick = () => calShift(1);
 
 // 초기 렌더
+recoverActiveSession();  // 지난 세션이 비정상 종료됐으면 복구 (렌더보다 먼저)
 updateLadder(0); renderZoneTime(); renderHistory(); renderMeasureHistory();
 </script>
 </body>
