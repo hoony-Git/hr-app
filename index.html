@@ -436,6 +436,16 @@
       <input type="number" id="goalInput" min="30" max="600" value="150">
     </div>
     <button class="btn-primary btn-wide" id="saveSettings" style="margin-top:16px;">저장</button>
+
+    <div class="sec-title" style="margin:24px 2px 12px;">데이터 백업</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">
+      심박·측정·습관 기록 전체를 파일 하나로 저장합니다. 캐시 삭제나 폰 교체 전에 내보내두세요.
+    </div>
+    <div class="controls" style="margin-bottom:8px;">
+      <button id="exportBtn" style="background:var(--surface2);">⬇ 내보내기</button>
+      <button id="importBtn" style="background:var(--surface2);">⬆ 가져오기</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none;">
   </div>
 </div>
 
@@ -914,6 +924,39 @@ function exportCSV(i) {
   URL.revokeObjectURL(url);
 }
 
+// ====================== 전체 데이터 백업 (JSON) ======================
+const BACKUP_KEYS = ['hr_settings', 'hr_sessions', 'hr_measures', 'habit_defs', 'habit_logs'];
+function exportAllData() {
+  const data = { app: 'hr-monitor', exportedAt: new Date().toISOString(), version: 1, data: {} };
+  BACKUP_KEYS.forEach(k => {
+    const raw = localStorage.getItem(k);
+    if (raw !== null) { try { data.data[k] = JSON.parse(raw); } catch(e) {} }
+  });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const d = new Date();
+  const fn = `hr-backup_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  const a = document.createElement('a'); a.href = url; a.download = fn; a.click();
+  URL.revokeObjectURL(url);
+  toast('백업 파일 다운로드됨');
+}
+function importAllData(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
+    try { parsed = JSON.parse(reader.result); } catch(e) { toast('올바른 백업 파일이 아닙니다'); return; }
+    if (!parsed || !parsed.data || parsed.app !== 'hr-monitor') { toast('이 앱의 백업 파일이 아닙니다'); return; }
+    if (!confirm('현재 폰의 모든 기록을 이 백업으로 덮어씁니다. 계속할까요?')) return;
+    BACKUP_KEYS.forEach(k => {
+      if (parsed.data[k] !== undefined) localStorage.setItem(k, JSON.stringify(parsed.data[k]));
+    });
+    toast('복원 완료 — 화면을 새로고침합니다');
+    setTimeout(() => location.reload(), 1200);
+  };
+  reader.onerror = () => toast('파일을 읽을 수 없습니다');
+  reader.readAsText(file);
+}
+
 // ====================== Wake Lock ======================
 async function requestWakeLock() {
   try {
@@ -1355,6 +1398,13 @@ document.getElementById('saveSettings').onclick = () => {
   if (S.bpm) updateBPM(S.bpm, []);
   renderWeekly();
   toast('설정 저장됨');
+};
+document.getElementById('exportBtn').onclick = exportAllData;
+document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
+document.getElementById('importFile').onchange = (e) => {
+  const f = e.target.files[0];
+  if (f) importAllData(f);
+  e.target.value = '';
 };
 
 // ====================== 이벤트 바인딩 ======================
