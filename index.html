@@ -332,6 +332,27 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .lt-c { aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: var(--tl-none); color: var(--muted); }
   .lt-c.faint { opacity: .35; }
   .lt-c.pad { background: transparent; }
+  /* 레벨·상점 */
+  .lv-chip { flex: none; padding: 6px 12px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 800; }
+  .lv-big { font-size: 34px; font-weight: 800; letter-spacing: -1px; }
+  .lv-big span { font-size: 18px; color: var(--muted); font-weight: 600; margin-left: 6px; letter-spacing: 0; }
+  .lv-sub { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .lv-row { display: flex; gap: 8px; margin-top: 14px; }
+  .lv-row > div { flex: 1; min-width: 0; background: var(--surface2); border-radius: 12px; padding: 12px 4px; text-align: center; }
+  .lv-row b { display: block; font-size: 19px; font-variant-numeric: tabular-nums; }
+  .lv-row small { display: block; font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .shop-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .shop-nm { flex: 1; min-width: 0; }
+  .shop-cost { flex: none; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .lv-date { flex: none; color: var(--muted); font-size: 11px; }
+  .shop-buy { flex: none; padding: 7px 14px; border-radius: 10px; background: var(--accent); color: var(--on-accent); font-size: 13px; }
+  .shop-x { flex: none; width: 28px; height: 28px; padding: 0; border-radius: 8px; background: var(--surface2); color: var(--muted); font-size: 12px; }
+  .rest-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border-radius: 12px; padding: 8px 12px; margin: 10px 0 0; font-size: 13px; }
+  .rest-bar button { flex: none; padding: 4px 12px; border-radius: 8px; background: var(--surface); font-size: 12px; }
+  .ws-c.rest, .lt-c.rest { background: var(--surface2); font-size: 14px; }
+  .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 70; }
+  .confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: confetti-fall 2s linear forwards; }
+  @keyframes confetti-fall { to { top: 105%; opacity: .2; } }
   /* 시트·모달 위젯 */
   .sheet-item { flex: none; width: 100%; justify-content: flex-start; background: var(--surface2); margin-top: 8px; padding: 14px; font-size: 15px; }
   .sheet-item.danger { color: var(--tl-red); }
@@ -358,7 +379,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <div class="today-head">
     <button class="month-btn" id="monthBtn">—</button>
     <input type="date" id="jumpDate" class="hidden-date" tabindex="-1">
-    <div class="th-right"><button class="icon-btn" id="moreBtn" aria-label="메뉴">⋯</button></div>
+    <div class="th-right"><button class="lv-chip" id="lvChip" aria-label="레벨">Lv.1</button><button class="icon-btn" id="moreBtn" aria-label="메뉴">⋯</button></div>
   </div>
   <div class="week-strip" id="weekStrip"></div>
   <div class="folder-tabs" id="todaySeg">
@@ -370,6 +391,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <div id="habitMissing"></div>
     <div id="routineTable"></div>
     <div id="weekCards" class="hidden"></div>
+    <div class="cal-legend" id="todayLegend"><span>달성 = 도장</span><span><i class="lg y"></i>절반 = 반투명 도장</span><span><i class="lg r"></i>부족</span></div>
   </div>
 </div>
 
@@ -391,7 +413,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <button class="btn-go" id="startBtn">▶ 시작</button>
     <button id="pauseBtn" disabled>⏸ 정지</button>
     <button class="btn-stop" id="stopBtn" disabled>⏹ 종료</button>
-    <div class="cal-legend" id="todayLegend"><span>달성 = 도장</span><span><i class="lg y"></i>절반 = 반투명 도장</span><span><i class="lg r"></i>부족</span></div>
   </div>
 
 
@@ -617,6 +638,13 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <div class="modal">
     <h2 id="sheetTitle"></h2>
     <div id="sheetItems"></div>
+  </div>
+</div>
+
+<!-- 레벨·상점 화면 -->
+<div class="modal-bg" id="lvModal">
+  <div class="modal">
+    <div id="lvBody"></div>
   </div>
 </div>
 
@@ -1177,6 +1205,7 @@ function saveSession() {
   localStorage.setItem('hr_sessions', JSON.stringify(sessions.slice(0, 100)));
 }
 function renderHistory() {
+  if (typeof checkLevelUp === 'function' && typeof xpMeta === 'function') try { checkLevelUp(); } catch(e) {}
   const wrap = document.getElementById('history');
   const sessions = getSessions();
   if (!sessions.length) { wrap.innerHTML = '<div class="empty-hist">아직 운동 기록이 없습니다</div>'; return; }
@@ -1213,9 +1242,10 @@ function exportCSV(i) {
 
 // ====================== 전체 데이터 백업 (JSON) ======================
 // 새 저장 키를 만들면 반드시 여기에 추가 (backup_pre_v2·hr_active_session 은 임시본이라 제외)
-const BACKUP_KEYS = ['schema_version', 'hr_settings', 'hr_sessions', 'hr_measures', 'habit_defs', 'habit_logs', 'habit_notes', 'habit_skips'];
+const BACKUP_KEYS = ['schema_version', 'hr_settings', 'hr_sessions', 'hr_measures', 'habit_defs', 'habit_logs', 'habit_notes', 'habit_skips',
+  'xp_meta', 'shop_items', 'shop_purchases', 'shop_tokens', 'rest_days'];
 const BACKUP_EXEMPT_KEYS = ['backup_pre_v2', 'hr_active_session'];
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;   // 2 = 날짜 키 ISO, 3 = 쉬는 날 이용권 3개 지급
 function buildBackup() {
   const data = { app: 'hr-monitor', exportedAt: new Date().toISOString(), version: 1, data: {} };
   BACKUP_KEYS.forEach(k => {
@@ -1255,33 +1285,42 @@ function migrateDayKeys(obj) {
 // opts.skipBackup: 백업 복원 직후 호출 시 (방금 복원한 데이터를 또 백업하지 않음)
 function runMigrations(opts) {
   opts = opts || {};
-  if (Number(localStorage.getItem('schema_version')) >= SCHEMA_VERSION) return;
-  const hasData = BACKUP_KEYS.some(k => k !== 'schema_version' && localStorage.getItem(k) !== null);
-  if (hasData && !opts.skipBackup) {
-    const d = new Date();
-    const text = JSON.stringify(buildBackup(), null, 2);
-    downloadText(text, `hr-backup_pre-v2_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`);
-    // 안전 사본은 변환 대상 키만 (hr_sessions 는 용량만 차지하고 변환과 무관)
-    const pre = { app: 'hr-monitor', exportedAt: new Date().toISOString(), data: {} };
-    PRE_V2_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v !== null) { try { pre.data[k] = JSON.parse(v); } catch(e) {} } });
-    try { localStorage.setItem('backup_pre_v2', JSON.stringify(pre)); }
-    catch(e) { console.warn('backup_pre_v2 저장 실패 (용량) — 다운로드 파일만 있음', e); }
+  const ver = Number(localStorage.getItem('schema_version')) || 0;
+  if (ver >= SCHEMA_VERSION) return;
+  if (ver < 2) {   // v2: 날짜 키 Y-M-D(월 0시작) -> YYYY-MM-DD
+    const hasData = BACKUP_KEYS.some(k => k !== 'schema_version' && localStorage.getItem(k) !== null);
+    if (hasData && !opts.skipBackup) {
+      const d = new Date();
+      const text = JSON.stringify(buildBackup(), null, 2);
+      downloadText(text, `hr-backup_pre-v2_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`);
+      // 안전 사본은 변환 대상 키만 (hr_sessions 는 용량만 차지하고 변환과 무관)
+      const pre = { app: 'hr-monitor', exportedAt: new Date().toISOString(), data: {} };
+      PRE_V2_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v !== null) { try { pre.data[k] = JSON.parse(v); } catch(e) {} } });
+      try { localStorage.setItem('backup_pre_v2', JSON.stringify(pre)); }
+      catch(e) { console.warn('backup_pre_v2 저장 실패 (용량) — 다운로드 파일만 있음', e); }
+    }
+    const orig = {};
+    try {
+      const next = {};
+      MIGRATE_KEYS.forEach(k => {
+        orig[k] = localStorage.getItem(k);
+        if (orig[k] !== null) next[k] = JSON.stringify(migrateDayKeys(JSON.parse(orig[k])));
+      });
+      Object.keys(next).forEach(k => localStorage.setItem(k, next[k]));
+      localStorage.setItem('schema_version', '2');
+    } catch(e) {
+      // 실패 시 원본 복구 — schema_version 은 안 올려서 다음 로드에 재시도
+      MIGRATE_KEYS.forEach(k => { try { if (orig[k] !== undefined && orig[k] !== null) localStorage.setItem(k, orig[k]); } catch(_) {} });
+      console.error('데이터 마이그레이션 실패 — 원본 유지', e);
+      setTimeout(() => toast('데이터 변환 실패 — 백업 파일을 보관하세요'), 500);
+      return;
+    }
   }
-  const orig = {};
+  // v3: 쉬는 날 이용권 3개 지급 (이미 값이 있으면 건드리지 않음)
   try {
-    const next = {};
-    MIGRATE_KEYS.forEach(k => {
-      orig[k] = localStorage.getItem(k);
-      if (orig[k] !== null) next[k] = JSON.stringify(migrateDayKeys(JSON.parse(orig[k])));
-    });
-    Object.keys(next).forEach(k => localStorage.setItem(k, next[k]));
+    if (localStorage.getItem('shop_tokens') === null) localStorage.setItem('shop_tokens', '3');
     localStorage.setItem('schema_version', String(SCHEMA_VERSION));
-  } catch(e) {
-    // 실패 시 원본 복구 — schema_version 은 안 올려서 다음 로드에 재시도
-    MIGRATE_KEYS.forEach(k => { try { if (orig[k] !== undefined && orig[k] !== null) localStorage.setItem(k, orig[k]); } catch(_) {} });
-    console.error('데이터 마이그레이션 실패 — 원본 유지', e);
-    setTimeout(() => toast('데이터 변환 실패 — 백업 파일을 보관하세요'), 500);
-  }
+  } catch(e) { console.error('v3 마이그레이션 실패', e); }
 }
 function auditBackupKeys() {
   const prefixes = ['habit_', 'hr_', 'book_', 'xp_', 'shop_'];
@@ -1301,9 +1340,9 @@ function importAllData(file) {
     BACKUP_KEYS.forEach(k => {
       if (parsed.data[k] !== undefined) localStorage.setItem(k, JSON.stringify(parsed.data[k]));
     });
-    // 구버전 백업(schema_version 없음/2 미만)이면 이 기기의 버전 표시를 지우고 같은 마이그레이션 실행
+    // 구버전 백업이면 그 백업의 버전부터 이어서 마이그레이션 (버전 표시가 없으면 이 기기의 표시를 지움)
     if (!(Number(parsed.data.schema_version) >= SCHEMA_VERSION)) {
-      localStorage.removeItem('schema_version');
+      if (!Number(parsed.data.schema_version)) localStorage.removeItem('schema_version');
       runMigrations({ skipBackup: true });
     }
     toast('복원 완료 — 화면을 새로고침합니다');
@@ -1708,7 +1747,7 @@ function skipMissing(id, ago){
 }
 function renderMissing(){
   const wrap = document.getElementById('habitMissing');
-  const habits = getHabits(), logs = getHabitLogs(), skips = getHabitSkips();
+  const habits = getHabits(), logs = getHabitLogs(), skips = getHabitSkips(), rests = getRestDays();
   const today = new Date(); today.setHours(0,0,0,0);
   const label = ['오늘','1일 전','2일 전','3일 전'];
   let chips = '';
@@ -1721,6 +1760,7 @@ function renderMissing(){
       const d = new Date(today); d.setDate(d.getDate()-ago);
       if(d.getTime()<created) continue;
       if(!wds.includes(d.getDay())) continue;
+      if(rests[dayKey(d)]) continue;
       if(h.endedAt && dayKey(d)>h.endedAt) continue;
       if((skips[h.id]||{})[dayKey(d)]) continue;
       if((logs[h.id]||{})[dayKey(d)]===undefined)
@@ -1833,18 +1873,22 @@ function hctx() {
     Object.keys(logs[h.id] || {}).forEach(k => { const x = parseDayKey(k).getTime(); if (x < t) t = x; });
     start[h.id] = t === Infinity ? 0 : t;
   });
-  return { logs, notes, habits, start, vis: habits.filter(h => !h.archived) };
+  return { logs, notes, habits, start, rest: getRestDays(), vis: habits.filter(h => !h.archived) };
 }
-function sched(c, h, d) {
-  if (h.archived || d.getTime() < c.start[h.id]) return false;
+function schedCore(c, h, d) {   // 요일·시작일·끝낸 날 기준 (보관·쉬는 날 무관) — XP 계산용
+  if (d.getTime() < c.start[h.id]) return false;
   if (!h.weekdays.includes(d.getDay())) return false;
   if (h.endedAt && dayKey(d) > h.endedAt) return false;
   return true;
+}
+function sched(c, h, d) {   // 오늘 화면·달성률 분모: 보관한 습관과 쉬는 날 제외
+  return !h.archived && !c.rest[dayKey(d)] && schedCore(c, h, d);
 }
 function dval(c, h, d) { const L = c.logs[h.id]; return L ? L[dayKey(d)] : undefined; }
 function dach(c, h, d) { const v = dval(c, h, d); return v === undefined ? null : habitAchievement(h, v); }
 // 하루 신호등: 그날 예정된 습관의 달성 비율(달성 1점 + 절반 달성 0.5점) ≥0.6 초록 / ≥0.3 노랑 / >0 빨강 / 그 외 없음
 function dayLight(c, d, today) {
+  if (c.rest[dayKey(d)]) return 'rest';
   if (d.getTime() > today.getTime()) return 'none';
   let s = 0, g = 0;
   c.vis.forEach(h => { if (sched(c, h, d)) { s++; const a = dach(c, h, d); if (a === 'green') g++; else if (a === 'yellow') g += 0.5; } });
@@ -1892,11 +1936,12 @@ function shiftWeek(n) { selDate = addDays(selDate, 7 * n); renderToday(); }
 function renderToday() {
   const c = hctx(), today = todayStart();
   document.getElementById('monthBtn').textContent = selDate.getFullYear() + '년 ' + (selDate.getMonth() + 1) + '월 ▾';
+  document.getElementById('lvChip').textContent = 'Lv.' + checkLevelUp().li.level;
   let html = '<button class="ws-arrow" onclick="shiftWeek(-1)" aria-label="지난주">‹</button>';
   weekDays(weekStartOf(selDate)).forEach(d => {
     const lt = dayLight(c, d, today);
     html += `<button class="ws-day ${d.getTime() === selDate.getTime() ? 'sel' : ''}" onclick="selectDate('${dayKey(d)}')">` +
-      `<span class="ws-lb">${WD[d.getDay()]}</span><span class="ws-c ${lt} ${d.getTime() === today.getTime() ? 'today' : ''}">${d.getDate()}</span></button>`;
+      `<span class="ws-lb">${WD[d.getDay()]}</span><span class="ws-c ${lt} ${d.getTime() === today.getTime() ? 'today' : ''}">${lt === 'rest' ? '🛌' : d.getDate()}</span></button>`;
   });
   html += '<button class="ws-arrow" onclick="shiftWeek(1)" aria-label="다음주">›</button>';
   document.getElementById('weekStrip').innerHTML = html;
@@ -1932,11 +1977,12 @@ function renderRoutine(c) {
       `<button class="rt-res ${ach === 'yellow' ? 'y' : ach === 'red' ? 'r' : ''}" data-id="${h.id}" aria-label="기록">${stamp ? `<span class="rt-st">${stamp}</span>` : ''}<span class="rt-val">${val}</span></button></div>`;
   });
   const wrap = document.getElementById('routineTable');
+  const restBar = c.rest[dk] ? `<div class="rest-bar">🛌 쉬는 날이에요 <button onclick="markRest('${dk}',false)">해제</button></div>` : '';
   if (!n) {
-    wrap.innerHTML = '<div class="rt-empty">' + (c.vis.length ? '이 날 예정된 습관이 없어요' : '아직 습관이 없어요.<br>오른쪽 아래 + 버튼으로 추가하세요.') + '</div>';
+    wrap.innerHTML = restBar + '<div class="rt-empty">' + (c.vis.length ? '이 날 예정된 습관이 없어요' : '아직 습관이 없어요.<br>오른쪽 아래 + 버튼으로 추가하세요.') + '</div>';
     return;
   }
-  wrap.innerHTML = `<div class="rt-wrap">${rows}<div class="rt-frame"></div></div>`;
+  wrap.innerHTML = restBar + `<div class="rt-wrap">${rows}<div class="rt-frame"></div></div>`;
 }
 
 function renderWeekCards(c, today) {
@@ -2199,6 +2245,25 @@ document.getElementById('monthBtn').onclick = () => {
 document.getElementById('jumpDate').onchange = e => { if (e.target.value) { selDate = parseDayKey(e.target.value); renderToday(); } };
 document.querySelectorAll('#todaySeg button').forEach(b => b.onclick = () => { todayView = b.dataset.v; renderToday(); });
 document.getElementById('fabAdd').onclick = () => openHabitModal();
+document.getElementById('lvChip').onclick = openLevelScreen;
+(function () {   // 주 스트립 날짜 길게 누르기 -> 쉬는 날 지정/해제
+  const el = document.getElementById('weekStrip');
+  let timer = null, fired = false;
+  el.addEventListener('pointerdown', e => {
+    const b = e.target.closest('.ws-day'); if (!b) return;
+    fired = false; clearTimeout(timer);
+    timer = setTimeout(() => { fired = true; const m = /selectDate\('([^']+)'\)/.exec(b.getAttribute('onclick') || ''); if (m) restSheet(m[1]); }, 550);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave', 'pointermove'].forEach(t => el.addEventListener(t, () => clearTimeout(timer)));
+  el.addEventListener('click', e => { if (fired) { fired = false; e.stopPropagation(); e.preventDefault(); } }, true);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+})();
+function restSheet(dk) {
+  const on = !!getRestDays()[dk], d = parseDayKey(dk);
+  openSheet((d.getMonth() + 1) + '/' + d.getDate() + ' ' + WD[d.getDay()], [on
+    ? { label: '🛌 쉬는 날 해제 (이용권 1개 돌려받음)', fn: () => markRest(dk, false) }
+    : { label: '🛌 쉬는 날로 지정 (이용권 ' + getTokens() + '개 보유)', fn: () => markRest(dk, true) }]);
+}
 (function () {   // 주 이동: 좌우 스와이프
   const el = document.getElementById('weekStrip'); let x0 = null;
   el.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
@@ -2249,7 +2314,7 @@ function renderStatBody() {
     days.forEach(d => {
       const lt = dayLight(c, d, today);
       if (lt === 'green') g++; else if (lt === 'yellow') y++; else if (lt === 'red') r++;
-      html += `<div class="lt-c ${lt} ${d.getTime() > today.getTime() ? 'faint' : ''}">${d.getDate()}</div>`;
+      html += `<div class="lt-c ${lt} ${d.getTime() > today.getTime() && lt !== 'rest' ? 'faint' : ''}">${lt === 'rest' ? '🛌' : d.getDate()}</div>`;
     });
     html += `</div><div class="cal-month-stat"><span>🟢 초록불 <b>${g}</b>회</span><span>🟡 노란불 <b>${y}</b>회</span><span>🔴 빨간불 <b>${r}</b>회</span></div></div>`;
     body.innerHTML = html;
@@ -2269,6 +2334,7 @@ function habitCard(c, h, days, today, mode) {
     const sc = sched(c, h, d), fut = d.getTime() > today.getTime(), ach = dach(c, h, d);
     let cls = 'mq', st = '';
     if (ach === 'green') { cls += ' on'; st = ` style="background:${h.color}"`; }
+    else if (ach === 'yellow') { cls += ' on'; st = ' style="background:var(--tl-yellow)"'; }
     else if (!sc || fut) cls += ' faint';
     cells += `<div class="${cls}"${st}>${d.getDate()}</div>`;
   });
@@ -2317,6 +2383,144 @@ function renderHabits() {
   if (document.getElementById('qlModal').classList.contains('show')) renderQuick();
 }
 
+// ====================== XP · 레벨 · 코인 · 상점 (Phase 3) ======================
+// XP 는 저장하지 않고 기록(습관·운동·독서)에서 매번 계산한다 → 과거 기록을 고치거나 지우면 XP 가 바로 바뀐다.
+// 저장되는 것: xp_meta(칭호·하루 상한·마지막 확인 레벨), shop_items, shop_purchases, shop_tokens, rest_days
+const DEFAULT_TITLES = [{level:1,name:'새싹'},{level:10,name:'꾸준이'},{level:20,name:'습관가'},{level:30,name:'장인'},{level:40,name:'달인'},{level:50,name:'현자'},{level:60,name:'전설'}];
+const BUILTIN_REST = { id: 'builtin_rest', name: '쉬는 날 이용권', emoji: '🛌', cost: 100 };
+function readJSON(k, def) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? def : v; } catch(e) { return def; } }
+function xpMeta() { return readJSON('xp_meta', {}); }
+function saveXpMeta(m) { localStorage.setItem('xp_meta', JSON.stringify(m)); }
+function xpTitles() { const t = xpMeta().titles; return Array.isArray(t) && t.length ? t : DEFAULT_TITLES; }
+function xpCap() { const c = Number(xpMeta().cap); return c > 0 ? c : 150; }
+function titleFor(L) {
+  let name = '';
+  xpTitles().slice().sort((a, b) => a.level - b.level).forEach(t => { if (t.level <= L) name = t.name; });
+  return name;
+}
+function getShopItems() { const a = readJSON('shop_items', []); return Array.isArray(a) ? a : []; }
+function getPurchases() { const a = readJSON('shop_purchases', []); return Array.isArray(a) ? a : []; }
+function getTokens() { const n = parseInt(localStorage.getItem('shop_tokens')); return n > 0 ? n : 0; }
+function setTokens(n) { localStorage.setItem('shop_tokens', String(Math.max(0, n))); }
+function getRestDays() { const o = readJSON('rest_days', {}); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; }
+
+// 운동 1회: 10분 이상 10XP, 5분마다 +1, 최대 20
+function workoutXP(durSec) { const m = Math.floor((durSec || 0) / 60); return m < 10 ? 0 : Math.min(20, 10 + Math.floor((m - 10) / 5)); }
+// 날짜별 XP (하루 상한 적용 후). 쉬는 날은 습관 XP 0 (운동 XP 는 그대로)
+function xpByDay() {
+  const c = hctx(), today = todayStart(), raw = {};
+  const add = (dk, n) => { if (n > 0) raw[dk] = (raw[dk] || 0) + n; };
+  c.habits.forEach(h => {      // 보관한 습관도 계산에 포함 (보관한다고 XP 가 줄면 안 됨)
+    const L = c.logs[h.id] || {};
+    Object.keys(L).forEach(dk => {
+      if (c.rest[dk]) return;
+      const d = parseDayKey(dk);
+      if (d.getTime() > today.getTime() || !schedCore(c, h, d)) return;
+      const a = habitAchievement(h, L[dk]);
+      add(dk, a === 'green' ? 10 : a === 'yellow' ? 5 : a === 'red' ? 2 : 0);
+    });
+  });
+  getSessions().forEach(s => add(dayKey(new Date(s.date)), workoutXP(s.duration)));
+  if (typeof readingXPByDay === 'function') { const r = readingXPByDay(); Object.keys(r).forEach(dk => add(dk, r[dk])); }
+  const cap = xpCap(), out = {};
+  Object.keys(raw).forEach(dk => { out[dk] = Math.min(raw[dk], cap); });
+  return out;
+}
+function levelInfo(xp) {   // L→L+1 필요 XP = round(10·L^1.5), 레벨 1 = 0XP
+  let L = 1, rem = xp;
+  for (;;) { const need = Math.round(10 * Math.pow(L, 1.5)); if (rem >= need) { rem -= need; L++; } else return { level: L, into: rem, need }; }
+}
+function coinsEarned(L) { let s = 0; for (let i = 2; i <= L; i++) s += 10 * i; return s; }   // 레벨 i 도달 시 +10·i (시작 레벨 1 은 보상 없음)
+function coinState() {
+  const byDay = xpByDay(), total = Object.values(byDay).reduce((a, b) => a + b, 0), li = levelInfo(total);
+  const earned = coinsEarned(li.level), spent = getPurchases().reduce((a, p) => a + (Number(p.cost) || 0), 0);
+  return { total, byDay, li, earned, spent, balance: earned - spent };
+}
+
+// 레벨업 감지: 처음 본 레벨은 조용히 기록, 올라가면 축하
+function checkLevelUp() {
+  const st = coinState(), m = xpMeta();
+  if (m.lastLevel === undefined || st.li.level < m.lastLevel) { m.lastLevel = st.li.level; saveXpMeta(m); return st; }
+  if (st.li.level > m.lastLevel) {
+    const gained = coinsEarned(st.li.level) - coinsEarned(m.lastLevel);
+    m.lastLevel = st.li.level; saveXpMeta(m);
+    toast('🎉 Lv.' + st.li.level + ' 달성! +' + gained + '코인'); confetti();
+  }
+  return st;
+}
+function confetti() {
+  const colors = ['#f6c25b', '#e5484d', '#ec4899', '#8b5cf6', '#7fa3e0', '#5fc4c6', '#4ade80'];
+  const box = document.createElement('div'); box.className = 'confetti';
+  for (let i = 0; i < 36; i++) {
+    const p = document.createElement('i');
+    p.style.cssText = `left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-delay:${Math.random() * .4}s;animation-duration:${1.6 + Math.random() * 1.2}s;transform:rotate(${Math.random() * 360}deg)`;
+    box.appendChild(p);
+  }
+  document.body.appendChild(box); setTimeout(() => box.remove(), 3200);
+}
+
+// ---------- 쉬는 날 (이용권 1개 = 하루) ----------
+function markRest(dk, on) {
+  const r = getRestDays(), d = parseDayKey(dk), lbl = (d.getMonth() + 1) + '/' + d.getDate() + ' ' + WD[d.getDay()];
+  if (on) {
+    const t = getTokens();
+    if (t < 1) { toast('쉬는 날 이용권이 없어요 — Lv 화면 상점에서 구입'); return; }
+    if (!confirm(lbl + '을(를) 쉬는 날로 지정할까요?\n이용권 1개가 사용돼요 (남은 ' + t + '개).\n쉬는 날은 달성률·신호등에서 빠지고 습관 XP는 0이에요.')) return;
+    setTokens(t - 1); r[dk] = 1; toast('🛌 쉬는 날로 지정했어요');
+  } else {
+    delete r[dk]; setTokens(getTokens() + 1); toast('쉬는 날을 해제했어요 · 이용권 1개 돌려받음');
+  }
+  localStorage.setItem('rest_days', JSON.stringify(r));
+  renderHabits();
+}
+
+// ---------- 레벨 화면 ----------
+function buyItem(itemId) {
+  const it = itemId === BUILTIN_REST.id ? BUILTIN_REST : getShopItems().find(x => x.id === itemId);
+  if (!it) return;
+  const st = coinState();
+  if (st.balance < it.cost) { toast('코인이 부족해요 (' + Math.max(0, st.balance) + ' / ' + it.cost + ')'); return; }
+  if (!confirm(it.emoji + ' ' + it.name + ' — ' + it.cost + '코인으로 구입할까요?')) return;
+  const ps = getPurchases(); ps.push({ id: 'p' + Date.now(), itemId: it.id, cost: it.cost, date: dayKey(new Date()) });
+  localStorage.setItem('shop_purchases', JSON.stringify(ps));
+  if (it.id === BUILTIN_REST.id) setTokens(getTokens() + 1);
+  toast(it.emoji + ' 구입했어요'); renderLevelScreen();
+}
+function addShopItem() {
+  const name = (prompt('상점 품목 이름 (예: 치킨)') || '').trim(); if (!name) return;
+  const emoji = (prompt('이모지 (예: 🍗)', '🎁') || '🎁').trim() || '🎁';
+  const cost = parseInt(prompt('가격 (코인)', '300'));
+  if (!(cost > 0)) { toast('가격은 1 이상의 숫자로 입력하세요'); return; }
+  const a = getShopItems(); a.push({ id: 's' + Date.now(), name, emoji, cost });
+  localStorage.setItem('shop_items', JSON.stringify(a)); renderLevelScreen();
+}
+function delShopItem(id) {
+  const it = getShopItems().find(x => x.id === id); if (!it) return;
+  if (!confirm('「' + it.name + '」을 상점에서 뺄까요? (구입 내역은 남아요)')) return;
+  localStorage.setItem('shop_items', JSON.stringify(getShopItems().filter(x => x.id !== id))); renderLevelScreen();
+}
+function renderLevelScreen() {
+  const st = coinState(), today = dayKey(new Date()), cap = xpCap();
+  const todayXP = st.byDay[today] || 0, pct = Math.min(100, Math.round(st.li.into / st.li.need * 100));
+  const items = [BUILTIN_REST].concat(getShopItems());
+  const itemName = id => { const x = id === BUILTIN_REST.id ? BUILTIN_REST : getShopItems().find(y => y.id === id); return x ? x.emoji + ' ' + x.name : '(삭제된 품목)'; };
+  const hist = getPurchases().slice().reverse().slice(0, 20);
+  document.getElementById('lvBody').innerHTML =
+    `<div class="lv-big">Lv.${st.li.level} <span>${esc(titleFor(st.li.level))}</span></div>` +
+    `<div class="progress-bg" style="margin:10px 0 6px;"><div class="progress-fill" style="width:${pct}%"></div></div>` +
+    `<div class="lv-sub"><span>다음 레벨까지 ${st.li.need - st.li.into}XP</span><span>${st.li.into} / ${st.li.need}</span></div>` +
+    `<div class="lv-row"><div><b>${todayXP}</b> / ${cap}<small>오늘 XP</small></div><div><b>🪙 ${Math.max(0, st.balance)}</b><small>코인</small></div><div><b>🛌 ${getTokens()}</b><small>쉬는 날 이용권</small></div></div>` +
+    `<div class="sec-title" style="margin:18px 2px 8px;">상점</div>` +
+    items.map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">🪙 ${it.cost}</span>` +
+      `<button class="shop-buy" ${st.balance < it.cost ? 'disabled' : ''} onclick="buyItem('${it.id}')">구입</button>` +
+      (it.id === BUILTIN_REST.id ? '' : `<button class="shop-x" onclick="delShopItem('${it.id}')" aria-label="삭제">✕</button>`) + `</div>`).join('') +
+    `<button class="habit-add-btn" style="margin-top:8px;" onclick="addShopItem()">＋ 상점 품목 추가</button>` +
+    `<div class="sec-title" style="margin:18px 2px 8px;">구입 내역</div>` +
+    (hist.length ? hist.map(p => `<div class="shop-row"><span class="shop-nm">${esc(itemName(p.itemId))}</span><span class="shop-cost">-${p.cost}</span><span class="lv-date">${esc(p.date)}</span></div>`).join('') : '<div class="rt-empty" style="padding:12px;">아직 구입한 게 없어요</div>');
+}
+function openLevelScreen() { renderLevelScreen(); document.getElementById('lvModal').classList.add('show'); }
+document.getElementById('lvModal').onclick = e => { if (e.target.id === 'lvModal') e.target.classList.remove('show'); };
+
 // ====================== 탭 전환 ======================
 const TABS = ['today','workout','measure','stats'];
 function updateHeader(name) {
@@ -2334,7 +2538,6 @@ function switchTab(name) {
   document.getElementById('fabAdd').classList.toggle('hidden', name !== 'today');
   if (name === 'today') renderToday();
   if (name === 'workout') { renderWeekly(); renderCalendar(); renderHistory(); }
-    else if (ach === 'yellow') { cls += ' on'; st = ' style="background:var(--tl-yellow)"'; }
   if (name === 'measure') { renderMeasureHistory(); renderHrvChart(); }
   if (name === 'stats') renderStatsTab();
 }
