@@ -385,6 +385,17 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 70; }
   .confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: confetti-fall 2s linear forwards; }
   @keyframes confetti-fall { to { top: 105%; opacity: .2; } }
+  /* 내정보·설정 */
+  .link-btn { float: right; font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--accent); text-decoration: none; }
+  .set-sec { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); margin-bottom: 10px; }
+  .set-sec summary { padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer; list-style: none; }
+  .set-sec summary::-webkit-details-marker { display: none; }
+  .set-sec summary::after { content: '▾'; float: right; color: var(--muted); }
+  .set-sec[open] summary::after { content: '▴'; }
+  .set-body { padding: 0 16px 16px; }
+  .ord-item { display: flex; align-items: center; gap: 10px; padding: 12px 8px; background: var(--surface2); border-radius: 12px; margin-bottom: 6px; touch-action: none; }
+  .ord-item.dragging { opacity: .7; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+  .ord-h { flex: none; font-size: 20px; color: var(--muted); padding: 0 6px; cursor: grab; touch-action: none; user-select: none; }
   /* 시트·모달 위젯 */
   .sheet-item { flex: none; width: 100%; justify-content: flex-start; background: var(--surface2); margin-top: 8px; padding: 14px; font-size: 15px; }
   .sheet-item.danger { color: var(--tl-red); }
@@ -413,6 +424,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <input type="date" id="jumpDate" class="hidden-date" tabindex="-1">
     <div class="th-right"><button class="lv-chip" id="lvChip" aria-label="레벨">Lv.1</button><button class="icon-btn" id="moreBtn" aria-label="메뉴">⋯</button></div>
   </div>
+  <div id="backupBanner"></div>
   <div class="week-strip" id="weekStrip"></div>
   <div class="folder-tabs" id="todaySeg">
     <button data-v="routine" class="sel">루틴</button>
@@ -436,6 +448,13 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <button data-b="shelf">서재</button>
   </div>
   <div class="today-body" id="bookBody"></div>
+</div>
+
+<!-- ===================== 심박 (운동 | 측정) ===================== -->
+<div id="tab-hr" hidden>
+<div class="seg" id="hrSeg" style="margin:0 0 12px;">
+  <button data-h="workout" class="sel">운동</button>
+  <button data-h="measure">측정</button>
 </div>
 
 <!-- ===================== 운동 탭 ===================== -->
@@ -501,7 +520,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <div class="progress-bg"><div class="progress-fill" id="weeklyProgress" style="width:0%"></div></div>
     <div class="week-bars" id="weekBars"></div>
   </div>
-  <div class="sec-title">운동 기록 <button class="icon-btn" id="settingsBtn" style="float:right;width:30px;height:30px;font-size:14px;">⚙</button></div>
+  <div class="sec-title">운동 기록 <a class="link-btn" href="#" onclick="goSettings('hr');return false;">심박 설정 →</a></div>
   <div id="history"></div>
 </div>
 
@@ -539,6 +558,8 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <div class="sec-title">측정 기록</div>
   <div id="measureHistory"></div>
 </div>
+
+</div><!-- /tab-hr -->
 
 <!-- ===================== 통계 탭 ===================== -->
 <div id="tab-stats" hidden>
@@ -591,13 +612,21 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <div id="statsExtra"></div>
 </div>
 
+<!-- ===================== 내정보 ===================== -->
+<div id="tab-me" hidden>
+  <div id="lvBody"></div>
+  <div class="sec-title" style="margin:24px 2px 12px;">설정</div>
+  <div id="settingsList"></div>
+  <input type="file" id="importFile" accept=".json" style="display:none;">
+</div>
+
 <!-- 탭바 -->
 <nav class="tabbar">
   <button data-tab="today" class="on"><span class="ic">📅</span>오늘</button>
   <button data-tab="books"><span class="ic">📚</span>독서</button>
-  <button data-tab="workout"><span class="ic">🏃</span>운동</button>
-  <button data-tab="measure"><span class="ic">🛌</span>측정</button>
+  <button data-tab="hr"><span class="ic">❤️</span>심박</button>
   <button data-tab="stats"><span class="ic">📊</span>통계</button>
+  <button data-tab="me"><span class="ic">👤</span>내정보</button>
 </nav>
 <button class="fab hidden" id="fabAdd" aria-label="습관 추가">+</button>
 
@@ -750,13 +779,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <button id="scanCancel" class="scan-x">취소</button>
 </div>
 
-<!-- 레벨·상점 화면 -->
-<div class="modal-bg" id="lvModal">
-  <div class="modal">
-    <div id="lvBody"></div>
-  </div>
-</div>
-
 <!-- 빠른 기록 (시간·수치형) -->
 <div class="modal-bg" id="qlModal">
   <div class="modal">
@@ -801,63 +823,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     </div>
     <button class="btn-primary btn-wide" id="pSave" style="margin-top:8px;">기록 저장</button>
     <button class="btn-wide" id="pDel" style="margin-top:8px;background:var(--surface2);color:var(--muted);">이 날 기록 삭제</button>
-  </div>
-</div>
-
-<!-- 설정 모달 -->
-<div class="modal-bg" id="settingsModal">
-  <div class="modal">
-    <h2>설정</h2>
-    <div class="sub">Zone 계산과 칼로리 추정 기준을 설정합니다.</div>
-    <div class="settings-row">
-      <div><label>화면 테마</label><div class="hint">자동 = 폰 설정을 따라감</div></div>
-      <div class="toggle" id="themeToggle">
-        <button data-th="auto">자동</button>
-        <button data-th="dark">다크</button>
-        <button data-th="light">라이트</button>
-      </div>
-    </div>
-    <div class="settings-row">
-      <div><label>나이</label><div class="hint">최대심박 = 220 − 나이</div></div>
-      <input type="number" id="ageInput" min="10" max="100" value="42">
-    </div>
-    <div class="settings-row">
-      <div><label>안정시 심박수</label><div class="hint">측정 탭에서 잰 값 입력 시 정확도 ↑</div></div>
-      <input type="number" id="restInput" min="30" max="100" placeholder="--">
-    </div>
-    <div class="settings-row">
-      <div><label>Zone 계산</label><div class="hint">HRR(Karvonen)이 더 정확</div></div>
-      <div class="toggle" id="methodToggle">
-        <button data-m="max">%최대</button>
-        <button data-m="hrr">%HRR</button>
-      </div>
-    </div>
-    <div class="settings-row">
-      <div><label>체중 (kg)</label><div class="hint">칼로리 추정용</div></div>
-      <input type="number" id="weightInput" min="30" max="200" placeholder="70">
-    </div>
-    <div class="settings-row">
-      <div><label>성별</label><div class="hint">칼로리 공식 보정</div></div>
-      <div class="toggle" id="sexToggle">
-        <button data-s="male">남성</button>
-        <button data-s="female">여성</button>
-      </div>
-    </div>
-    <div class="settings-row">
-      <div><label>주간 Zone 2 목표 (분)</label><div class="hint">일반 권장 150~180분</div></div>
-      <input type="number" id="goalInput" min="30" max="600" value="150">
-    </div>
-    <button class="btn-primary btn-wide" id="saveSettings" style="margin-top:16px;">저장</button>
-
-    <div class="sec-title" style="margin:24px 2px 12px;">데이터 백업</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">
-      심박·측정·습관 기록 전체를 파일 하나로 저장합니다. 캐시 삭제나 폰 교체 전에 내보내두세요.
-    </div>
-    <div class="controls" style="margin-bottom:8px;">
-      <button id="exportBtn" style="background:var(--surface2);">⬇ 내보내기</button>
-      <button id="importBtn" style="background:var(--surface2);">⬆ 가져오기</button>
-    </div>
-    <input type="file" id="importFile" accept=".json" style="display:none;">
   </div>
 </div>
 
@@ -1270,7 +1235,7 @@ function renderZoneTime() {
 function getSessions() { try { return JSON.parse(localStorage.getItem('hr_sessions')) || []; } catch(e) { return []; } }
 function startOfWeek() {
   const d = new Date(); const day = d.getDay();
-  const diff = (day === 0 ? 6 : day - 1); // 월요일 시작
+  const diff = (day - wsDay() + 7) % 7; // 주 시작 요일 설정 (기본 월요일)
   d.setHours(0,0,0,0); d.setDate(d.getDate() - diff);
   return d.getTime();
 }
@@ -1283,7 +1248,7 @@ function renderWeekly() {
     if (s.date >= weekStart) {
       const z2 = s.zoneSec[2] || 0; totalSec += z2;
       const d = new Date(s.date); const day = d.getDay();
-      const idx = (day === 0 ? 6 : day - 1);
+      const idx = (day - wsDay() + 7) % 7;
       perDay[idx] += z2;
     }
   });
@@ -1292,7 +1257,7 @@ function renderWeekly() {
   document.getElementById('weeklyGoal').textContent = '/ 목표 ' + goal + '분';
   document.getElementById('weeklyProgress').style.width = Math.min(100, totalMin/goal*100) + '%';
   const maxDay = Math.max(...perDay, 1);
-  const labels = ['월','화','수','목','금','토','일'];
+  const labels = weekOrder().map(d => DAY_LABELS[d]);
   document.getElementById('weekBars').innerHTML = perDay.map((sec, i) => {
     const min = Math.round(sec/60), hPct = sec/ (maxDay) * 100;
     return `<div class="wb-col">
@@ -1370,9 +1335,11 @@ function downloadText(text, fn) {
   URL.revokeObjectURL(url);
 }
 function exportAllData() {
+  settings.lastBackupAt = dayKey(new Date()); saveSettingsObj();   // 파일에도 오늘 날짜가 들어가게 먼저 기록
   const d = new Date();
   downloadText(JSON.stringify(buildBackup(), null, 2), `hr-backup_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`);
   toast('백업 파일 다운로드됨');
+  if (typeof renderBackupBanner === 'function') renderBackupBanner();
 }
 // 구 날짜 키(Y-M-D, 월 0시작·패딩 없음) → ISO YYYY-MM-DD. 중첩 구조 {habitId: {dayKey: value}}
 const MIGRATE_KEYS = ['habit_logs', 'habit_notes', 'habit_skips'];
@@ -1937,24 +1904,22 @@ function renderHabitSummary(){
 const HABIT_COLORS = ['#f6c25b','#e5484d','#ec4899','#8b5cf6','#7fa3e0','#5fc4c6','#4ade80','#6b7280'];
 const DEFAULT_CATS = [{name:'성장',color:'#fde2e2'},{name:'건강',color:'#d5f5f3'},{name:'공부',color:'#ece4fb'},
   {name:'관계',color:'#fbdde3'},{name:'생활',color:'#ecf7c8'},{name:'모닝루틴',color:'#fff6b0'}];
-const CUSTOM_CAT_COLORS = ['#fde2c8','#d6ecff','#e2f5d3','#f3dcf7'];
 const TOD_LABEL = { anytime:'하루', morning:'오전', afternoon:'오후', evening:'저녁' };
 const TOD_ICON = { morning:'☀️', afternoon:'☕', evening:'🌙' };
 const WD = ['일','월','화','수','목','금','토'];
-const WEEK_ORDER = [1,2,3,4,5,6,0];   // 월~일 (JS getDay 값)
 
 function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function todayStart() { const d = new Date(); d.setHours(0,0,0,0); return d; }
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-function weekStartOf(d) { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+function weekStartOf(d) { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay() - wsDay() + 7) % 7)); return x; }
 function weekDays(ws) { return [0,1,2,3,4,5,6].map(i => addDays(ws, i)); }
 function fmtDur(m) { m = Math.round(m); if (m < 60) return m + '분'; const h = Math.floor(m / 60), r = m % 60; return r ? h + '시간 ' + r + '분' : h + '시간'; }
 function fmtNum(x) { return String(Math.round(x * 10) / 10); }
 function cellVal(h, v) { return (v === undefined || v === null || h.type === 'check') ? '' : fmtNum(v) + (h.unit || ''); }
 
-function allCats() { return DEFAULT_CATS.concat(settings.customCategories || []); }
+function allCats() { return Array.isArray(settings.categories) ? settings.categories : DEFAULT_CATS.concat(settings.customCategories || []); }
 function catColor(name) { const c = allCats().find(x => x.name === name); return c ? c.color : null; }
-function pillHtml(name) { const c = catColor(name); return name && c ? `<span class="pill" style="--p:${c}">${esc(name)}</span>` : ''; }
+function pillHtml(name) { const c = catColor(name); return name && hexOk(c) ? `<span class="pill" style="--p:${c}">${esc(name)}</span>` : ''; }
 
 function normHabit(h, i) {
   return Object.assign({}, h, {
@@ -2003,7 +1968,7 @@ function dayLight(c, d, today) {
   c.vis.forEach(h => { if (sched(c, h, d)) { s++; const a = dach(c, h, d); if (a === 'green') g++; else if (a === 'yellow') g += 0.5; } });
   if (!s) return 'none';
   const r = g / s;
-  return r >= 0.6 ? 'green' : r >= 0.3 ? 'yellow' : r > 0 ? 'red' : 'none';
+  return r >= lightGreen() ? 'green' : r >= lightYellow() ? 'yellow' : r > 0 ? 'red' : 'none';
 }
 // 기간 집계. toDate=true 면 오늘까지만 분모에 포함(월간 달성률), false 면 기간 전체(주간 n/7일)
 function aggHabit(c, h, days, today, toDate) {
@@ -2046,6 +2011,7 @@ function renderToday() {
   const c = hctx(), today = todayStart();
   document.getElementById('monthBtn').textContent = selDate.getFullYear() + '년 ' + (selDate.getMonth() + 1) + '월 ▾';
   document.getElementById('lvChip').textContent = 'Lv.' + checkLevelUp().li.level;
+  renderBackupBanner();
   let html = '<button class="ws-arrow" onclick="shiftWeek(-1)" aria-label="지난주">‹</button>';
   weekDays(weekStartOf(selDate)).forEach(d => {
     const lt = dayLight(c, d, today);
@@ -2280,7 +2246,7 @@ function refreshHabitModal() {
   if (HE.type === 'check') { gRow.style.display = 'none'; dRow.style.display = 'none'; }
   else if (HE.type === 'measure') { gRow.style.display = ''; dRow.style.display = ''; hint.textContent = '목표 수치 (단위는 이름에 포함, 예: 체중 kg)'; }
   else { gRow.style.display = ''; dRow.style.display = 'none'; hint.textContent = HE.type === 'time' ? '하루 목표 (분)' : '하루 목표 (개)'; }
-  document.getElementById('hWd').innerHTML = WEEK_ORDER.map(d => `<button class="chip ${HE.wd.has(d) ? 'sel' : ''}" data-d="${d}">${WD[d]}</button>`).join('');
+  document.getElementById('hWd').innerHTML = weekOrder().map(d => `<button class="chip ${HE.wd.has(d) ? 'sel' : ''}" data-d="${d}">${WD[d]}</button>`).join('');
   document.getElementById('hCats').innerHTML =
     `<button class="chip ${HE.cat ? '' : 'sel'}" data-c="">없음</button>` +
     allCats().map(c => `<button class="chip ${HE.cat === c.name ? 'sel' : ''}" data-c="${esc(c.name)}">${esc(c.name)}</button>`).join('') +
@@ -2304,7 +2270,7 @@ document.getElementById('hCats').onclick = e => {
     const name = (prompt('새 테마 이름') || '').trim();
     if (!name) return;
     if (allCats().some(c => c.name === name)) { HE.cat = name; refreshHabitModal(); return; }
-    settings.customCategories = (settings.customCategories || []).concat([{ name, color: CUSTOM_CAT_COLORS[(settings.customCategories || []).length % CUSTOM_CAT_COLORS.length] }]);
+    ensureCats(); settings.categories.push({ name, color: CAT_PALETTE[settings.categories.length % CAT_PALETTE.length] });
     saveSettingsObj(); HE.cat = name;
   } else HE.cat = b.dataset.c;
   refreshHabitModal();
@@ -2324,7 +2290,7 @@ document.getElementById('hSave').onclick = () => {
     situation: document.getElementById('hSit').value.trim(), timeOfDay: HE.tod,
     stamp: document.getElementById('hStamp').value.trim() || '⭕',
     reason: document.getElementById('hReason').value.trim(),
-    weekdays: WEEK_ORDER.filter(d => HE.wd.has(d)).sort((a, b) => a - b), category: HE.cat, color: HE.color, important: HE.imp,
+    weekdays: [0, 1, 2, 3, 4, 5, 6].filter(d => HE.wd.has(d)), category: HE.cat, color: HE.color, important: HE.imp,
     goal, goalDir: HE.type === 'measure' ? HE.dir : 'gte',
   };
   const habits = getHabits();
@@ -2342,7 +2308,7 @@ document.getElementById('hSave').onclick = () => {
 
 // ---------- ⋯ 메뉴 · 필터 · 날짜 이동 ----------
 document.getElementById('moreBtn').onclick = () => openSheet('메뉴', [
-  { label: '⚙ 설정 (테마·심박·백업)', fn: openSettings },
+  { label: '⚙ 설정', fn: () => goSettings('view') },
   { label: '📦 보관된 습관', fn: showArchived },
 ]);
 document.getElementById('filterBtn').onclick = () => openSheet('시간대 필터',
@@ -2418,8 +2384,8 @@ function renderStatBody() {
   const days = monthDaysOf(statY, statM);
   if (statView === 'light') {
     let g = 0, y = 0, r = 0;
-    let html = '<div class="card"><div class="lt-grid">' + WEEK_ORDER.map(d => `<div class="cal-dow">${WD[d]}</div>`).join('');
-    for (let i = 0; i < (days[0].getDay() + 6) % 7; i++) html += '<div class="lt-c pad"></div>';
+    let html = '<div class="card"><div class="lt-grid">' + weekOrder().map(d => `<div class="cal-dow">${WD[d]}</div>`).join('');
+    for (let i = 0; i < colOffset(days[0]); i++) html += '<div class="lt-c pad"></div>';
     days.forEach(d => {
       const lt = dayLight(c, d, today);
       if (lt === 'green') g++; else if (lt === 'yellow') y++; else if (lt === 'red') r++;
@@ -2438,7 +2404,7 @@ function renderStatBody() {
 // 습관 1개 카드 (월간: 요일 맞춰 달력 / 주간: 7칸 한 줄)
 function habitCard(c, h, days, today, mode) {
   let cells = '';
-  if (mode === 'month') for (let i = 0; i < (days[0].getDay() + 6) % 7; i++) cells += '<div></div>';
+  if (mode === 'month') for (let i = 0; i < colOffset(days[0]); i++) cells += '<div></div>';
   days.forEach(d => {
     const sc = sched(c, h, d), fut = d.getTime() > today.getTime(), ach = dach(c, h, d);
     let cls = 'mq', st = '';
@@ -2627,8 +2593,7 @@ function renderLevelScreen() {
     `<div class="sec-title" style="margin:18px 2px 8px;">구입 내역</div>` +
     (hist.length ? hist.map(p => `<div class="shop-row"><span class="shop-nm">${esc(itemName(p.itemId))}</span><span class="shop-cost">-${p.cost}</span><span class="lv-date">${esc(p.date)}</span></div>`).join('') : '<div class="rt-empty" style="padding:12px;">아직 구입한 게 없어요</div>');
 }
-function openLevelScreen() { renderLevelScreen(); document.getElementById('lvModal').classList.add('show'); }
-document.getElementById('lvModal').onclick = e => { if (e.target.id === 'lvModal') e.target.classList.remove('show'); };
+function openLevelScreen() { switchTab('me'); window.scrollTo(0, 0); }
 
 // ====================== 독서 (Phase 4) ======================
 // 책 표지는 원격 URL 만 저장 (사진 저장 없음). 읽은 쪽수·진행률·하루10쪽 일수는 전부 book_logs 에서 계산한다.
@@ -2960,13 +2925,14 @@ function bookShift(n) {
 document.querySelectorAll('#bookSeg button').forEach(b => b.onclick = () => { bookView = b.dataset.b; renderBooks(); });
 
 // ====================== 탭 전환 ======================
-const TABS = ['today','books','workout','measure','stats'];
+const TABS = ['today','books','hr','stats','me'];
+let hrPane = 'workout';
 let curTab = 'today';
 function updateHeader(name) {
-  const titles = { books:'독서', workout:'운동', measure:'측정', stats:'통계' };
+  const titles = { books:'독서', hr:'심박', stats:'통계', me:'내정보' };
   document.querySelector('header').style.display = name === 'today' ? 'none' : '';   // 오늘 탭은 자체 헤더
   document.getElementById('headerTitle').textContent = titles[name] || '';
-  document.getElementById('connStatus').style.display = (name === 'workout' || name === 'measure') ? '' : 'none';
+  document.getElementById('connStatus').style.display = name === 'hr' ? '' : 'none';
 }
 function switchTab(name) {
   TABS.forEach(t => {
@@ -2977,10 +2943,19 @@ function switchTab(name) {
   document.getElementById('fabAdd').classList.toggle('hidden', name !== 'today' && name !== 'books');
   if (name === 'today') renderToday();
   if (name === 'books') renderBooks();
-  if (name === 'workout') { renderWeekly(); renderCalendar(); renderHistory(); }
-  if (name === 'measure') { renderMeasureHistory(); renderHrvChart(); }
+  if (name === 'hr') showHrPane(hrPane);
   if (name === 'stats') renderStatsTab();
+  if (name === 'me') renderMe();
 }
+function showHrPane(p) {
+  hrPane = p;
+  document.getElementById('tab-workout').hidden = p !== 'workout';
+  document.getElementById('tab-measure').hidden = p !== 'measure';
+  document.querySelectorAll('#hrSeg button').forEach(b => b.classList.toggle('sel', b.dataset.h === p));
+  if (p === 'workout') { renderWeekly(); renderCalendar(); renderHistory(); }
+  else { renderMeasureHistory(); renderHrvChart(); }
+}
+document.querySelectorAll('#hrSeg button').forEach(b => b.onclick = () => showHrPane(b.dataset.h));
 function workoutStreak(){
   const byDay = sessionsByDay();
   let s=0; let d=new Date(); d.setHours(0,0,0,0);
@@ -2995,49 +2970,189 @@ function weeklyZone2Min(){
 }
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
-// ====================== 설정 모달 ======================
-function openSettings() {
-  document.getElementById('ageInput').value = settings.age;
-  document.getElementById('restInput').value = settings.rest || '';
-  document.getElementById('weightInput').value = settings.weight || '';
-  document.getElementById('goalInput').value = settings.goal || 150;
-  document.querySelectorAll('#methodToggle button').forEach(b => b.classList.toggle('sel', b.dataset.m === settings.method));
-  document.querySelectorAll('#sexToggle button').forEach(b => b.classList.toggle('sel', b.dataset.s === settings.sex));
-  document.querySelectorAll('#themeToggle button').forEach(b => b.classList.toggle('sel', b.dataset.th === (settings.theme || 'auto')));
-  document.getElementById('settingsModal').classList.add('show');
+// ====================== 설정 · 내정보 (Phase 5) ======================
+const APP_VERSION = '3.0';
+const CAT_PALETTE = ['#fde2e2', '#d5f5f3', '#ece4fb', '#fbdde3', '#ecf7c8', '#fff6b0', '#fde2c8', '#d6ecff', '#e2f5d3', '#f3dcf7'];
+function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
+function wsDay() { return settings.weekStart === 'sun' ? 0 : 1; }                       // 주 시작 요일 (JS getDay 값)
+function weekOrder() { return [0, 1, 2, 3, 4, 5, 6].map(i => (wsDay() + i) % 7); }
+function colOffset(d) { return (d.getDay() - wsDay() + 7) % 7; }                        // 달력 첫 줄 앞 빈칸 수
+function lightGreen() { const n = Number(settings.lightGreen); return n > 0 && n <= 1 ? n : 0.6; }
+function lightYellow() { const n = Number(settings.lightYellow); return n > 0 && n < lightGreen() ? n : 0.3; }
+
+// 테마(카테고리) 관리 — 처음 고칠 때 기본 목록을 settings.categories 로 복사해서 저장
+function ensureCats() {
+  if (!Array.isArray(settings.categories)) { settings.categories = allCats().map(c => ({ name: c.name, color: c.color })); delete settings.customCategories; }
 }
-document.getElementById('settingsBtn').onclick = openSettings;
-document.getElementById('settingsModal').onclick = e => { if (e.target.id === 'settingsModal') e.target.classList.remove('show'); };
-document.querySelectorAll('#methodToggle button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#methodToggle button').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
-});
-document.querySelectorAll('#themeToggle button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#themeToggle button').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
-  settings.theme = b.dataset.th; saveSettingsObj(); applyTheme();   // 테마는 누르는 즉시 적용·저장
-});
-document.querySelectorAll('#sexToggle button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#sexToggle button').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
-});
-document.getElementById('saveSettings').onclick = () => {
-  settings.age = parseInt(document.getElementById('ageInput').value) || 42;
-  const r = parseInt(document.getElementById('restInput').value); settings.rest = r > 0 ? r : null;
+function refreshAllViews() { renderHabits(); renderBooks(); renderSettings(); }
+
+// ---------- 백업 알림 / 저장 공간 ----------
+function daysSinceBackup() {
+  if (!settings.lastBackupAt) return null;
+  return Math.round((todayStart().getTime() - parseDayKey(settings.lastBackupAt).getTime()) / 864e5);
+}
+function renderBackupBanner() {
+  const el = document.getElementById('backupBanner');
+  const hasData = getHabits().length || getBooks().length || getSessions().length;
+  const n = daysSinceBackup(), until = settings.backupDismissUntil;
+  if (!hasData || (n !== null && n <= 7) || (until && dayKey(new Date()) < until)) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="miss-box" style="border-color:var(--accent);display:flex;align-items:center;gap:8px;">` +
+    `<span style="flex:1;font-size:13px;">💾 ${n === null ? '아직 백업한 적이 없어요' : '마지막 백업 ' + n + '일 전'} · <b style="cursor:pointer;color:var(--accent);" onclick="exportAllData()">지금 백업하기</b></span>` +
+    `<button class="mc-x" style="width:26px;height:26px;border-radius:50%;padding:0;flex:none;background:var(--border);color:var(--muted);" aria-label="3일간 숨기기" onclick="dismissBackup()">✕</button></div>`;
+}
+function dismissBackup() { settings.backupDismissUntil = dayKey(addDays(todayStart(), 3)); saveSettingsObj(); renderBackupBanner(); }
+function storageBytes() { let n = 0; for (let i = 0; i < localStorage.length; i++) n += (localStorage.getItem(localStorage.key(i)) || '').length * 2; return n; }
+
+// ---------- 설정 변경 핸들러 ----------
+function setTheme(t) { settings.theme = t; saveSettingsObj(); applyTheme(); renderSettings(); }
+function setWeekStart(v) { settings.weekStart = v; saveSettingsObj(); statWeekStart = null; bookWeekStart = null; selDate = todayStart(); refreshAllViews(); renderWeekly(); }
+function setLight() {
+  const g = parseInt(document.getElementById('lgGreen').value), y = parseInt(document.getElementById('lgYellow').value);
+  if (!(g >= 1 && g <= 100) || !(y >= 1 && y < g)) { toast('초록불은 1~100%, 노란불은 그보다 작게 입력하세요'); renderSettings(); return; }
+  settings.lightGreen = g / 100; settings.lightYellow = y / 100; saveSettingsObj(); refreshAllViews(); toast('저장됨');
+}
+function setDailyPages(v) { const n = parseInt(v); if (!(n >= 1 && n <= 500)) { toast('1~500쪽 사이로 입력하세요'); renderSettings(); return; } settings.dailyPages = n; saveSettingsObj(); renderBooks(); renderSettings(); }
+function setTarget(c, v) { const n = parseInt(v); if (!(n >= 0)) { toast('0 이상의 숫자를 입력하세요'); renderSettings(); return; } const t = readJSON('book_targets', {}); t[c] = n; localStorage.setItem('book_targets', JSON.stringify(t)); renderBooks(); }
+function setXpCap(v) { const n = parseInt(v); if (!(n >= 10)) { toast('하루 XP 상한은 10 이상이에요'); renderSettings(); return; } const m = xpMeta(); m.cap = n; saveXpMeta(m); renderLevelScreen(); toast('저장됨'); }
+function saveHrSettings() {
+  const age = parseInt(document.getElementById('ageInput').value);
+  if (!(age >= 10 && age <= 100)) { toast('나이는 10~100 사이로 입력하세요'); return; }
+  settings.age = age;
+  const r = parseInt(document.getElementById('restInput').value); settings.rest = r >= 30 && r <= 100 ? r : null;
   settings.weight = parseInt(document.getElementById('weightInput').value) || 70;
   settings.goal = parseInt(document.getElementById('goalInput').value) || 150;
   settings.method = document.querySelector('#methodToggle button.sel').dataset.m;
   settings.sex = document.querySelector('#sexToggle button.sel').dataset.s;
   saveSettingsObj();
-  document.getElementById('settingsModal').classList.remove('show');
   if (S.bpm) updateBPM(S.bpm, []);
-  renderWeekly();
-  toast('설정 저장됨');
-};
-document.getElementById('exportBtn').onclick = exportAllData;
-document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
-document.getElementById('importFile').onchange = (e) => {
-  const f = e.target.files[0];
-  if (f) importAllData(f);
-  e.target.value = '';
-};
+  renderWeekly(); toast('설정 저장됨');
+}
+function pickToggle(id, btn) { document.querySelectorAll('#' + id + ' button').forEach(x => x.classList.remove('sel')); btn.classList.add('sel'); }
+// 칭호
+function setTitle(i, key, v) {
+  const t = xpTitles().map(x => ({ level: x.level, name: x.name })); if (!t[i]) return;
+  if (key === 'level') { const n = parseInt(v); if (!(n >= 1)) { toast('레벨은 1 이상이에요'); renderSettings(); return; } t[i].level = n; } else t[i].name = String(v).trim().slice(0, 12);
+  t.sort((a, b) => a.level - b.level);
+  const m = xpMeta(); m.titles = t; saveXpMeta(m); renderSettings(); renderLevelScreen();
+}
+function addTitle() { const t = xpTitles().map(x => ({ level: x.level, name: x.name })); t.push({ level: (t.length ? Math.max(...t.map(x => x.level)) : 0) + 10, name: '새 칭호' }); const m = xpMeta(); m.titles = t; saveXpMeta(m); renderSettings(); }
+function delTitle(i) { const t = xpTitles().map(x => ({ level: x.level, name: x.name })); if (t.length <= 1) { toast('칭호는 1개 이상 필요해요'); return; } t.splice(i, 1); const m = xpMeta(); m.titles = t; saveXpMeta(m); renderSettings(); renderLevelScreen(); }
+// 상점 품목
+function editShopItem(id) {
+  const a = getShopItems(), it = a.find(x => x.id === id); if (!it) return;
+  const name = (prompt('품목 이름', it.name) || '').trim(); if (!name) return;
+  const emoji = (prompt('이모지', it.emoji) || it.emoji).trim() || it.emoji;
+  const cost = parseInt(prompt('가격 (코인)', it.cost)); if (!(cost > 0)) { toast('가격은 1 이상의 숫자로 입력하세요'); return; }
+  Object.assign(it, { name, emoji, cost }); localStorage.setItem('shop_items', JSON.stringify(a)); renderSettings(); renderLevelScreen();
+}
+// 카테고리
+function addCat() {
+  const name = (prompt('새 테마 이름') || '').trim(); if (!name) return;
+  if (allCats().some(c => c.name === name)) { toast('이미 있는 테마예요'); return; }
+  ensureCats(); settings.categories.push({ name, color: CAT_PALETTE[settings.categories.length % CAT_PALETTE.length] }); saveSettingsObj(); refreshAllViews();
+}
+function renameCat(i) {
+  ensureCats(); const c = settings.categories[i]; if (!c) return;
+  const name = (prompt('테마 이름', c.name) || '').trim(); if (!name || name === c.name) return;
+  if (settings.categories.some(x => x.name === name)) { toast('이미 있는 테마예요'); return; }
+  const hs = getHabits(); hs.forEach(h => { if (h.category === c.name) h.category = name; }); saveHabits(hs);
+  c.name = name; saveSettingsObj(); refreshAllViews();
+}
+function setCatColor(i, v) { ensureCats(); if (!settings.categories[i] || !hexOk(v)) return; settings.categories[i].color = v; saveSettingsObj(); refreshAllViews(); }
+function delCat(i) {
+  ensureCats(); const c = settings.categories[i]; if (!c) return;
+  if (!confirm('테마「' + c.name + '」을 지울까요? 이 테마의 습관은 테마 없음이 돼요.')) return;
+  const hs = getHabits(); hs.forEach(h => { if (h.category === c.name) h.category = ''; }); saveHabits(hs);
+  settings.categories.splice(i, 1); saveSettingsObj(); refreshAllViews();
+}
+// 보관한 습관
+function delArchived(id) {
+  const h = getHabits().find(x => x.id === id); if (!h) return;
+  if (!confirm('「' + h.name + '」과 모든 기록을 영구 삭제할까요?')) return;
+  deleteHabit(id); renderSettings();
+}
+// 습관 순서 (드래그)
+function saveHabitOrder(ids) {
+  const hs = getHabits(), by = {}; hs.forEach(h => { by[h.id] = h; });
+  const out = ids.filter(id => by[id]).map(id => by[id]);
+  hs.forEach(h => { if (!ids.includes(h.id)) out.push(h); });
+  saveHabits(out); renderHabits();
+}
+(function () {
+  let drag = null;
+  document.addEventListener('pointerdown', e => {
+    const h = e.target.closest('.ord-h'); if (!h) return;
+    const item = h.closest('.ord-item'); drag = { item, list: item.parentElement };
+    item.classList.add('dragging'); h.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  document.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const sibs = [...drag.list.children].filter(x => x !== drag.item);
+    const next = sibs.find(x => { const r = x.getBoundingClientRect(); return e.clientY < r.top + r.height / 2; });
+    if (next) drag.list.insertBefore(drag.item, next); else drag.list.appendChild(drag.item);
+  });
+  const end = () => { if (!drag) return; drag.item.classList.remove('dragging'); const ids = [...drag.list.children].map(x => x.dataset.id); drag = null; saveHabitOrder(ids); };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+})();
+
+// ---------- 화면 ----------
+function goSettings(sec) {
+  switchTab('me');
+  const d = document.getElementById('sec-' + sec);
+  if (d) { d.open = true; setTimeout(() => d.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }
+}
+function secHtml(id, title, body) { return `<details class="set-sec" id="sec-${id}"><summary>${title}</summary><div class="set-body">${body}</div></details>`; }
+function togHtml(id, items, cur, fn) { return `<div class="toggle" id="${id}">` + items.map(([v, l]) => `<button class="${v === cur ? 'sel' : ''}" onclick="${fn}('${v}')">${l}</button>`).join('') + '</div>'; }
+function renderSettings() {
+  const wrap = document.getElementById('settingsList'); if (!wrap) return;
+  const open = new Set([...wrap.querySelectorAll('details[open]')].map(d => d.id));
+  const habits = getHabits().map(normHabit), arch = habits.filter(h => h.archived), act = habits.filter(h => !h.archived);
+  const tg = getTargets(), cap = xpCap(), used = storageBytes(), pct = Math.min(100, Math.round(used / (5 * 1048576) * 100));
+  const nb = daysSinceBackup();
+  let h = '';
+  h += secHtml('view', '🎨 화면',
+    `<div class="settings-row"><div><label>테마</label><div class="hint">자동 = 폰 설정을 따라감</div></div>${togHtml('themeToggle', [['auto', '자동'], ['dark', '다크'], ['light', '라이트']], settings.theme || 'auto', 'setTheme')}</div>` +
+    `<div class="settings-row"><div><label>주 시작 요일</label></div>${togHtml('wsToggle', [['mon', '월'], ['sun', '일']], settings.weekStart === 'sun' ? 'sun' : 'mon', 'setWeekStart')}</div>` +
+    `<div class="settings-row"><div><label>초록불 기준</label><div class="hint">달성 비율 이상이면 초록 / 노란불 이상이면 노랑</div></div>` +
+    `<div style="display:flex;gap:4px;align-items:center;font-size:12px;"><input type="number" id="lgGreen" min="1" max="100" value="${Math.round(lightGreen() * 100)}" style="width:54px;" onchange="setLight()">%<input type="number" id="lgYellow" min="1" max="99" value="${Math.round(lightYellow() * 100)}" style="width:54px;" onchange="setLight()">%</div></div>`);
+  h += secHtml('habit', '✅ 습관',
+    `<div class="field"><label>보관된 습관</label>` + (arch.length ? arch.map(a => `<div class="shop-row"><span class="shop-nm">${esc(a.icon)} ${esc(a.name)}</span><button class="shop-buy" onclick="archiveHabit('${a.id}',false);renderSettings()">복원</button><button class="shop-x" onclick="delArchived('${a.id}')" aria-label="삭제">✕</button></div>`).join('') : '<div class="hint" style="margin-top:6px;">없음</div>') + '</div>' +
+    `<div class="field"><label>테마(카테고리)</label>` + allCats().map((c, i) => `<div class="shop-row"><span class="pill" style="--p:${hexOk(c.color) ? c.color : '#cccccc'}">${esc(c.name)}</span><span style="flex:1"></span><input type="color" value="${hexOk(c.color) ? c.color : '#cccccc'}" onchange="setCatColor(${i},this.value)" style="width:34px;height:28px;border:0;background:none;padding:0;"><button class="shop-x" onclick="renameCat(${i})" aria-label="이름 변경">✎</button><button class="shop-x" onclick="delCat(${i})" aria-label="삭제">✕</button></div>`).join('') +
+    `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addCat()">＋ 테마 추가</button></div>` +
+    `<div class="field" style="border:0;"><label>습관 순서</label><div class="hint" style="margin:4px 0 6px;">≡ 를 잡고 끌어서 바꿔요</div><div id="orderList">` +
+    act.map(a => `<div class="ord-item" data-id="${a.id}"><span class="ord-h" aria-label="끌어서 이동">≡</span><span class="shop-nm">${esc(a.icon)} ${esc(a.name)}</span></div>`).join('') + (act.length ? '' : '<div class="hint">습관이 없어요</div>') + '</div></div>');
+  h += secHtml('book', '📚 독서',
+    BOOK_CATS.map(c => `<div class="settings-row"><div><label>${c} 평생 목표 (권)</label></div><input type="number" min="0" value="${tg[c]}" onchange="setTarget('${c}',this.value)"></div>`).join('') +
+    `<div class="settings-row"><div><label>하루 기준 쪽수</label><div class="hint">이 쪽수 이상 읽으면 초록 · 10XP (기본 10)</div></div><input type="number" min="1" max="500" value="${readThreshold()}" onchange="setDailyPages(this.value)"></div>`);
+  h += secHtml('reward', '🏆 레벨·보상',
+    `<div class="field"><label>칭호 편집</label>` + xpTitles().map((t, i) => `<div class="shop-row"><span style="font-size:12px;color:var(--muted)">Lv.</span><input type="number" min="1" value="${t.level}" style="width:60px;" onchange="setTitle(${i},'level',this.value)"><input type="text" class="text-input" maxlength="12" value="${esc(t.name)}" style="flex:1;min-width:0;" onchange="setTitle(${i},'name',this.value)"><button class="shop-x" onclick="delTitle(${i})" aria-label="삭제">✕</button></div>`).join('') +
+    `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addTitle()">＋ 칭호 추가</button></div>` +
+    `<div class="field"><label>상점 품목 관리</label>` + (getShopItems().map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">🪙 ${it.cost}</span><button class="shop-x" onclick="editShopItem('${it.id}')" aria-label="수정">✎</button><button class="shop-x" onclick="delShopItem('${it.id}');renderSettings()" aria-label="삭제">✕</button></div>`).join('') || '<div class="hint" style="margin-top:6px;">직접 만든 품목이 없어요 (🛌 쉬는 날 이용권은 기본 제공)</div>') +
+    `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addShopItem();renderSettings()">＋ 품목 추가</button></div>` +
+    `<div class="settings-row" style="border:0;"><div><label>하루 XP 상한</label><div class="hint">기본 150</div></div><input type="number" min="10" value="${cap}" onchange="setXpCap(this.value)"></div>`);
+  h += secHtml('hr', '❤️ 심박·신체',
+    `<div class="sub" style="font-size:12px;color:var(--muted);margin-bottom:6px;">Zone 계산과 칼로리 추정 기준을 설정합니다.</div>` +
+    `<div class="settings-row"><div><label>나이</label><div class="hint">최대심박 = 220 − 나이</div></div><input type="number" id="ageInput" min="10" max="100" value="${settings.age}"></div>` +
+    `<div class="settings-row"><div><label>안정시 심박수</label><div class="hint">측정 탭에서 잰 값 입력 시 정확도 ↑</div></div><input type="number" id="restInput" min="30" max="100" placeholder="--" value="${settings.rest || ''}"></div>` +
+    `<div class="settings-row"><div><label>Zone 계산</label><div class="hint">HRR(Karvonen)이 더 정확</div></div><div class="toggle" id="methodToggle"><button data-m="max" class="${settings.method !== 'hrr' ? 'sel' : ''}" onclick="pickToggle('methodToggle',this)">%최대</button><button data-m="hrr" class="${settings.method === 'hrr' ? 'sel' : ''}" onclick="pickToggle('methodToggle',this)">%HRR</button></div></div>` +
+    `<div class="settings-row"><div><label>체중 (kg)</label><div class="hint">칼로리 추정용</div></div><input type="number" id="weightInput" min="30" max="200" placeholder="70" value="${settings.weight || ''}"></div>` +
+    `<div class="settings-row"><div><label>성별</label><div class="hint">칼로리 공식 보정</div></div><div class="toggle" id="sexToggle"><button data-s="male" class="${settings.sex !== 'female' ? 'sel' : ''}" onclick="pickToggle('sexToggle',this)">남성</button><button data-s="female" class="${settings.sex === 'female' ? 'sel' : ''}" onclick="pickToggle('sexToggle',this)">여성</button></div></div>` +
+    `<div class="settings-row"><div><label>주간 Zone 2 목표 (분)</label><div class="hint">일반 권장 150~180분</div></div><input type="number" id="goalInput" min="30" max="600" value="${settings.goal || 150}"></div>` +
+    `<button class="btn-primary btn-wide" style="margin-top:12px;" onclick="saveHrSettings()">저장</button>`);
+  h += secHtml('data', '💾 데이터',
+    `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6;">심박·측정·습관·독서 기록 전체를 파일 하나로 저장합니다. 캐시 삭제나 폰 교체 전에 내보내두세요.</div>` +
+    `<div class="controls" style="margin-bottom:8px;"><button onclick="exportAllData();renderSettings()" style="background:var(--surface2);">⬇ 내보내기</button><button onclick="document.getElementById('importFile').click()" style="background:var(--surface2);">⬆ 가져오기</button></div>` +
+    `<div class="hint" style="margin:6px 0 14px;">마지막 백업: ${nb === null ? '없음' : nb === 0 ? '오늘' : nb + '일 전'}</div>` +
+    `<div class="lv-sub"><span>저장 공간 사용량</span><span>${(used / 1048576).toFixed(1)}MB / 5MB</span></div>` +
+    `<div class="progress-bg" style="margin:6px 0 4px;height:8px;"><div class="progress-fill" style="width:${pct}%;${pct > 70 ? 'background:var(--tl-red);' : ''}"></div></div>` +
+    (pct > 70 ? '<div class="hint" style="color:var(--tl-red);">⚠ 70%를 넘었어요. 백업하고 오래된 운동 기록을 정리하세요.</div>' : ''));
+  h += secHtml('info', 'ℹ️ 정보',
+    `<div class="settings-row"><label>앱 버전</label><span>${APP_VERSION}</span></div><div class="settings-row"><label>schema_version</label><span>${esc(localStorage.getItem('schema_version') || '-')}</span></div>`);
+  wrap.innerHTML = h;
+  open.forEach(id => { const d = document.getElementById(id); if (d) d.open = true; });
+}
+function renderMe() { renderLevelScreen(); renderSettings(); }
+document.getElementById('importFile').onchange = e => { const f = e.target.files[0]; if (f) importAllData(f); e.target.value = ''; };
 
 // ====================== 이벤트 바인딩 ======================
 document.getElementById('connectBtn').onclick = () => S.device ? reconnect() : connect();
