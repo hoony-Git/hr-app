@@ -286,8 +286,13 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .rt-sit { display: flex; align-items: center; padding: 0 6px; font-size: 12px; color: var(--muted); line-height: 1.3; word-break: keep-all; }
   .rt-name { display: flex; align-items: center; gap: 6px; padding: 0 10px; font-size: 15px; font-weight: 600; word-break: keep-all; min-width: 0; }
   .rt-res { flex: none; flex-direction: column; gap: 1px; padding: 0; border-radius: 0; background: transparent; font-size: 22px; line-height: 1; }
+  .rt-res.y { background: color-mix(in srgb, var(--tl-yellow) 22%, transparent); }
+  .rt-res.y .rt-st { opacity: .5; }
+  .rt-res.r { background: color-mix(in srgb, var(--tl-red) 14%, transparent); }
   .rt-val { font-size: 11px; color: var(--muted); font-weight: 600; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .rt-frame { position: absolute; top: 0; bottom: 0; left: calc(var(--c-idx) + var(--c-sit)); right: var(--c-res); border: 2px solid var(--accent); border-radius: 12px; pointer-events: none; }
+  .lg { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--tl-yellow); }
+  .lg.r { background: var(--tl-red); }
   .rt-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 26px 10px; line-height: 1.7; }
   .pill { display: inline-block; padding: 2px 9px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; white-space: nowrap;
     background: color-mix(in srgb, var(--p) var(--pill-bg-pct), transparent); color: color-mix(in srgb, var(--p) var(--pill-fg-pct), var(--pill-fg-base)); }
@@ -302,7 +307,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .wk-cells { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 6px 10px 8px; }
   .wc { position: relative; aspect-ratio: .82; border-radius: var(--radius-cell); background: var(--surface2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
   .wc.off { opacity: .35; }
-  .wc.part { background: var(--accent-soft); }
+  .wc.y { background: color-mix(in srgb, var(--tl-yellow) 25%, var(--surface2)); }
+  .wc.r { background: color-mix(in srgb, var(--tl-red) 16%, var(--surface2)); }
+  .wc-s.half { opacity: .5; }
   .wc-d { position: absolute; top: 3px; left: 5px; font-size: 9px; color: var(--muted); }
   .wc-s { font-size: 17px; line-height: 1; margin-top: 10px; }
   .wc-v { font-size: 10px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; margin-top: 2px; }
@@ -384,6 +391,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <button class="btn-go" id="startBtn">▶ 시작</button>
     <button id="pauseBtn" disabled>⏸ 정지</button>
     <button class="btn-stop" id="stopBtn" disabled>⏹ 종료</button>
+    <div class="cal-legend" id="todayLegend"><span>달성 = 도장</span><span><i class="lg y"></i>절반 = 반투명 도장</span><span><i class="lg r"></i>부족</span></div>
   </div>
 
 
@@ -1835,11 +1843,11 @@ function sched(c, h, d) {
 }
 function dval(c, h, d) { const L = c.logs[h.id]; return L ? L[dayKey(d)] : undefined; }
 function dach(c, h, d) { const v = dval(c, h, d); return v === undefined ? null : habitAchievement(h, v); }
-// 하루 신호등: 그날 예정된 습관 중 달성(green)한 비율 ≥0.6 초록 / ≥0.3 노랑 / >0 빨강 / 그 외 없음
+// 하루 신호등: 그날 예정된 습관의 달성 비율(달성 1점 + 절반 달성 0.5점) ≥0.6 초록 / ≥0.3 노랑 / >0 빨강 / 그 외 없음
 function dayLight(c, d, today) {
   if (d.getTime() > today.getTime()) return 'none';
   let s = 0, g = 0;
-  c.vis.forEach(h => { if (sched(c, h, d)) { s++; if (dach(c, h, d) === 'green') g++; } });
+  c.vis.forEach(h => { if (sched(c, h, d)) { s++; const a = dach(c, h, d); if (a === 'green') g++; else if (a === 'yellow') g += 0.5; } });
   if (!s) return 'none';
   const r = g / s;
   return r >= 0.6 ? 'green' : r >= 0.3 ? 'yellow' : r > 0 ? 'red' : 'none';
@@ -1913,7 +1921,7 @@ function renderRoutine(c) {
     n++;
     const ach = v === undefined ? null : habitAchievement(h, v);
     const running = HT.activeId === h.id && dayKey(new Date()) === dk;
-    const stamp = running ? '⏱️' : (ach === 'green' ? esc(h.stamp) : '');
+    const stamp = running ? '⏱️' : (ach === 'green' || ach === 'yellow' ? esc(h.stamp) : '');
     const note = (c.notes[h.id] || {})[dk];
     let val = cellVal(h, v);
     if (h.type === 'check') val = ach === 'green' ? esc(firstWord(note)) : '';
@@ -1921,7 +1929,7 @@ function renderRoutine(c) {
       `<div class="rt-idx">${n}</div>` +
       `<div class="rt-sit">${esc(h.situation) || (TOD_ICON[h.timeOfDay] || '')}</div>` +
       `<div class="rt-name">${h.important ? '🔥 ' : ''}${esc(h.icon)} ${esc(h.name)}</div>` +
-      `<button class="rt-res" data-id="${h.id}" aria-label="기록">${stamp}<span class="rt-val">${val}</span></button></div>`;
+      `<button class="rt-res ${ach === 'yellow' ? 'y' : ach === 'red' ? 'r' : ''}" data-id="${h.id}" aria-label="기록">${stamp ? `<span class="rt-st">${stamp}</span>` : ''}<span class="rt-val">${val}</span></button></div>`;
   });
   const wrap = document.getElementById('routineTable');
   if (!n) {
@@ -1944,9 +1952,9 @@ function renderWeekCards(c, today) {
       let val = cellVal(h, v);
       if (!val && note) val = esc(note.length > 6 ? note.slice(0, 6) : note);
       const off = !sched(c, h, d) && v === undefined;
-      return `<div class="wc ${off ? 'off' : ''} ${ach && ach !== 'green' ? 'part' : ''}"${fut ? '' : ` onclick="openPastModal('${h.id}',${ago})"`}>` +
+      return `<div class="wc ${off ? 'off' : ''} ${ach === 'yellow' ? 'y' : ach === 'red' ? 'r' : ''}"${fut ? '' : ` onclick="openPastModal('${h.id}',${ago})"`}>` +
         `<span class="wc-d">${WD[d.getDay()]}</span>${note ? '<i class="wc-dot"></i>' : ''}` +
-        `<span class="wc-s">${ach === 'green' ? esc(h.stamp) : ''}</span><span class="wc-v">${val}</span></div>`;
+        `<span class="wc-s ${ach === 'yellow' ? 'half' : ''}">${ach === 'green' || ach === 'yellow' ? esc(h.stamp) : ''}</span><span class="wc-v">${val}</span></div>`;
     }).join('');
     const a = aggHabit(c, h, days, today, false);
     const tt = totalText(h, a, true);
@@ -2229,7 +2237,7 @@ function renderStatBody() {
   if (statView === 'week') {
     const days = weekDays(statWeekStart);
     title.textContent = (days[0].getMonth() + 1) + '/' + days[0].getDate() + ' ~ ' + (days[6].getMonth() + 1) + '/' + days[6].getDate();
-    body.innerHTML = c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'week')).join('') + '</div>' : '<div class="rt-empty">습관을 추가하면 표시돼요</div>';
+    body.innerHTML = c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'week')).join('') + '</div>' + '<div class="cal-legend"><span>달성 = 습관 색</span><span><i class="lg y"></i>절반 달성</span><span>회색 = 못 함</span></div>' : '<div class="rt-empty">습관을 추가하면 표시돼요</div>';
     return;
   }
   title.textContent = statY + '년 ' + (statM + 1) + '월';
@@ -2251,7 +2259,7 @@ function renderStatBody() {
   c.vis.forEach(h => { const a = aggHabit(c, h, days, today, true); S += a.sch; A += a.ach; });
   const pct = S ? Math.round(A / S * 100) : 0;
   body.innerHTML = `<div class="card rate-card"><div class="rate-t">📊 목표 달성률 ${pct}%</div><div class="progress-bg" style="margin-bottom:0;"><div class="progress-fill" style="width:${pct}%"></div></div></div>` +
-    (c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'month')).join('') + '</div>' : '<div class="rt-empty">습관을 추가하면 표시돼요</div>');
+    (c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'month')).join('') + '</div>' + '<div class="cal-legend"><span>달성 = 습관 색</span><span><i class="lg y"></i>절반 달성</span><span>회색 = 못 함</span></div>' : '<div class="rt-empty">습관을 추가하면 표시돼요</div>');
 }
 // 습관 1개 카드 (월간: 요일 맞춰 달력 / 주간: 7칸 한 줄)
 function habitCard(c, h, days, today, mode) {
@@ -2326,6 +2334,7 @@ function switchTab(name) {
   document.getElementById('fabAdd').classList.toggle('hidden', name !== 'today');
   if (name === 'today') renderToday();
   if (name === 'workout') { renderWeekly(); renderCalendar(); renderHistory(); }
+    else if (ach === 'yellow') { cls += ' on'; st = ' style="background:var(--tl-yellow)"'; }
   if (name === 'measure') { renderMeasureHistory(); renderHrvChart(); }
   if (name === 'stats') renderStatsTab();
 }
