@@ -3,27 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#f4f6f9">
+<meta name="theme-color" content="#111214">
+<script>
+// 첫 페인트 전에 테마 적용 (깜빡임 방지) — hr_settings.theme = 'auto'|'dark'|'light'
+try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if (_t === 'dark' || _t === 'light') document.documentElement.setAttribute('data-theme', _t); } catch(e) {}
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>HR Monitor — Zone 2 & HRV</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
-    --bg: #f4f6f9; --surface: #ffffff; --surface2: #eef1f5; --border: #dde3ea;
-    --text: #1a2230; --muted: #6b7685; --accent: #3b82f6;
     --z0: #64748b; --z1: #3b82f6; --z2: #22c55e; --z3: #eab308; --z4: #f97316; --z5: #ef4444;
     --hrv: #a855f7; --warn: #f59e0b;
+    --on-zone: #0b0f14; --on-go: #06210f; --on-stop: #2a0606; --on-hrv: #1a0533;
+    --tl-green: #22c55e; --tl-yellow: #f5b301; --tl-red: #ef4444;
+    --accent: #22c55e; --on-accent: #04210f;
+    --radius-cell: 10px; --radius-card: 16px; --radius-pill: 999px;
+    /* 다크 (기본) */
+    color-scheme: dark;
+    --bg: #111214; --surface: #1b1c1f; --surface2: #25272b; --border: #2e3035;
+    --text: #ececee; --muted: #8b8e95;
+    --accent-soft: rgba(34,197,94,.15);
+    --tl-none: #3a3c41; --row-important: #2a2716; --index-bar: #2e3035; --dot-off: #475569;
+    --pill-bg-pct: 22%; --pill-fg-pct: 55%; --pill-fg-base: #ffffff;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg: #f6f7f8; --surface: #ffffff; --surface2: #f1f2f4; --border: #e3e5e8;
+      --text: #1d1f23; --muted: #8a8f98;
+      --accent-soft: rgba(34,197,94,.12);
+      --tl-none: #dfe2e6; --row-important: #fffbe6; --index-bar: #4a7c59;
+      --pill-bg-pct: 100%; --pill-fg-pct: 45%; --pill-fg-base: #000000;
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f6f7f8; --surface: #ffffff; --surface2: #f1f2f4; --border: #e3e5e8;
+    --text: #1d1f23; --muted: #8a8f98;
+    --accent-soft: rgba(34,197,94,.12);
+    --tl-none: #dfe2e6; --row-important: #fffbe6; --index-bar: #4a7c59;
+    --pill-bg-pct: 100%; --pill-fg-pct: 45%; --pill-fg-base: #000000;
   }
   html, body { background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overscroll-behavior: none; }
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overscroll-behavior: none; }
   body { padding: env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 80px); max-width: 560px; margin: 0 auto; }
 
   header { display: flex; align-items: center; justify-content: space-between; padding: 14px 2px 10px; position: sticky; top: 0; background: var(--bg); z-index: 20; }
   header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
   header h1 span { color: var(--z2); }
   .status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #475569; transition: background .3s; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot-off); transition: background .3s; }
   .dot.on { background: var(--z2); box-shadow: 0 0 8px var(--z2); }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; }
@@ -34,7 +66,7 @@
   .pct { font-size: 13px; color: var(--muted); margin-top: 8px; }
   .ladder { display: flex; gap: 5px; margin-top: 16px; }
   .lz { flex: 1; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; opacity: .28; transition: opacity .25s, transform .25s; color: #0b0f14; }
+    font-size: 12px; font-weight: 700; opacity: .28; transition: opacity .25s, transform .25s; color: var(--on-zone); }
   .lz.active { opacity: 1; transform: scaleY(1.18); }
 
   .chart-wrap { position: relative; height: 180px; }
@@ -54,10 +86,10 @@
     display: flex; align-items: center; justify-content: center; gap: 7px; }
   button:active { transform: scale(.97); }
   button:disabled { opacity: .4; cursor: not-allowed; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-go { background: var(--z2); color: #06210f; }
-  .btn-stop { background: var(--z5); color: #2a0606; }
-  .btn-hrv { background: var(--hrv); color: #1a0533; }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-go { background: var(--z2); color: var(--on-go); }
+  .btn-stop { background: var(--z5); color: var(--on-stop); }
+  .btn-hrv { background: var(--hrv); color: var(--on-hrv); }
   .btn-wide { flex: none; width: 100%; }
 
   .ztime { margin-top: 4px; }
@@ -111,7 +143,7 @@
     padding: 8px 8px calc(env(safe-area-inset-bottom) + 8px); z-index: 30; }
   .tabbar button { flex: 1; flex-direction: column; gap: 3px; background: transparent; padding: 8px 0; font-size: 11px; font-weight: 500; color: var(--muted); border-radius: 10px; }
   .tabbar button .ic { font-size: 21px; }
-  .tabbar button.on { color: var(--z2); }
+  .tabbar button.on { color: var(--accent); }
 
   /* 설정 */
   .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
@@ -122,7 +154,7 @@
     color: var(--text); font-size: 15px; padding: 9px 11px; text-align: center; font-variant-numeric: tabular-nums; }
   .toggle { display: flex; background: var(--surface2); border-radius: 9px; padding: 3px; }
   .toggle button { flex: none; padding: 7px 12px; font-size: 12px; border-radius: 7px; background: transparent; }
-  .toggle button.sel { background: var(--accent); color: #fff; }
+  .toggle button.sel { background: var(--accent); color: var(--on-accent); }
   .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: flex-end; justify-content: center; z-index: 50; }
   .modal-bg.show { display: flex; }
   .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 22px 18px calc(env(safe-area-inset-bottom) + 22px); width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; }
@@ -189,7 +221,7 @@
   .sum-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
   .habit-ctrls { display: flex; gap: 8px; align-items: center; }
   .cnt-btn { flex: none; width: 52px; height: 50px; background: var(--surface2); border-radius: 12px; font-size: 22px; font-weight: 700; padding: 0; }
-  .cnt-btn.plus { background: var(--z2); color: #06210f; }
+  .cnt-btn.plus { background: var(--z2); color: var(--on-go); }
   .cnt-btn.ten { width: auto; padding: 0 14px; font-size: 14px; }
   .cnt-val { flex: 1; text-align: center; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .num-input { flex: 1; min-width: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; padding: 13px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -197,11 +229,11 @@
   .habit-add-btn { width: 100%; border: 2px dashed var(--border); background: transparent; color: var(--muted); padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 500; }
   .habit-cal-pills { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
   .hcp { flex: none; padding: 8px 14px; border-radius: 999px; background: var(--surface2); font-size: 13px; color: var(--muted); border: none; cursor: pointer; white-space: nowrap; }
-  .hcp.sel { background: var(--accent); color: #fff; }
+  .hcp.sel { background: var(--accent); color: var(--on-accent); }
   .habit-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 20px; line-height: 1.7; }
   .seg { display: flex; background: var(--surface2); border-radius: 9px; padding: 3px; margin-top: 8px; gap: 2px; }
   .seg button { flex: 1; padding: 9px 4px; font-size: 12px; border-radius: 7px; background: transparent; }
-  .seg button.sel { background: var(--accent); color: #fff; }
+  .seg button.sel { background: var(--accent); color: var(--on-accent); }
   .text-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-size: 15px; padding: 9px 11px; }
 
   /* 홈 대시보드 */
@@ -245,7 +277,7 @@
   <div class="card hero">
     <div class="bpm-num" id="bpm">--</div>
     <div class="bpm-unit">BPM</div>
-    <div class="zone-label" id="zoneLabel" style="background:var(--z0);color:#0b0f14;">대기</div>
+    <div class="zone-label" id="zoneLabel" style="background:var(--z0);color:var(--on-zone);">대기</div>
     <div class="pct" id="pct">최대심박 대비 --%</div>
     <div class="ladder" id="ladder"></div>
   </div>
@@ -469,6 +501,14 @@
     <h2>설정</h2>
     <div class="sub">Zone 계산과 칼로리 추정 기준을 설정합니다.</div>
     <div class="settings-row">
+      <div><label>화면 테마</label><div class="hint">자동 = 폰 설정을 따라감</div></div>
+      <div class="toggle" id="themeToggle">
+        <button data-th="auto">자동</button>
+        <button data-th="dark">다크</button>
+        <button data-th="light">라이트</button>
+      </div>
+    </div>
+    <div class="settings-row">
       <div><label>나이</label><div class="hint">최대심박 = 220 − 나이</div></div>
       <input type="number" id="ageInput" min="10" max="100" value="42">
     </div>
@@ -540,6 +580,18 @@ function loadSettings() {
   return { age: 42, rest: null, method: 'max', weight: 70, sex: 'male', goal: 150 };
 }
 function saveSettingsObj() { localStorage.setItem('hr_settings', JSON.stringify(settings)); }
+
+// ====================== 테마 ======================
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function applyTheme() {
+  const t = settings.theme === 'dark' || settings.theme === 'light' ? settings.theme : 'auto';
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  const m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', cssVar('--bg'));
+  if (typeof renderChart === 'function' && S.chartData.length) renderChart();
+}
+try { window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme); } catch(e) {}
 
 // ====================== Zone / 칼로리 계산 ======================
 function maxHR() { return 220 - settings.age; }
@@ -650,7 +702,7 @@ function updateBPM(bpm, rr) {
   document.getElementById('bpm').style.color = ZONE_COLORS[z];
   const lbl = document.getElementById('zoneLabel');
   lbl.textContent = ZONE_NAMES[z]; lbl.style.background = ZONE_COLORS[z];
-  lbl.style.color = z === 0 ? '#0b0f14' : '#06210f';
+  lbl.style.color = z === 0 ? 'var(--on-zone)' : 'var(--on-go)';
   document.getElementById('pct').textContent = '최대심박 대비 ' + pctOfMax(bpm) + '%';
   updateLadder(z);
 
@@ -846,7 +898,7 @@ function renderChart() {
     const x = i / (data.length - 1) * w, y = yOf(data[i]);
     if (!st) { ctx.moveTo(x, y); st = true; } else ctx.lineTo(x, y);
   }
-  ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.strokeStyle = cssVar('--text'); ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
 }
 
 // ====================== 차트: HRV 추세 ======================
@@ -1724,12 +1776,17 @@ function openSettings() {
   document.getElementById('goalInput').value = settings.goal || 150;
   document.querySelectorAll('#methodToggle button').forEach(b => b.classList.toggle('sel', b.dataset.m === settings.method));
   document.querySelectorAll('#sexToggle button').forEach(b => b.classList.toggle('sel', b.dataset.s === settings.sex));
+  document.querySelectorAll('#themeToggle button').forEach(b => b.classList.toggle('sel', b.dataset.th === (settings.theme || 'auto')));
   document.getElementById('settingsModal').classList.add('show');
 }
 document.getElementById('settingsBtn').onclick = openSettings;
 document.getElementById('settingsModal').onclick = e => { if (e.target.id === 'settingsModal') e.target.classList.remove('show'); };
 document.querySelectorAll('#methodToggle button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#methodToggle button').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
+});
+document.querySelectorAll('#themeToggle button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#themeToggle button').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
+  settings.theme = b.dataset.th; saveSettingsObj(); applyTheme();   // 테마는 누르는 즉시 적용·저장
 });
 document.querySelectorAll('#sexToggle button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#sexToggle button').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
@@ -1811,6 +1868,7 @@ document.getElementById('hCalPrev').onclick = () => hCalShift(-1);
 document.getElementById('hCalNext').onclick = () => hCalShift(1);
 
 // 초기 렌더
+applyTheme();
 runMigrations();  // 날짜 키 변환 — 어떤 습관 렌더보다 먼저
 auditBackupKeys();
 recoverActiveSession();  // 지난 세션이 비정상 종료됐으면 복구 (렌더보다 먼저)
