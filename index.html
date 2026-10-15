@@ -136,6 +136,24 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .wb-bar { width: 100%; background: var(--z2); border-radius: 4px; min-height: 2px; transition: height .4s; }
   .wb-bar.empty { background: var(--surface2); }
   .wb-label { font-size: 10px; color: var(--muted); }
+  .zr-title { margin: 18px 0 8px; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .zr { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; }
+  .zr-n { flex: none; width: 74px; font-weight: 600; white-space: nowrap; }
+  .zr-n i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .zr-bar { flex: 1; min-width: 0; height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
+  .zr-bar div { height: 100%; border-radius: 4px; transition: width .4s; }
+  .zr-v { flex: none; width: 52px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .shop-use { flex: none; padding: 5px 9px; border-radius: var(--radius-pill); background: var(--accent); color: var(--on-accent); font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .shop-use.done { background: var(--surface2); color: var(--muted); }
+  .shop-use.none { background: transparent; color: var(--muted); font-weight: 500; }
+  .shop-nm.used { opacity: .5; text-decoration: line-through; }
+  .wr-hl { background: var(--surface2); border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.7; }
+  .wr-hl > div { padding: 2px 0; word-break: keep-all; }
+  .wr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .wr-c { background: var(--surface2); border-radius: 12px; padding: 12px 8px; text-align: center; min-width: 0; }
+  .wr-c b { display: block; font-size: 19px; font-variant-numeric: tabular-nums; }
+  .wr-c small { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
+  .more-btn { width: 100%; margin: 4px 0 8px; padding: 12px; border-radius: 12px; background: var(--surface2); font-size: 13px; font-weight: 600; color: var(--muted); }
 
   /* 탭바 */
   .tabbar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 560px; margin: 0 auto;
@@ -182,7 +200,8 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .cal-cell.no-data { background: var(--surface2); }
   .cal-cell.future { opacity: .3; }
   .cal-cell.today { box-shadow: 0 0 0 2px var(--accent); }
-  .cal-emoji { font-size: 19px; line-height: 1; }
+  .cal-emoji { font-size: 19px; line-height: 1; margin-top: 6px; }
+  .cal-min { font-size: 10px; line-height: 1; margin-top: 3px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cal-day { font-size: 9px; color: var(--muted); position: absolute; top: 4px; left: 5px; }
   .cal-cell.green { background: rgba(34,197,94,.18); }
   .cal-cell.yellow { background: rgba(234,179,8,.18); }
@@ -249,7 +268,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .hbs-val { display: block; font-size: 30px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
   .hbs-sub { font-size: 12px; color: var(--muted); }
   .home-empty-stat { text-align: center; color: var(--muted); font-size: 13px; padding: 14px; }
-  .streak-grid { display: flex; gap: 8px; }
+  .streak-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .sk-more { width: 100%; margin-top: 10px; padding: 8px; border-radius: 10px; background: var(--surface2); font-size: 12px; color: var(--muted); }
+  .sk-item.zero .sk-num { color: var(--muted); }
   .sk-item { flex: 1; min-width: 0; background: var(--surface2); border-radius: 10px; padding: 12px 4px; text-align: center; }
   .sk-num { font-size: 24px; font-weight: 700; color: var(--z4); font-variant-numeric: tabular-nums; }
   .sk-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -286,12 +307,36 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .rt-sit { display: flex; align-items: center; padding: 0 6px; font-size: 12px; color: var(--muted); line-height: 1.3; word-break: keep-all; }
   .rt-name { display: flex; align-items: center; gap: 6px; padding: 0 10px; font-size: 15px; font-weight: 600; word-break: keep-all; min-width: 0; }
   .rt-res { flex: none; flex-direction: column; gap: 1px; padding: 0; border-radius: 0; background: transparent; font-size: 22px; line-height: 1; }
-  .rt-res.y { background: color-mix(in srgb, var(--tl-yellow) 22%, transparent); }
-  .rt-res.y .rt-st { opacity: .5; }
   .rt-res.r { background: color-mix(in srgb, var(--tl-red) 14%, transparent); }
   .rt-val { font-size: 11px; color: var(--muted); font-weight: 600; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .rt-frame { position: absolute; top: 0; bottom: 0; left: calc(var(--c-idx) + var(--c-sit)); right: var(--c-res); border: 2px solid var(--accent); border-radius: 12px; pointer-events: none; }
   .lg { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--tl-yellow); }
+  .lg.hatch { background: repeating-linear-gradient(135deg, var(--text) 0 2px, transparent 2px 4px); opacity: .7; }
+  /* 도장: 달성 = 실선 이중 테두리 + 찍히는 애니메이션, 절반 = 점선 */
+  .seal { --sc: #888; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; border: 2.5px solid var(--sc);
+    box-shadow: inset 0 0 0 2px var(--surface), inset 0 0 0 3.5px var(--sc); background: color-mix(in srgb, var(--sc) 12%, transparent);
+    color: color-mix(in srgb, var(--sc) 70%, var(--text)); font-size: 11px; font-weight: 800; letter-spacing: -.5px; line-height: 1; transform: rotate(-12deg); }
+  .seal.emo { font-size: 18px; letter-spacing: 0; }
+  .seal.half { border-style: dashed; box-shadow: none; background: transparent; opacity: .85; }
+  .seal.sm { width: 30px; height: 30px; border-width: 2px; font-size: 9px; box-shadow: inset 0 0 0 1.5px var(--surface2), inset 0 0 0 2.5px var(--sc); }
+  .seal.sm.emo { font-size: 14px; }
+  .seal.sm.half { box-shadow: none; }
+  .seal.pop { animation: seal-pop .5s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes seal-pop { 0% { transform: scale(2.6) rotate(-45deg); opacity: 0; } 55% { opacity: 1; } 100% { transform: scale(1) rotate(-12deg); } }
+  /* 오늘 탭 월간 */
+  .mo-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 14px; font-weight: 700; }
+  .mo-nav button { flex: none; width: 36px; height: 36px; padding: 0; border-radius: 10px; background: var(--surface2); font-size: 18px; }
+  .mo-dow, .mo-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; padding: 0 8px; }
+  .mo-dow { padding-top: 6px; }
+  .mo-dow div { text-align: center; font-size: 10px; color: var(--muted); }
+  .mo-grid { padding-bottom: 8px; }
+  .mo-c { height: 28px; border-radius: 7px; background: var(--surface2); color: var(--muted); font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; min-width: 0; font-variant-numeric: tabular-nums; }
+  .mo-c.on { color: var(--on-tl); font-weight: 700; }
+  .mo-c.pad { background: transparent; cursor: default; }
+  .mo-c.off { opacity: .35; }
+  .mo-c.r { background: color-mix(in srgb, var(--tl-red) 16%, var(--surface2)); }
+  .mo-c.today { box-shadow: 0 0 0 1.5px var(--accent); }
+  .wc.today { box-shadow: 0 0 0 2px var(--accent); }
   .lg.r { background: var(--tl-red); }
   .rt-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 26px 10px; line-height: 1.7; }
   .pill { display: inline-block; padding: 2px 9px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; white-space: nowrap;
@@ -307,11 +352,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .wk-cells { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 6px 10px 8px; }
   .wc { position: relative; aspect-ratio: .82; border-radius: var(--radius-cell); background: var(--surface2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
   .wc.off { opacity: .35; }
-  .wc.y { background: color-mix(in srgb, var(--tl-yellow) 25%, var(--surface2)); }
   .wc.r { background: color-mix(in srgb, var(--tl-red) 16%, var(--surface2)); }
-  .wc-s.half { opacity: .5; }
-  .wc-d { position: absolute; top: 3px; left: 5px; font-size: 9px; color: var(--muted); }
-  .wc-s { font-size: 17px; line-height: 1; margin-top: 10px; }
+  .wc-d { position: absolute; top: 3px; left: 4px; font-size: 9px; color: var(--muted); white-space: nowrap; }
+  .wc-s { line-height: 1; margin-top: 12px; display: flex; }
   .wc-v { font-size: 10px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; margin-top: 2px; }
   .wc-dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--tl-red); }
   .wk-foot { padding: 0 12px 10px; font-size: 12px; color: var(--muted); }
@@ -350,13 +393,29 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .star.on { color: var(--tl-yellow); }
   .bw { position: relative; aspect-ratio: .82; border-radius: var(--radius-cell); background: var(--surface2); display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .bw.off { opacity: .35; }
-  .bw.ok { background: var(--tl-green); color: var(--on-tl); }
-  .bw.low { background: var(--tl-none); }
+  .bw.ok { background: var(--rc); color: #14141c; }
+  .bw.ok .wc-d { color: rgba(20,20,28,.7); }
+  .bw.low { background: color-mix(in srgb, var(--rc) 32%, var(--surface2)); }
+  .bw-leg { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-size: 11px; color: var(--muted); margin-top: 8px; }
   .bw-v { font-size: 11px; font-weight: 700; margin-top: 6px; }
+  .bm-dow, .bm-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .bm-dow div { text-align: center; font-size: 10px; color: var(--muted); padding-bottom: 2px; }
+  .bm-c { height: 28px; border-radius: 7px; background: var(--surface2); color: var(--muted); font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-variant-numeric: tabular-nums; }
+  .bm-c.pad { background: transparent; cursor: default; }
+  .bm-c.off { opacity: .3; }
+  .bm-c.today { box-shadow: 0 0 0 1.5px var(--accent); }
+  .bm-c.ok { background: var(--rc); color: #14141c; font-weight: 700; }
+  .bm-c.low { background: color-mix(in srgb, var(--rc) 32%, var(--surface2)); color: var(--text); }
   .bd-grid { display: grid; grid-template-columns: repeat(31, minmax(0, 1fr)); gap: 2px; }
   .bd { aspect-ratio: 1; border-radius: 50%; background: transparent; border: 1px solid var(--border); cursor: pointer; }
   .bd.ok { background: var(--tl-green); border-color: var(--tl-green); }
   .bd.low { background: var(--tl-none); border-color: var(--tl-none); }
+  .bkd-row { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .bkd-row:last-child { border-bottom: 0; }
+  .bkd-h { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+  .bkd-h span { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bkd-n { font-size: 13px; margin-top: 4px; line-height: 1.5; word-break: keep-all; }
+  .bkd-rev { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--surface2); font-size: 13px; line-height: 1.5; }
   .shelf-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; cursor: pointer; }
   .shelf-n { flex: none; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 58px; text-align: right; }
   .scan { position: fixed; inset: 0; background: #000; z-index: 80; display: flex; align-items: center; justify-content: center; }
@@ -367,6 +426,11 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   /* 레벨·상점 */
   .lv-chip { flex: none; padding: 6px 12px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 800; }
   .lv-big { font-size: 34px; font-weight: 800; letter-spacing: -1px; }
+  .lv-next { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .tt-row { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; }
+  .tt { flex: none; display: flex; flex-direction: column; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--surface2); font-size: 12px; font-weight: 700; opacity: .45; white-space: nowrap; }
+  .tt small { font-size: 9px; font-weight: 500; color: var(--muted); }
+  .tt.on { opacity: 1; box-shadow: inset 0 0 0 1.5px var(--accent); }
   .lv-big span { font-size: 18px; color: var(--muted); font-weight: 600; margin-left: 6px; letter-spacing: 0; }
   .lv-sub { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
   .lv-row { display: flex; gap: 8px; margin-top: 14px; }
@@ -429,13 +493,15 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <div class="folder-tabs" id="todaySeg">
     <button data-v="routine" class="sel">루틴</button>
     <button data-v="week">주간</button>
+    <button data-v="month">월간</button>
   </div>
   <div class="today-body">
     <div id="todayFilterRow"><button class="pill-btn" id="filterBtn">하루 ▾</button></div>
     <div id="habitMissing"></div>
     <div id="routineTable"></div>
     <div id="weekCards" class="hidden"></div>
-    <div class="cal-legend" id="todayLegend"><span>달성 = 도장</span><span><i class="lg y"></i>절반 = 반투명 도장</span><span><i class="lg r"></i>부족</span></div>
+    <div id="monthCards" class="hidden"></div>
+    <div class="cal-legend" id="todayLegend"><span>달성 = 도장</span><span>절반 = 점선 도장</span><span><i class="lg r"></i>부족</span></div>
   </div>
 </div>
 
@@ -519,8 +585,10 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     </div>
     <div class="progress-bg"><div class="progress-fill" id="weeklyProgress" style="width:0%"></div></div>
     <div class="week-bars" id="weekBars"></div>
+    <div class="zr-title">구간별 누적 (이번 주)</div>
+    <div id="zoneRows"></div>
   </div>
-  <div class="sec-title">운동 기록 <a class="link-btn" href="#" onclick="goSettings('hr');return false;">심박 설정 →</a></div>
+  <div class="sec-title">운동 기록 · 최근 7일 <a class="link-btn" href="#" onclick="goSettings('hr');return false;">심박 설정 →</a></div>
   <div id="history"></div>
 </div>
 
@@ -564,8 +632,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
 <!-- ===================== 통계 탭 ===================== -->
 <div id="tab-stats" hidden>
   <div class="folder-tabs" id="statSeg">
-    <button data-s="month" class="sel">월간</button>
-    <button data-s="week">주간</button>
+    <button data-s="week" class="sel">주간</button>
     <button data-s="light">초록불</button>
   </div>
   <div class="stat-nav">
@@ -714,6 +781,26 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   </div>
 </div>
 
+<!-- 결산 -->
+<div class="modal-bg" id="wrapModal">
+  <div class="modal">
+    <div class="cal-nav" style="margin-bottom:8px;"><button id="wrPrev">‹</button><div class="cal-title" id="wrTitle"></div><button id="wrNext">›</button></div>
+    <div id="wrapBody"></div>
+    <button class="btn-primary" style="width:100%;padding:12px;margin-top:14px;" id="wrClose">닫기</button>
+  </div>
+</div>
+
+<!-- 책 기록 보기 -->
+<div class="modal-bg" id="bkdModal">
+  <div class="modal">
+    <div id="bkdBody"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="pill-btn" style="flex:1;padding:12px;" id="bkdMore">수정 · 삭제…</button>
+      <button class="btn-primary" style="flex:1;padding:12px;" id="bkdClose">닫기</button>
+    </div>
+  </div>
+</div>
+
 <!-- 책 추가·수정 -->
 <div class="modal-bg" id="bookModal">
   <div class="modal">
@@ -721,7 +808,12 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <div class="field"><label>제목</label><input type="text" id="bkTitle" class="text-input" maxlength="200" placeholder="책 제목"></div>
     <div class="field"><label>저자</label><input type="text" id="bkAuthor" class="text-input" maxlength="100"></div>
     <div class="field"><label>출판사</label><input type="text" id="bkPub" class="text-input" maxlength="100"></div>
-    <div class="field"><label>ISBN</label><input type="text" id="bkIsbn" class="text-input" inputmode="numeric" maxlength="13" placeholder="선택"></div>
+    <div class="field"><label>ISBN</label>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <input type="text" id="bkIsbn" class="text-input" style="flex:1;min-width:0;margin-top:0;" inputmode="numeric" maxlength="13" placeholder="13자리 입력 → 자동 채우기">
+        <button class="pill-btn" type="button" id="bkIsbnGo">조회</button>
+        <button class="pill-btn" type="button" id="bkIsbnScan" aria-label="바코드 스캔">📷</button>
+      </div></div>
     <div class="field"><label>분야</label><div class="chips" id="bkCats"></div></div>
     <div class="settings-row">
       <div><label>첫 장 · 끝 장</label><div class="hint">읽기 시작·끝나는 페이지 번호</div></div>
@@ -1244,8 +1336,10 @@ function renderWeekly() {
   const weekStart = startOfWeek();
   const perDay = [0,0,0,0,0,0,0]; // 월..일
   let totalSec = 0;
+  const zoneTot = [0,0,0,0,0,0];
   sessions.forEach(s => {
     if (s.date >= weekStart) {
+      for (let z = 0; z < 6; z++) zoneTot[z] += (s.zoneSec && s.zoneSec[z]) || 0;
       const z2 = s.zoneSec[2] || 0; totalSec += z2;
       const d = new Date(s.date); const day = d.getDay();
       const idx = (day - wsDay() + 7) % 7;
@@ -1256,6 +1350,12 @@ function renderWeekly() {
   document.getElementById('weeklyVal').textContent = totalMin + '분';
   document.getElementById('weeklyGoal').textContent = '/ 목표 ' + goal + '분';
   document.getElementById('weeklyProgress').style.width = Math.min(100, totalMin/goal*100) + '%';
+  const zMax = Math.max(zoneTot[1], zoneTot[2], zoneTot[3], zoneTot[4], zoneTot[5], 1);
+  document.getElementById('zoneRows').innerHTML = [1, 2, 3, 4, 5].map(z => {
+    const sec = zoneTot[z], m = sec / 60, txt = m > 0 && m < 1 ? '<1분' : Math.round(m) + '분';
+    return `<div class="zr"><span class="zr-n"><i style="background:${ZONE_COLORS[z]}"></i>${ZONE_NAMES[z].split(' ')[0]} ${ZONE_NAMES[z].split(' ')[1] || ''}</span>` +
+      `<span class="zr-bar"><div style="width:${sec / zMax * 100}%;background:${ZONE_COLORS[z]}"></div></span><span class="zr-v">${txt}</span></div>`;
+  }).join('');
   const maxDay = Math.max(...perDay, 1);
   const labels = weekOrder().map(d => DAY_LABELS[d]);
   document.getElementById('weekBars').innerHTML = perDay.map((sec, i) => {
@@ -1278,12 +1378,19 @@ function saveSession() {
   });
   localStorage.setItem('hr_sessions', JSON.stringify(sessions.slice(0, 100)));
 }
+let histExtra = 0;   // 최근 7일보다 오래된 기록 중 더 펼친 개수 (더보기 한 번에 10개)
+function histMore() { histExtra += 10; renderHistory(); }
 function renderHistory() {
   if (typeof checkLevelUp === 'function' && typeof xpMeta === 'function') try { checkLevelUp(); } catch(e) {}
   const wrap = document.getElementById('history');
   const sessions = getSessions();
   if (!sessions.length) { wrap.innerHTML = '<div class="empty-hist">아직 운동 기록이 없습니다</div>'; return; }
-  wrap.innerHTML = sessions.map((s, i) => {
+  const cutoff = todayStart().getTime() - 6 * 864e5;   // 오늘 포함 7일
+  const idx = sessions.map((s, i) => i).sort((a, b) => sessions[b].date - sessions[a].date);   // i = 원래 위치 (삭제·CSV 에 필요)
+  const recent = idx.filter(i => sessions[i].date >= cutoff), older = idx.filter(i => sessions[i].date < cutoff);
+  const shown = recent.concat(older.slice(0, histExtra));
+  const left = older.length - histExtra;
+  const rows = shown.map(i => { const s = sessions[i];
     const d = new Date(s.date);
     const ds = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     const z2pct = Math.round(s.zoneSec[2] / (s.duration || 1) * 100);
@@ -1296,6 +1403,8 @@ function renderHistory() {
         <button class="icon-btn" onclick="deleteSession(${i})">✕</button>
       </div></div>`;
   }).join('');
+  wrap.innerHTML = (recent.length ? '' : '<div class="empty-hist">최근 7일 운동 기록이 없어요</div>') + rows +
+    (left > 0 ? `<button class="more-btn" onclick="histMore()">더보기 (이전 기록 ${left}개 남음)</button>` : '');
 }
 function deleteSession(i) {
   const sessions = getSessions(); sessions.splice(i, 1);
@@ -1317,7 +1426,7 @@ function exportCSV(i) {
 // ====================== 전체 데이터 백업 (JSON) ======================
 // 새 저장 키를 만들면 반드시 여기에 추가 (backup_pre_v2·hr_active_session 은 임시본이라 제외)
 const BACKUP_KEYS = ['schema_version', 'hr_settings', 'hr_sessions', 'hr_measures', 'habit_defs', 'habit_logs', 'habit_notes', 'habit_skips',
-  'xp_meta', 'shop_items', 'shop_purchases', 'shop_tokens', 'rest_days', 'book_list', 'book_logs', 'book_targets'];
+  'xp_meta', 'shop_items', 'shop_purchases', 'shop_tokens', 'rest_days', 'sick_days', 'book_list', 'book_logs', 'book_targets'];
 const BACKUP_EXEMPT_KEYS = ['backup_pre_v2', 'hr_active_session'];
 const SCHEMA_VERSION = 3;   // 2 = 날짜 키 ISO, 3 = 쉬는 날 이용권 3개 지급
 function buildBackup() {
@@ -1496,6 +1605,7 @@ function currentStreak() {
   while (byDay[dayKey(d)] && byDay[dayKey(d)] > 0) { streak++; d.setDate(d.getDate() - 1); }
   return streak;
 }
+function calMinText(sec) { const m = Math.round(sec / 60); return m < 60 ? m + '분' : Math.floor(m / 60) + 'h' + (m % 60 ? String(m % 60).padStart(2, '0') : ''); }
 function renderCalendar() {
   if (calYear === undefined) { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
   const byDay = sessionsByDay();
@@ -1506,21 +1616,21 @@ function renderCalendar() {
   const dows = ['일', '월', '화', '수', '목', '금', '토'];
   let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
   for (let i = 0; i < startDow; i++) html += '<div class="cal-cell empty-pad"></div>';
-  let cntG = 0, cntY = 0, cntR = 0;
+  let cntG = 0, cntY = 0, cntR = 0, monthSec = 0;
   for (let day = 1; day <= daysInMonth; day++) {
     const cellDate = new Date(calYear, calMonth, day);
-    const sec = byDay[dayKey(cellDate)] || 0;
+    const sec = byDay[dayKey(cellDate)] || 0; monthSec += sec;
     const mood = dayMood(sec);
     let cls = 'cal-cell';
     if (mood) { cls += ' ' + mood.cls; if (mood.cls === 'green') cntG++; else if (mood.cls === 'yellow') cntY++; else cntR++; }
     else cls += ' no-data';
     if (cellDate.getTime() === today.getTime()) cls += ' today';
     if (cellDate.getTime() > today.getTime()) cls += ' future';
-    html += `<div class="${cls}"><span class="cal-day">${day}</span>${mood ? `<span class="cal-emoji">${mood.emoji}</span>` : ''}</div>`;
+    html += `<div class="${cls}"><span class="cal-day">${day}</span>${mood ? `<span class="cal-emoji">${mood.emoji}</span><span class="cal-min">${calMinText(sec)}</span>` : ''}</div>`;
   }
   document.getElementById('calGrid').innerHTML = html;
   document.getElementById('calMonthStat').innerHTML =
-    `<span>🔥 <b>${cntG}</b></span><span>💪 <b>${cntY}</b></span><span>💤 <b>${cntR}</b></span><span>운동 <b>${cntG + cntY + cntR}</b>일</span>`;
+    `<span>🔥 <b>${cntG}</b></span><span>💪 <b>${cntY}</b></span><span>💤 <b>${cntR}</b></span><span>운동 <b>${cntG + cntY + cntR}</b>일</span><span>합계 <b>${fmtDur(monthSec / 60)}</b></span>`;
 }
 function calShift(delta) {
   if (calYear === undefined) { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
@@ -1641,7 +1751,7 @@ function renderHabitCalendar(){
     const ago = Math.round((today.getTime()-cd.getTime())/864e5);
     const hasNote = !!(notes[key]);
     if(!isFuture) cls+=' clickable';
-    html += `<div class="${cls}"${isFuture?'':` onclick="openPastModal('${calHabitId}',${ago})"`}><span class="cal-day">${day}</span>${emoji?`<span class="cal-emoji">${emoji}</span>`:''}${hasNote?'<span class="cal-note">📝</span>':''}</div>`;
+    html += `<div class="${cls}"${isFuture?'':` onclick="openPastModal('${calHabitId}',${ago})"`}><span class="cal-day">${day}</span>${emoji?`<span class="cal-emoji">${emoji}</span>${h.type!=='check'?`<span class="cal-min">${esc(cellVal(h, logs[key]))}</span>`:''}`:''}${hasNote?'<span class="cal-note">📝</span>':''}</div>`;
   }
   document.getElementById('hCalGrid').innerHTML = html;
   document.getElementById('hCalMonthStat').innerHTML =
@@ -1682,14 +1792,31 @@ function hCalShift(delta){
 function renderHabitStreak(){
   document.getElementById('hStreakNum').textContent = calHabitId ? habitStreak(calHabitId) : 0;
 }
-function habitStreak(id){
-  const h = getHabits().find(x=>x.id===id); if(!h) return 0;
-  const logs = getHabitLogs()[id] || {};
-  const done = (dk)=>{ const v=logs[dk]; return v!==undefined && habitAchievement(h,v)!==null; };
-  let s=0; let d=new Date(); d.setHours(0,0,0,0);
-  if(!done(dayKey(d))) d.setDate(d.getDate()-1);
-  while(done(dayKey(d))){ s++; d.setDate(d.getDate()-1); }
-  return s;
+// 연속 기록: 그 습관이 예정된 날만 센다. 예정 아닌 요일·쉬는 날은 건너뛰고(끊지 않음), 오늘 예정인데 아직 안 했으면 어제부터 센다.
+// 기록이 있으면(달성·절반·부족 모두) 한 날로 친다 — 예전 동작 그대로.
+function habitDone(c, h, d) { const v = dval(c, h, d); return v !== undefined && habitAchievement(h, v) !== null; }
+function habitStreakStats(c, h, fromD, toD) {
+  const today = todayStart(), tk = today.getTime();
+  let cur = 0, d = new Date(tk);
+  const floor = (c.start[h.id] || tk - 3650 * 864e5);
+  if (sched(c, h, d) && !habitDone(c, h, d)) d = addDays(d, -1);
+  while (d.getTime() >= floor) {
+    if (c.rest[dayKey(d)] || !schedCore(c, h, d)) { d = addDays(d, -1); continue; }
+    if (!habitDone(c, h, d)) break;
+    cur++; d = addDays(d, -1);
+  }
+  let run = 0, best = 0;
+  const from = Math.max(fromD ? fromD.getTime() : 0, floor), to = Math.min(toD ? toD.getTime() : tk, tk);
+  for (let t = from; t <= to; t = addDays(new Date(t), 1).getTime()) {
+    const x = new Date(t);
+    if (c.rest[dayKey(x)] || !schedCore(c, h, x)) continue;
+    if (habitDone(c, h, x)) { run++; if (run > best) best = run; } else if (t !== tk) run = 0;
+  }
+  return { cur, best };
+}
+function habitStreak(id) {
+  const c = hctx(), h = c.habits.find(x => x.id === id); if (!h) return 0;
+  return habitStreakStats(c, h).cur;
 }
 
 // 지난 날짜 기록 (사후 입력)
@@ -1823,7 +1950,7 @@ function skipMissing(id, ago){
 }
 function renderMissing(){
   const wrap = document.getElementById('habitMissing');
-  const habits = getHabits(), logs = getHabitLogs(), skips = getHabitSkips(), rests = getRestDays();
+  const habits = getHabits(), logs = getHabitLogs(), skips = getHabitSkips(), rests = offDays();
   const today = new Date(); today.setHours(0,0,0,0);
   const label = ['오늘','1일 전','2일 전','3일 전'];
   let chips = '';
@@ -1947,7 +2074,7 @@ function hctx() {
     Object.keys(logs[h.id] || {}).forEach(k => { const x = parseDayKey(k).getTime(); if (x < t) t = x; });
     start[h.id] = t === Infinity ? 0 : t;
   });
-  return { logs, notes, habits, start, rest: getRestDays(), vis: habits.filter(h => !h.archived) };
+  return { logs, notes, habits, start, rest: offDays(), vis: habits.filter(h => !h.archived) };
 }
 function schedCore(c, h, d) {   // 요일·시작일·끝낸 날 기준 (보관·쉬는 날 무관) — XP 계산용
   if (d.getTime() < c.start[h.id]) return false;
@@ -2016,7 +2143,7 @@ function renderToday() {
   weekDays(weekStartOf(selDate)).forEach(d => {
     const lt = dayLight(c, d, today);
     html += `<button class="ws-day ${d.getTime() === selDate.getTime() ? 'sel' : ''}" onclick="selectDate('${dayKey(d)}')">` +
-      `<span class="ws-lb">${WD[d.getDay()]}</span><span class="ws-c ${lt} ${d.getTime() === today.getTime() ? 'today' : ''}">${lt === 'rest' ? '🛌' : d.getDate()}</span></button>`;
+      `<span class="ws-lb">${WD[d.getDay()]}</span><span class="ws-c ${lt} ${d.getTime() === today.getTime() ? 'today' : ''}">${lt === 'rest' ? (c.rest[dayKey(d)] === 'sick' ? '🤒' : '🛌') : d.getDate()}</span></button>`;
   });
   html += '<button class="ws-arrow" onclick="shiftWeek(1)" aria-label="다음주">›</button>';
   document.getElementById('weekStrip').innerHTML = html;
@@ -2024,13 +2151,20 @@ function renderToday() {
   const routine = todayView === 'routine';
   document.getElementById('todayFilterRow').classList.toggle('hidden', !routine);
   document.getElementById('routineTable').classList.toggle('hidden', !routine);
-  document.getElementById('weekCards').classList.toggle('hidden', routine);
+  document.getElementById('weekCards').classList.toggle('hidden', todayView !== 'week');
+  document.getElementById('monthCards').classList.toggle('hidden', todayView !== 'month');
   document.getElementById('filterBtn').textContent = TOD_LABEL[todayFilter] + ' ▾';
+  document.getElementById('todayLegend').innerHTML = todayView === 'month' ? '<span>달성 = 습관 색</span><span><i class="lg hatch"></i>절반 = 줄무늬</span><span><i class="lg r"></i>부족</span>' : '<span>달성 = 도장</span><span>절반 = 점선 도장</span><span><i class="lg r"></i>부족</span>';
   if (routine) { renderMissing(); renderRoutine(c); }
-  else { document.getElementById('habitMissing').innerHTML = ''; renderWeekCards(c, today); }
+  else { document.getElementById('habitMissing').innerHTML = ''; if (todayView === 'month') renderMonthCards(c, today); else renderWeekCards(c, today); }
 }
 
 function firstWord(t) { return String(t || '').trim().split(/\s+/)[0] || ''; }
+function sealHtml(h, ach, sm, pop) {
+  const half = ach === 'yellow', emo = h.stamp && h.stamp !== '⭕';
+  return `<span class="seal ${half ? 'half' : ''} ${sm ? 'sm' : ''} ${emo ? 'emo' : ''} ${pop ? 'pop' : ''}" style="--sc:${hexOk(h.color) ? h.color : '#888'}">${emo ? esc(h.stamp) : half ? '절반' : '달성'}</span>`;
+}
+const prevAch = {}, prevAll = {};
 function renderRoutine(c) {
   const dk = dayKey(selDate);
   let n = 0, rows = '';
@@ -2041,7 +2175,10 @@ function renderRoutine(c) {
     n++;
     const ach = v === undefined ? null : habitAchievement(h, v);
     const running = HT.activeId === h.id && dayKey(new Date()) === dk;
-    const stamp = running ? '⏱️' : (ach === 'green' || ach === 'yellow' ? esc(h.stamp) : '');
+    const key = h.id + '|' + dk, now = ach === 'green' || ach === 'yellow';
+    const pop = prevAch[key] !== undefined && !prevAch[key] && now; prevAch[key] = now;
+    if (pop && navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
+    const stamp = running ? '⏱️' : (now ? sealHtml(h, ach, false, pop) : '');
     const note = (c.notes[h.id] || {})[dk];
     let val = cellVal(h, v);
     if (h.type === 'check') val = ach === 'green' ? esc(firstWord(note)) : '';
@@ -2051,8 +2188,15 @@ function renderRoutine(c) {
       `<div class="rt-name">${h.important ? '🔥 ' : ''}${esc(h.icon)} ${esc(h.name)}</div>` +
       `<button class="rt-res ${ach === 'yellow' ? 'y' : ach === 'red' ? 'r' : ''}" data-id="${h.id}" aria-label="기록">${stamp ? `<span class="rt-st">${stamp}</span>` : ''}<span class="rt-val">${val}</span></button></div>`;
   });
+  let sch = 0, gr = 0;
+  c.vis.forEach(h => { if (sched(c, h, selDate)) { sch++; if (dach(c, h, selDate) === 'green') gr++; } });
+  const allNow = sch > 0 && gr === sch;
+  if (prevAll[dk] === false && allNow) { setTimeout(() => { toast('🎉 오늘 습관을 모두 달성했어요!'); confetti(); }, 450); }
+  prevAll[dk] = allNow;
   const wrap = document.getElementById('routineTable');
-  const restBar = c.rest[dk] ? `<div class="rest-bar">🛌 쉬는 날이에요 <button onclick="markRest('${dk}',false)">해제</button></div>` : '';
+  const rv = c.rest[dk], memo = rv === 'sick' ? getSickDays()[dk] : '';
+  const restBar = rv === 'sick' ? `<div class="rest-bar">🤒 아픈 날이에요${memo ? ' · ' + esc(memo) : ''} <button onclick="unmarkSick('${dk}')">해제</button></div>`
+    : rv ? `<div class="rest-bar">🛌 쉬는 날이에요 <button onclick="markRest('${dk}',false)">해제</button></div>` : '';
   if (!n) {
     wrap.innerHTML = restBar + '<div class="rt-empty">' + (c.vis.length ? '이 날 예정된 습관이 없어요' : '아직 습관이 없어요.<br>오른쪽 아래 + 버튼으로 추가하세요.') + '</div>';
     return;
@@ -2073,9 +2217,9 @@ function renderWeekCards(c, today) {
       let val = cellVal(h, v);
       if (!val && note) val = esc(note.length > 6 ? note.slice(0, 6) : note);
       const off = !sched(c, h, d) && v === undefined;
-      return `<div class="wc ${off ? 'off' : ''} ${ach === 'yellow' ? 'y' : ach === 'red' ? 'r' : ''}"${fut ? '' : ` onclick="openPastModal('${h.id}',${ago})"`}>` +
-        `<span class="wc-d">${WD[d.getDay()]}</span>${note ? '<i class="wc-dot"></i>' : ''}` +
-        `<span class="wc-s ${ach === 'yellow' ? 'half' : ''}">${ach === 'green' || ach === 'yellow' ? esc(h.stamp) : ''}</span><span class="wc-v">${val}</span></div>`;
+      return `<div class="wc ${off ? 'off' : ''} ${ach === 'red' ? 'r' : ''} ${d.getTime() === today.getTime() ? 'today' : ''}"${fut ? '' : ` onclick="openPastModal('${h.id}',${ago})"`}>` +
+        `<span class="wc-d">${WD[d.getDay()]} ${d.getDate()}</span>${note ? '<i class="wc-dot"></i>' : ''}` +
+        `<span class="wc-s">${ach === 'green' || ach === 'yellow' ? sealHtml(h, ach, true, false) : ''}</span><span class="wc-v">${val}</span></div>`;
     }).join('');
     const a = aggHabit(c, h, days, today, false);
     const tt = totalText(h, a, true);
@@ -2084,6 +2228,30 @@ function renderWeekCards(c, today) {
       `<span class="wk-nm">${h.important ? '🔥 ' : ''}${esc(h.icon)} ${esc(h.name)}</span>` +
       `<button class="wk-memo" onclick="weekMemo('${h.id}')" aria-label="이번 주 메모">📝</button></div>` +
       `<div class="wk-cells">${cells}</div><div class="wk-foot">${foot}</div></div>`;
+  }).join('');
+}
+function shiftMonth(n) {
+  const y = selDate.getFullYear(), m = selDate.getMonth() + n, last = new Date(y, m + 1, 0).getDate();
+  selDate = new Date(y, m, Math.min(selDate.getDate(), last)); renderToday();
+}
+function renderMonthCards(c, today) {
+  const wrap = document.getElementById('monthCards'), y = selDate.getFullYear(), mo = selDate.getMonth(), days = monthDaysOf(y, mo);
+  const nav = `<div class="mo-nav"><button onclick="shiftMonth(-1)" aria-label="지난달">‹</button><span>${y}년 ${mo + 1}월</span><button onclick="shiftMonth(1)" aria-label="다음달">›</button></div>`;
+  if (!c.vis.length) { wrap.innerHTML = nav + '<div class="rt-empty">아직 습관이 없어요.<br>오른쪽 아래 + 버튼으로 추가하세요.</div>'; return; }
+  const dows = weekOrder().map(i => `<div>${WD[i]}</div>`).join('');
+  wrap.innerHTML = nav + c.vis.map((h, idx) => {
+    let cells = '';
+    for (let i = 0; i < colOffset(days[0]); i++) cells += '<div class="mo-c pad"></div>';
+    days.forEach(d => {
+      const v = dval(c, h, d), ach = v === undefined ? null : habitAchievement(h, v), fut = d.getTime() > today.getTime();
+      const ago = Math.round((today.getTime() - d.getTime()) / 864e5), off = !sched(c, h, d) && v === undefined;
+      const bg = ach === 'green' ? ` style="background:${h.color}"` : ach === 'yellow' ? ` style="background:repeating-linear-gradient(135deg,${h.color} 0 3px,color-mix(in srgb,${h.color} 28%,var(--surface2)) 3px 6px)"` : '';
+      cells += `<div class="mo-c ${ach === 'green' || ach === 'yellow' ? 'on' : ''} ${off ? 'off' : ''} ${ach === 'red' ? 'r' : ''} ${d.getTime() === today.getTime() ? 'today' : ''}"${bg}${fut ? '' : ` onclick="openPastModal('${h.id}',${ago})"`}>${d.getDate()}</div>`;
+    });
+    const a = aggHabit(c, h, days, today, true), tt = totalText(h, a, true);
+    return `<div class="wk-card"><div class="wk-head"><div class="wk-idx">${idx + 1}</div>${pillHtml(h.category)}` +
+      `<span class="wk-nm">${h.important ? '🔥 ' : ''}${esc(h.icon)} ${esc(h.name)}</span></div>` +
+      `<div class="mo-dow">${dows}</div><div class="mo-grid">${cells}</div><div class="wk-foot">${(tt ? tt + ' · ' : '') + a.ach + '/' + a.sch + '일'}</div></div>`;
   }).join('');
 }
 function weekMemo(id) {
@@ -2207,7 +2375,7 @@ function showArchived() {
   openSheet('보관된 습관 (눌러서 복원)', list.map(h => ({ label: '↩ ' + h.icon + ' ' + h.name, fn: () => archiveHabit(h.id, false) })));
 }
 function openHabitMonth(id) {
-  switchTab('stats'); statView = 'month';
+  switchTab('stats'); statView = 'light';
   statY = selDate.getFullYear(); statM = selDate.getMonth();
   renderStatsTab(); openHabitDetail(id);
 }
@@ -2334,10 +2502,28 @@ document.getElementById('lvChip').onclick = openLevelScreen;
   el.addEventListener('contextmenu', e => e.preventDefault());
 })();
 function restSheet(dk) {
-  const on = !!getRestDays()[dk], d = parseDayKey(dk);
-  openSheet((d.getMonth() + 1) + '/' + d.getDate() + ' ' + WD[d.getDay()], [on
-    ? { label: '🛌 쉬는 날 해제 (이용권 1개 돌려받음)', fn: () => markRest(dk, false) }
-    : { label: '🛌 쉬는 날로 지정 (이용권 ' + getTokens() + '개 보유)', fn: () => markRest(dk, true) }]);
+  const d = parseDayKey(dk), sick = getSickDays()[dk] !== undefined, rest = !!getRestDays()[dk];
+  const items = sick ? [{ label: '🤒 아픈 날 해제 (이 날만)', fn: () => unmarkSick(dk) }]
+    : rest ? [{ label: '🛌 쉬는 날 해제 (이용권 1개 돌려받음)', fn: () => markRest(dk, false) }]
+    : [{ label: '🤒 아픈 날로 지정 (무료 · 며칠이든)', fn: () => markSick(dk) },
+       { label: '🛌 쉬는 날로 지정 (이용권 ' + getTokens() + '개 보유)', fn: () => markRest(dk, true) }];
+  openSheet((d.getMonth() + 1) + '/' + d.getDate() + ' ' + WD[d.getDay()], items);
+}
+// 아픈 날: 이용권 없이 무료. 이 날부터 N일(1~14) 한꺼번에, 사유 메모 선택. 이미 쉬는 날(이용권)인 날은 그대로 둔다.
+function markSick(dk) {
+  const raw = prompt('며칠 동안 쉬나요? (이 날 포함, 1~14일)', '1'); if (raw === null) return;
+  const n = parseInt(raw);
+  if (!(n >= 1 && n <= 14)) { toast('1~14 사이 숫자로 입력하세요'); return; }
+  const memo = prompt('사유 (선택, 예: 어깨 담)', ''); if (memo === null) return;
+  const sk = getSickDays(), r = getRestDays(); let added = 0;
+  for (let i = 0; i < n; i++) { const k = dayKey(addDays(parseDayKey(dk), i)); if (r[k]) continue; sk[k] = String(memo).trim().slice(0, 40); added++; }
+  localStorage.setItem('sick_days', JSON.stringify(sk));
+  toast('🤒 아픈 날 ' + added + '일로 지정했어요 — 푹 쉬세요'); refreshAllViews();
+}
+function unmarkSick(dk) {
+  const sk = getSickDays(); if (sk[dk] === undefined) return;
+  delete sk[dk]; localStorage.setItem('sick_days', JSON.stringify(sk));
+  toast('아픈 날을 해제했어요'); refreshAllViews();
 }
 (function () {   // 주 이동: 좌우 스와이프
   const el = document.getElementById('weekStrip'); let x0 = null;
@@ -2353,7 +2539,7 @@ function restSheet(dk) {
 });
 
 // ---------- 통계 탭 ----------
-let statView = 'month', statY, statM, statWeekStart;
+let statView = 'week', statY, statM, statWeekStart;
 function statInit() {
   if (statY === undefined) { const n = new Date(); statY = n.getFullYear(); statM = n.getMonth(); }
   if (!statWeekStart) statWeekStart = weekStartOf(new Date());
@@ -2377,7 +2563,7 @@ function renderStatBody() {
   if (statView === 'week') {
     const days = weekDays(statWeekStart);
     title.textContent = (days[0].getMonth() + 1) + '/' + days[0].getDate() + ' ~ ' + (days[6].getMonth() + 1) + '/' + days[6].getDate();
-    body.innerHTML = c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'week')).join('') + '</div>' + '<div class="cal-legend"><span>달성 = 습관 색</span><span><i class="lg y"></i>절반 달성</span><span>회색 = 못 함</span></div>' : '<div class="rt-empty">습관을 추가하면 표시돼요</div>';
+    body.innerHTML = c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'week')).join('') + '</div>' + '<div class="cal-legend"><span>달성 = 습관 색 꽉 참</span><span><i class="lg hatch"></i>절반 = 줄무늬</span><span>회색 = 못 함</span></div>' : '<div class="rt-empty">습관을 추가하면 표시돼요</div>';
     return;
   }
   title.textContent = statY + '년 ' + (statM + 1) + '월';
@@ -2389,17 +2575,12 @@ function renderStatBody() {
     days.forEach(d => {
       const lt = dayLight(c, d, today);
       if (lt === 'green') g++; else if (lt === 'yellow') y++; else if (lt === 'red') r++;
-      html += `<div class="lt-c ${lt} ${d.getTime() > today.getTime() && lt !== 'rest' ? 'faint' : ''}">${lt === 'rest' ? '🛌' : d.getDate()}</div>`;
+      html += `<div class="lt-c ${lt} ${d.getTime() > today.getTime() && lt !== 'rest' ? 'faint' : ''}">${lt === 'rest' ? (c.rest[dayKey(d)] === 'sick' ? '🤒' : '🛌') : d.getDate()}</div>`;
     });
     html += `</div><div class="cal-month-stat"><span>🟢 초록불 <b>${g}</b>회</span><span>🟡 노란불 <b>${y}</b>회</span><span>🔴 빨간불 <b>${r}</b>회</span></div></div>`;
     body.innerHTML = html;
     return;
   }
-  let S = 0, A = 0;
-  c.vis.forEach(h => { const a = aggHabit(c, h, days, today, true); S += a.sch; A += a.ach; });
-  const pct = S ? Math.round(A / S * 100) : 0;
-  body.innerHTML = `<div class="card rate-card"><div class="rate-t">📊 목표 달성률 ${pct}%</div><div class="progress-bg" style="margin-bottom:0;"><div class="progress-fill" style="width:${pct}%"></div></div></div>` +
-    (c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'month')).join('') + '</div>' + '<div class="cal-legend"><span>달성 = 습관 색</span><span><i class="lg y"></i>절반 달성</span><span>회색 = 못 함</span></div>' : '<div class="rt-empty">습관을 추가하면 표시돼요</div>');
 }
 // 습관 1개 카드 (월간: 요일 맞춰 달력 / 주간: 7칸 한 줄)
 function habitCard(c, h, days, today, mode) {
@@ -2409,7 +2590,7 @@ function habitCard(c, h, days, today, mode) {
     const sc = sched(c, h, d), fut = d.getTime() > today.getTime(), ach = dach(c, h, d);
     let cls = 'mq', st = '';
     if (ach === 'green') { cls += ' on'; st = ` style="background:${h.color}"`; }
-    else if (ach === 'yellow') { cls += ' on'; st = ' style="background:var(--tl-yellow)"'; }
+    else if (ach === 'yellow') { cls += ' on'; st = ` style="background:repeating-linear-gradient(135deg,${h.color} 0 3px,color-mix(in srgb,${h.color} 28%,var(--tl-none)) 3px 6px)"`; }
     else if (!sc || fut) cls += ' faint';
     cells += `<div class="${cls}"${st}>${d.getDate()}</div>`;
   });
@@ -2428,6 +2609,8 @@ document.getElementById('statPrev').onclick = () => statShift(-1);
 document.getElementById('statNext').onclick = () => statShift(1);
 
 // 구 홈 화면의 운동 위젯 (통계 탭으로 이동)
+let streakOpen = false;
+function toggleStreaks() { streakOpen = !streakOpen; renderStatsExtra(); }
 function renderStatsExtra() {
   const today = new Date(), tk = dayKey(today);
   const habits = getHabits().filter(h => !h.archived);
@@ -2441,11 +2624,11 @@ function renderStatsExtra() {
     html += `<div class="home-big-stat"><span class="hbs-mood">${woMood}</span><span class="hbs-val">${woMin}분</span><span class="hbs-sub">${todayWO.length}회 · Zone 2 ${z2}분</span></div>`;
   } else html += '<div class="home-empty-stat">아직 운동 전 — 운동 탭에서 시작</div>';
   html += '</div><div class="card"><div class="sec-title" style="margin:0 0 10px;">연속 기록</div><div class="streak-grid">';
-  html += `<div class="sk-item"><div class="sk-num">${workoutStreak()}</div><div class="sk-lbl">🏃 운동</div></div>`;
-  habits.slice(0, 3).forEach(h => {
-    html += `<div class="sk-item"><div class="sk-num">${habitStreak(h.id)}</div><div class="sk-lbl">${esc(h.icon || '⭐')} ${esc(h.name)}</div></div>`;
-  });
-  html += '</div></div>';
+  const sk = [{ n: workoutStreak(), l: '🏃 운동' }].concat(habits.map(h => ({ n: habitStreak(h.id), l: esc(h.icon || '⭐') + ' ' + esc(h.name) })));
+  sk.sort((a, b) => b.n - a.n);   // 연속일 많은 순 → 습관이 늘어도 상위만 먼저 보인다
+  const shown = streakOpen ? sk : sk.slice(0, 4);
+  shown.forEach(x => { html += `<div class="sk-item ${x.n ? '' : 'zero'}"><div class="sk-num">${x.n}</div><div class="sk-lbl">${x.l}</div></div>`; });
+  html += '</div>' + (sk.length > 4 ? `<button class="sk-more" onclick="toggleStreaks()">${streakOpen ? '접기 ▴' : '전체 ' + sk.length + '개 보기 ▾'}</button>` : '') + '</div>';
   const wm = weeklyZone2Min(), goal = settings.goal || 150;
   html += `<div class="card"><div class="sec-title" style="margin:0 0 10px;">이번 주 Zone 2</div><div class="home-week"><span class="hw-val">${wm}분</span><span class="hw-goal">/ 목표 ${goal}분</span></div><div class="progress-bg" style="margin-top:10px;"><div class="progress-fill" style="width:${Math.min(100, wm / goal * 100)}%"></div></div></div>`;
   document.getElementById('statsExtra').innerHTML = html;
@@ -2460,8 +2643,9 @@ function renderHabits() {
 
 // ====================== XP · 레벨 · 코인 · 상점 (Phase 3) ======================
 // XP 는 저장하지 않고 기록(습관·운동·독서)에서 매번 계산한다 → 과거 기록을 고치거나 지우면 XP 가 바로 바뀐다.
-// 저장되는 것: xp_meta(칭호·하루 상한·마지막 확인 레벨), shop_items, shop_purchases, shop_tokens, rest_days
-const DEFAULT_TITLES = [{level:1,name:'새싹'},{level:10,name:'꾸준이'},{level:20,name:'습관가'},{level:30,name:'장인'},{level:40,name:'달인'},{level:50,name:'현자'},{level:60,name:'전설'}];
+// 저장되는 것: xp_meta(칭호·하루 상한·마지막 확인 레벨), shop_items, shop_purchases, shop_tokens, rest_days, sick_days
+const DEFAULT_TITLES = [{level:1,name:'🌱 새싹'},{level:10,name:'🌿 꾸준이'},{level:20,name:'📘 습관가'},{level:30,name:'🛠 장인'},{level:40,name:'🥋 달인'},{level:55,name:'🧙 현자'},
+  {level:70,name:'⚔️ 고수'},{level:90,name:'🛡 영웅'},{level:120,name:'👑 전설'},{level:160,name:'🐉 신화'},{level:200,name:'🌌 불멸'},{level:300,name:'✨ 초월'}];
 const BUILTIN_REST = { id: 'builtin_rest', name: '쉬는 날 이용권', emoji: '🛌', cost: 100 };
 function readJSON(k, def) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? def : v; } catch(e) { return def; } }
 function xpMeta() { return readJSON('xp_meta', {}); }
@@ -2473,10 +2657,32 @@ function titleFor(L) {
   xpTitles().slice().sort((a, b) => a.level - b.level).forEach(t => { if (t.level <= L) name = t.name; });
   return name;
 }
-function getShopItems() { const a = readJSON('shop_items', []); return Array.isArray(a) ? a : []; }
+// 저장된 목록이 없을 때(처음)만 보이는 기본 품목. 한 번이라도 추가·삭제·수정하면 저장된 목록이 우선한다
+const DEFAULT_SHOP = [
+  { id: 'd_coffee', name: '커피 한 잔', emoji: '☕', cost: 50 },
+  { id: 'd_dessert', name: '디저트', emoji: '🍰', cost: 80 },
+  { id: 'd_game', name: '게임 1시간', emoji: '🎮', cost: 100 },
+  { id: 'd_sleep', name: '늦잠 (알람 없이)', emoji: '😴', cost: 120 },
+  { id: 'd_movie', name: '영화 한 편', emoji: '🎬', cost: 150 },
+  { id: 'd_chicken', name: '치킨 · 배달 한 끼', emoji: '🍗', cost: 200 },
+  { id: 'd_book', name: '새 책 한 권', emoji: '📚', cost: 300 },
+  { id: 'd_spa', name: '사우나 · 마사지', emoji: '💆', cost: 400 },
+  { id: 'd_gift', name: '갖고 싶던 선물', emoji: '🎁', cost: 500 },
+];
+function getShopItems() {
+  if (localStorage.getItem('shop_items') === null) return DEFAULT_SHOP.map(x => Object.assign({}, x));
+  const a = readJSON('shop_items', []); return Array.isArray(a) ? a : [];
+}
 function getPurchases() { const a = readJSON('shop_purchases', []); return Array.isArray(a) ? a : []; }
 function getTokens() { const n = parseInt(localStorage.getItem('shop_tokens')); return n > 0 ? n : 0; }
 function setTokens(n) { localStorage.setItem('shop_tokens', String(Math.max(0, n))); }
+function getSickDays() { const o = readJSON('sick_days', {}); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; }
+function offDays() {
+  const m = {}, sk = getSickDays(), r = getRestDays();
+  Object.keys(sk).forEach(k => { m[k] = 'sick'; });
+  Object.keys(r).forEach(k => { m[k] = 1; });   // 이용권으로 지정한 날이 우선
+  return m;
+}
 function getRestDays() { const o = readJSON('rest_days', {}); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; }
 
 // 운동 1회: 10분 이상 10XP, 5분마다 +1, 최대 20
@@ -2556,7 +2762,7 @@ function buyItem(itemId) {
   const st = coinState();
   if (st.balance < it.cost) { toast('코인이 부족해요 (' + Math.max(0, st.balance) + ' / ' + it.cost + ')'); return; }
   if (!confirm(it.emoji + ' ' + it.name + ' — ' + it.cost + '코인으로 구입할까요?')) return;
-  const ps = getPurchases(); ps.push({ id: 'p' + Date.now(), itemId: it.id, cost: it.cost, date: dayKey(new Date()) });
+  const ps = getPurchases(); ps.push({ id: 'p' + Date.now(), itemId: it.id, name: it.name, emoji: it.emoji, cost: it.cost, date: dayKey(new Date()) });
   localStorage.setItem('shop_purchases', JSON.stringify(ps));
   if (it.id === BUILTIN_REST.id) setTokens(getTokens() + 1);
   toast(it.emoji + ' 구입했어요'); renderLevelScreen();
@@ -2574,25 +2780,104 @@ function delShopItem(id) {
   if (!confirm('「' + it.name + '」을 상점에서 뺄까요? (구입 내역은 남아요)')) return;
   localStorage.setItem('shop_items', JSON.stringify(getShopItems().filter(x => x.id !== id))); renderLevelScreen();
 }
+function xpForLevel(L) { let t = 0; for (let i = 1; i < L; i++) t += Math.round(10 * Math.pow(i, 1.5)); return t; }
+function nextTitleHtml(L, total) {
+  const ts = xpTitles().slice().sort((a, b) => a.level - b.level), nx = ts.find(t => t.level > L);
+  const ladder = ts.map(t => `<span class="tt ${t.level <= L ? 'on' : ''}">${esc(t.name)}<small>Lv.${t.level}</small></span>`).join('');
+  const nxt = nx ? `<div class="lv-next">다음 칭호 <b>${esc(nx.name)}</b> · Lv.${nx.level}까지 ${nx.level - L}레벨, 약 ${Math.max(0, xpForLevel(nx.level) - total).toLocaleString()}XP 남음</div>` : '<div class="lv-next">마지막 칭호에 도달했어요 — 레벨은 계속 올라가요!</div>';
+  return nxt + `<div class="tt-row">${ladder}</div>`;
+}
 function renderLevelScreen() {
   const st = coinState(), today = dayKey(new Date()), cap = xpCap();
   const todayXP = st.byDay[today] || 0, pct = Math.min(100, Math.round(st.li.into / st.li.need * 100));
   const items = [BUILTIN_REST].concat(getShopItems());
-  const itemName = id => { const x = id === BUILTIN_REST.id ? BUILTIN_REST : getShopItems().find(y => y.id === id); return x ? x.emoji + ' ' + x.name : '(삭제된 품목)'; };
-  const hist = getPurchases().slice().reverse().slice(0, 20);
   document.getElementById('lvBody').innerHTML =
     `<div class="lv-big">Lv.${st.li.level} <span>${esc(titleFor(st.li.level))}</span></div>` +
     `<div class="progress-bg" style="margin:10px 0 6px;"><div class="progress-fill" style="width:${pct}%"></div></div>` +
     `<div class="lv-sub"><span>다음 레벨까지 ${st.li.need - st.li.into}XP</span><span>${st.li.into} / ${st.li.need}</span></div>` +
+    nextTitleHtml(st.li.level, st.total) +
     `<div class="lv-row"><div><b>${todayXP}</b> / ${cap}<small>오늘 XP</small></div><div><b>🪙 ${Math.max(0, st.balance)}</b><small>코인</small></div><div><b>🛌 ${getTokens()}</b><small>쉬는 날 이용권</small></div></div>` +
-    `<div class="sec-title" style="margin:18px 2px 8px;">상점</div>` +
+    `<div class="lv-sub" style="margin-top:10px;"><span>🛌 쉬는 날 · 🤒 아픈 날: [오늘] 탭 위 요일 날짜를 <b>길게 누르기</b> (아픈 날은 이용권 없이 무료)</span></div>` +
+    (unusedRewards().length ? `<div class="lv-sub" style="margin-top:6px;"><span>🎁 아직 안 쓴 보상 <b>${unusedRewards().length}개</b> · 설정 &gt; 상점에서 사용 체크</span></div>` : '') +
+    `<button class="habit-add-btn" style="margin-top:12px;padding:11px;" onclick="openWrap()">📅 결산 보기</button>` +
+    `<div class="sec-title" style="margin:18px 2px 4px;">상점</div><div class="lv-sub" style="margin-bottom:8px;"><span>구입하면 코인이 빠지고 구입 내역에 기록돼요. 실제 보상은 직접 누려요 🙂</span></div>` +
     items.map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">🪙 ${it.cost}</span>` +
       `<button class="shop-buy" ${st.balance < it.cost ? 'disabled' : ''} onclick="buyItem('${it.id}')">구입</button>` +
       (it.id === BUILTIN_REST.id ? '' : `<button class="shop-x" onclick="delShopItem('${it.id}')" aria-label="삭제">✕</button>`) + `</div>`).join('') +
-    `<button class="habit-add-btn" style="margin-top:8px;" onclick="addShopItem()">＋ 상점 품목 추가</button>` +
-    `<div class="sec-title" style="margin:18px 2px 8px;">구입 내역</div>` +
-    (hist.length ? hist.map(p => `<div class="shop-row"><span class="shop-nm">${esc(itemName(p.itemId))}</span><span class="shop-cost">-${p.cost}</span><span class="lv-date">${esc(p.date)}</span></div>`).join('') : '<div class="rt-empty" style="padding:12px;">아직 구입한 게 없어요</div>');
+    `<button class="habit-add-btn" style="margin-top:8px;" onclick="addShopItem()">＋ 상점 품목 추가</button>`;
 }
+// ---------- 결산 ----------
+let wrapYear = new Date().getFullYear();
+function wrapYears() {
+  const ys = new Set([new Date().getFullYear()]), add = k => { const y = parseInt(String(k).slice(0, 4)); if (y > 2000) ys.add(y); };
+  Object.values(getHabitLogs()).forEach(o => Object.keys(o).forEach(add));
+  Object.values(getBookLogs()).forEach(o => Object.keys(o).forEach(add));
+  getSessions().forEach(x => ys.add(new Date(x.date).getFullYear()));
+  getPurchases().forEach(x => add(x.date));
+  return [...ys].sort((a, b) => a - b);
+}
+function openWrap() { wrapYear = new Date().getFullYear(); renderWrap(); document.getElementById('wrapModal').classList.add('show'); }
+function wrapShift(n) { const ys = wrapYears(), i = ys.indexOf(wrapYear) + n; if (i >= 0 && i < ys.length) { wrapYear = ys[i]; renderWrap(); } }
+function wrapStat(num, label) { return `<div class="wr-c"><b>${num}</b><small>${label}</small></div>`; }
+function renderWrap() {
+  const Y = String(wrapYear), pre = Y + '-', today = todayStart(), c = hctx();
+  const ys = wrapYears();
+  document.getElementById('wrTitle').textContent = wrapYear + '년 결산' + (wrapYear === today.getFullYear() ? ' (진행 중)' : '');
+  document.getElementById('wrPrev').disabled = ys.indexOf(wrapYear) <= 0;
+  document.getElementById('wrNext').disabled = ys.indexOf(wrapYear) >= ys.length - 1;
+  const from = new Date(wrapYear, 0, 1), to = new Date(Math.min(new Date(wrapYear, 11, 31).getTime(), today.getTime()));
+  const hl = [];
+  // --- 습관
+  const per = c.habits.map(h => {
+    const L = c.logs[h.id] || {}; let g = 0, y = 0;
+    Object.keys(L).forEach(k => { if (k.startsWith(pre)) { const a = habitAchievement(h, L[k]); if (a === 'green') g++; else if (a === 'yellow') y++; } });
+    return { h, g, y, best: habitStreakStats(c, h, from, to).best };
+  });
+  const gTotal = per.reduce((a, x) => a + x.g, 0), yTotal = per.reduce((a, x) => a + x.y, 0);
+  let greenDays = 0;
+  for (let d = new Date(from); d.getTime() <= to.getTime(); d = addDays(d, 1)) { if (dayLight(c, d, today) === 'green') greenDays++; }
+  const topH = per.slice().sort((a, b) => b.g - a.g)[0], bestS = per.slice().sort((a, b) => b.best - a.best)[0];
+  if (topH && topH.g > 0) hl.push(`가장 꾸준했던 습관은 <b>${esc(topH.h.icon)} ${esc(topH.h.name)}</b> (달성 ${topH.g}일)`);
+  if (bestS && bestS.best > 1) hl.push(`가장 길게 이어간 연속은 <b>${esc(bestS.h.icon)} ${esc(bestS.h.name)} ${bestS.best}일</b>`);
+  // --- 독서
+  const bl = getBookLogs(), books = getBooks(), thr = readThreshold();
+  const doneBooks = books.filter(b => b.status === 'done' && String(b.finishedAt || '').startsWith(pre));
+  const dayPages = {}, monPages = {}; let pagesRead = 0;
+  books.forEach(b => { const tl = bookTimeline(b, bl); Object.keys(tl).forEach(k => { if (k.startsWith(pre)) { const r = tl[k].read; pagesRead += r; dayPages[k] = (dayPages[k] || 0) + r; monPages[k.slice(5, 7)] = (monPages[k.slice(5, 7)] || 0) + r; } }); });
+  const goodDays = Object.values(dayPages).filter(v => v >= thr).length;
+  const rated = doneBooks.filter(b => b.rating), avg = rated.length ? (rated.reduce((a, b) => a + b.rating, 0) / rated.length).toFixed(1) : '—';
+  const top5 = doneBooks.filter(b => b.rating === 5).slice(0, 3).map(b => '「' + esc(b.title) + '」').join(' ');
+  const catN = {}; doneBooks.forEach(b => catN[b.category] = (catN[b.category] || 0) + 1);
+  const bestMon = Object.keys(monPages).sort((a, b) => monPages[b] - monPages[a])[0];
+  if (doneBooks.length) hl.push(`<b>${doneBooks.length}권</b>을 완독했어요` + (top5 ? ` · 별 5개: ${top5}` : ''));
+  if (bestMon) hl.push(`책을 가장 많이 읽은 달은 <b>${Number(bestMon)}월</b> (${monPages[bestMon]}쪽)`);
+  // --- 운동
+  const ss = getSessions().filter(x => new Date(x.date).getFullYear() === wrapYear);
+  const sec = ss.reduce((a, x) => a + (x.duration || 0), 0), kcal = ss.reduce((a, x) => a + (x.kcal || 0), 0), z2 = ss.reduce((a, x) => a + ((x.zoneSec && x.zoneSec[2]) || 0), 0);
+  const wDays = [...new Set(ss.map(x => dayKey(new Date(x.date))))].sort(); let wrun = 0, wbest = 0, prev = null;
+  wDays.forEach(k => { const t = parseDayKey(k).getTime(); wrun = prev !== null && t - prev === 864e5 ? wrun + 1 : 1; prev = t; if (wrun > wbest) wbest = wrun; });
+  const longest = ss.reduce((a, x) => Math.max(a, x.duration || 0), 0);
+  if (ss.length) hl.push(`운동 <b>${wDays.length}일</b>, 총 <b>${fmtDur(sec / 60)}</b>`);
+  // --- 레벨·코인
+  const xd = xpByDay(); let xpY = 0, xpBefore = 0;
+  Object.keys(xd).forEach(k => { if (k.startsWith(pre)) xpY += xd[k]; else if (k < pre) xpBefore += xd[k]; });
+  const lvS = levelInfo(xpBefore).level, lvE = levelInfo(xpBefore + xpY).level;
+  const ps = getPurchases().filter(p => String(p.date).startsWith(pre)), spent = ps.reduce((a, p) => a + (Number(p.cost) || 0), 0), pn = {};
+  ps.forEach(p => { const k = purchaseLabel(p); pn[k] = (pn[k] || 0) + 1; });
+  const topBuy = Object.keys(pn).sort((a, b) => pn[b] - pn[a])[0];
+  if (lvE > lvS) hl.push(`Lv.${lvS} → <b>Lv.${lvE}</b> 로 성장했어요`);
+  document.getElementById('wrapBody').innerHTML =
+    (hl.length ? `<div class="wr-hl">${hl.map(x => `<div>✨ ${x}</div>`).join('')}</div>` : '<div class="rt-empty">이 해의 기록이 아직 없어요</div>') +
+    `<div class="sec-title" style="margin:14px 2px 8px;">✅ 습관</div><div class="wr-grid">${wrapStat(gTotal + '회', '목표 달성')}${wrapStat(yTotal + '회', '절반 달성')}${wrapStat(greenDays + '일', '초록불 날')}${wrapStat((bestS ? bestS.best : 0) + '일', '최장 연속')}</div>` +
+    `<div class="sec-title" style="margin:14px 2px 8px;">📚 독서</div><div class="wr-grid">${wrapStat(doneBooks.length + '권', '완독')}${wrapStat(pagesRead + '쪽', '읽은 쪽수')}${wrapStat(goodDays + '일', `하루 ${thr}쪽 이상`)}${wrapStat(avg === '—' ? avg : '★ ' + avg, '평균 별점')}</div>` +
+    (Object.keys(catN).length ? `<div class="hint" style="margin:6px 2px 0;">분야별: ${Object.keys(catN).map(k => esc(k) + ' ' + catN[k] + '권').join(' · ')}</div>` : '') +
+    `<div class="sec-title" style="margin:14px 2px 8px;">❤️ 운동</div><div class="wr-grid">${wrapStat(ss.length + '회', '운동 횟수')}${wrapStat(fmtDur(sec / 60), '총 운동 시간')}${wrapStat(fmtDur(z2 / 60), 'Zone 2 누적')}${wrapStat(Math.round(kcal).toLocaleString() + 'kcal', '소모 칼로리')}${wrapStat(wDays.length + '일', '운동한 날')}${wrapStat(wbest + '일', '최장 연속')}${wrapStat(fmtDur(longest / 60), '가장 긴 운동')}</div>` +
+    `<div class="sec-title" style="margin:14px 2px 8px;">🏆 레벨 · 상점</div><div class="wr-grid">${wrapStat(xpY.toLocaleString(), '올해 얻은 XP')}${wrapStat('Lv.' + lvS + ' → ' + lvE, '레벨')}${wrapStat(ps.length + '회', '구입')}${wrapStat('🪙 ' + spent, '쓴 코인')}</div>` +
+    (topBuy ? `<div class="hint" style="margin:6px 2px 0;">가장 많이 산 것: ${esc(topBuy)} × ${pn[topBuy]}</div>` : '');
+}
+document.getElementById('wrPrev').onclick = () => wrapShift(-1);
+document.getElementById('wrNext').onclick = () => wrapShift(1);
+document.getElementById('wrClose').onclick = () => document.getElementById('wrapModal').classList.remove('show');
 function openLevelScreen() { switchTab('me'); window.scrollTo(0, 0); }
 
 // ====================== 독서 (Phase 4) ======================
@@ -2651,24 +2936,55 @@ function catFromAddCode(code) {   // 부가기호 5자리: 끝 3자리가 내용
   return { '8': '문학', '9': '역사', '1': '철학', '4': '과학' }[s.slice(-3)[0]] || '기타';
 }
 function noBookInfo(isbn) { toast('책 정보를 찾지 못했어요. 직접 입력해 주세요.'); openBookModal(null, { isbn }); }
+async function fetchJson(url, ms) {
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms || 6000);
+  try { const r = await fetch(url, { signal: ctl.signal }); if (!r.ok) return null; return await r.json(); } catch (e) { return null; } finally { clearTimeout(t); }
+}
+const bstr = v => (typeof v === 'string' ? v.trim().slice(0, 200) : '');
+// 1순위 내 프록시(Lambda), 2순위 Google Books(키 없이 쓰는 무료 조회라 일일 한도로 막힐 수 있음). 못 찾으면 null
+async function fetchBookInfo(isbn) {
+  if (ISBN_PROXY_URL) {
+    const j = await fetchJson(ISBN_PROXY_URL + (ISBN_PROXY_URL.includes('?') ? '&' : '?') + 'isbn=' + encodeURIComponent(isbn));
+    if (j && typeof j.title === 'string' && j.title.trim()) {
+      const pages = parseInt(j.pages);
+      return { isbn, title: bstr(j.title), author: bstr(j.author), publisher: bstr(j.publisher), coverUrl: safeUrl(j.coverUrl), category: catFromAddCode(j.addCode), startPage: 1, endPage: pages > 0 ? pages : '' };
+    }
+  }
+  const g = await fetchJson('https://www.googleapis.com/books/v1/volumes?maxResults=1&q=isbn:' + encodeURIComponent(isbn));
+  const v = g && Array.isArray(g.items) && g.items[0] && g.items[0].volumeInfo;
+  if (v && typeof v.title === 'string' && v.title.trim()) {
+    const pages = parseInt(v.pageCount), img = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
+    return { isbn, title: bstr(v.title), author: Array.isArray(v.authors) ? bstr(v.authors.join(', ')) : '', publisher: bstr(v.publisher),
+      coverUrl: safeUrl(String(img || '').replace(/^http:/, 'https:')), category: '기타', startPage: 1, endPage: pages > 0 ? pages : '' };
+  }
+  return null;
+}
 async function lookupIsbn(isbn) {
-  if (!ISBN_PROXY_URL) return noBookInfo(isbn);
-  try {
-    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
-    const r = await fetch(ISBN_PROXY_URL + (ISBN_PROXY_URL.includes('?') ? '&' : '?') + 'isbn=' + encodeURIComponent(isbn), { signal: ctl.signal });
-    clearTimeout(t);
-    if (!r.ok) return noBookInfo(isbn);
-    const j = await r.json();
-    if (!j || typeof j.title !== 'string' || !j.title.trim()) return noBookInfo(isbn);
-    const str = v => (typeof v === 'string' ? v.trim().slice(0, 200) : ''), pages = parseInt(j.pages);
-    openBookModal(null, { isbn, title: str(j.title), author: str(j.author), publisher: str(j.publisher), coverUrl: safeUrl(j.coverUrl),
-      category: catFromAddCode(j.addCode), startPage: 1, endPage: pages > 0 ? pages : '' });
-  } catch (e) { noBookInfo(isbn); }
+  toast('책 정보를 찾는 중…');
+  const info = await fetchBookInfo(isbn);
+  if (!info) return noBookInfo(isbn);
+  openBookModal(null, info);
+}
+// 책 추가 화면 안에서: ISBN 을 넣으면 비어 있는 칸만 자동으로 채운다
+async function fillFromIsbn(isbn) {
+  isbn = String(isbn || document.getElementById('bkIsbn').value).replace(/[^0-9]/g, '');
+  if (!validEan13(isbn)) { toast('올바른 ISBN이 아니에요 (13자리, 978/979 시작)'); return; }
+  document.getElementById('bkIsbn').value = isbn;
+  toast('책 정보를 찾는 중…');
+  const info = await fetchBookInfo(isbn);
+  if (!info) { toast('책 정보를 찾지 못했어요. 제목·쪽수는 직접 입력해 주세요.'); return; }
+  const setIfEmpty = (id, v) => { const el = document.getElementById(id); if (v !== '' && v != null && !String(el.value).trim()) el.value = v; };
+  setIfEmpty('bkTitle', info.title); setIfEmpty('bkAuthor', info.author); setIfEmpty('bkPub', info.publisher); setIfEmpty('bkEnd', info.endPage);
+  if (info.coverUrl && !BE.coverUrl) BE.coverUrl = info.coverUrl;
+  if (BE.cat === '기타' && info.category !== '기타') { BE.cat = info.category; refreshBookModal(); }
+  toast('채웠어요 — 내용을 확인하세요');
 }
 let scanStream = null, scanTimer = null, scanSupported = false;
 try { if ('BarcodeDetector' in window) BarcodeDetector.getSupportedFormats().then(f => { scanSupported = f.includes('ean_13'); }).catch(() => {}); } catch (e) {}
-async function startScan() {
-  if (!scanSupported) { toast('이 기기에서는 바코드 스캔을 쓸 수 없어요'); return; }
+let scanCb = null;
+async function startScan(cb) {
+  scanCb = typeof cb === 'function' ? cb : lookupIsbn;
+  if (!scanSupported) { toast('이 브라우저는 바코드 스캔을 지원하지 않아요 (안드로이드 Chrome에서 사용 가능)'); return; }
   let det; try { det = new BarcodeDetector({ formats: ['ean_13'] }); } catch (e) { toast('바코드 스캔을 시작할 수 없어요'); return; }
   try { scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); }
   catch (e) { toast('카메라 권한이 필요해요'); return; }
@@ -2678,7 +2994,7 @@ async function startScan() {
   scanTimer = setInterval(async () => {
     try {
       const codes = await det.detect(v), c = codes.find(x => validEan13(String(x.rawValue || '')));
-      if (c) { const isbn = c.rawValue; stopScan(); lookupIsbn(isbn); }
+      if (c) { const isbn = c.rawValue; stopScan(); scanCb(isbn); }
     } catch (e) {}
   }, 300);
 }
@@ -2690,7 +3006,7 @@ function stopScan() {
 document.getElementById('scanCancel').onclick = stopScan;
 function openAddBook() {
   const items = [];
-  if (scanSupported) items.push({ label: '📷 ISBN 스캔', fn: startScan });
+  items.push({ label: '📷 ISBN 스캔', fn: () => startScan() });
   items.push({ label: '⌨ ISBN 입력', fn: () => {
     const isbn = (prompt('ISBN 13자리 (978 또는 979로 시작)') || '').replace(/[^0-9]/g, '');
     if (!isbn) return;
@@ -2727,6 +3043,9 @@ function refreshBookModal() {
   document.getElementById('bkDoneOnly').classList.toggle('hidden', BE.status !== 'done');
   document.getElementById('bkStars').innerHTML = [1, 2, 3, 4, 5].map(n => `<button class="star ${n <= BE.rating ? 'on' : ''}" data-r="${n}">★</button>`).join('');
 }
+document.getElementById('bkIsbnGo').onclick = () => fillFromIsbn();
+document.getElementById('bkIsbnScan').onclick = () => startScan(fillFromIsbn);
+document.getElementById('bkIsbn').addEventListener('input', e => { const v = e.target.value.replace(/[^0-9]/g, ''); if (v.length === 13 && validEan13(v)) fillFromIsbn(v); });
 document.getElementById('bkCats').onclick = e => { const b = e.target.closest('button'); if (b) { BE.cat = b.dataset.c; refreshBookModal(); } };
 document.getElementById('bkD10').onclick = e => { const b = e.target.closest('button'); if (b) { BE.daily10 = b.dataset.v === '1'; refreshBookModal(); } };
 document.getElementById('bkStatus').onclick = e => { const b = e.target.closest('button'); if (b) { BE.status = b.dataset.s; refreshBookModal(); } };
@@ -2757,7 +3076,7 @@ document.getElementById('bkSave').onclick = () => {
 };
 function bookActions(id) {
   const b = getBooks().find(x => x.id === id); if (!b) return;
-  const items = [{ label: '수정하기', fn: () => openBookModal(id) }];
+  const items = [{ label: '📖 읽은 기록 보기', fn: () => openBookDetail(id) }, { label: '수정하기', fn: () => openBookModal(id) }];
   if (b.status === 'reading') items.push({ label: '중단하기', fn: () => setBookStatus(id, 'dropped') });
   if (b.status === 'dropped') items.push({ label: '다시 읽기', fn: () => setBookStatus(id, 'reading') });
   items.push({ label: '삭제하기', danger: true, fn: () => {
@@ -2828,12 +3147,41 @@ document.getElementById('blDel').onclick = () => {
 
 // ---------- 화면 ----------
 let bookView = 'today', bookWeekStart = null, bookY, bookM, bookFilter = '';
+let bkdId = null;
+function openBookDetail(id) { bkdId = id; renderBookDetail(); document.getElementById('bkdModal').classList.add('show'); }
+function renderBookDetail() {
+  const b = getBooks().find(x => x.id === bkdId); if (!b) { document.getElementById('bkdModal').classList.remove('show'); return; }
+  const logs = getBookLogs(), tl = bookTimeline(b, logs), keys = Object.keys(tl).sort(), t = readThreshold();
+  const last = bookLastPage(tl), pct = bookProgress(b, logs), span = b.endPage - b.startPage + 1;
+  const readTotal = keys.reduce((a, k) => a + tl[k].read, 0), good = daily10Days(b, logs);
+  const from = keys.length ? keys[0] : b.startedAt, to = b.status === 'done' ? (b.finishedAt || keys[keys.length - 1]) : dayKey(new Date());
+  const days = from && to ? Math.max(1, Math.round((parseDayKey(to) - parseDayKey(from)) / 864e5) + 1) : 0;
+  const stLbl = { reading: '읽는 중', done: '완독', dropped: '중단' }[b.status] || '';
+  const rows = keys.slice().reverse().map(k => {
+    const e = tl[k], d = parseDayKey(k);
+    return `<div class="bkd-row" onclick="openBookLog('${b.id}','${k}')"><div class="bkd-h"><b>${d.getMonth() + 1}/${d.getDate()} (${WD[d.getDay()]})</b><span>${e.from}~${e.page}쪽 · +${e.read}쪽${e.read >= t ? ' ✓' : ''}</span></div>` +
+      `${e.note ? `<div class="bkd-n">${esc(e.note)}</div>` : ''}</div>`;
+  }).join('');
+  document.getElementById('bkdBody').innerHTML =
+    `<div class="bk-top">${coverHtml(b)}<div class="bk-info"><div class="bk-title" style="cursor:default;">${esc(b.title)}</div>` +
+    `<div class="bk-meta">${esc([b.author, b.publisher].filter(Boolean).join(' · '))}</div><div class="bk-meta">${esc(b.category)} · ${stLbl}${b.daily10 ? ' · 하루 ' + t + '쪽 독서' : ''}</div>` +
+    `${b.status === 'done' ? `<div class="stars-ro">${'★'.repeat(b.rating || 0)}${'☆'.repeat(5 - (b.rating || 0))}</div>` : ''}</div></div>` +
+    `<div class="progress-bg" style="margin:12px 0 6px;"><div class="progress-fill" style="width:${pct}%"></div></div>` +
+    `<div class="lv-sub"><span>${last === null ? '아직 기록 없음' : last + ' / ' + b.endPage + '쪽'}</span><span>${pct}%</span></div>` +
+    `<div class="lv-row"><div><b>${days}일</b><small>${esc(from || '')} ~ ${b.status === 'done' ? esc(to || '') : '오늘'}</small></div><div><b>${readTotal}쪽</b><small>읽은 쪽수 (전체 ${span}쪽)</small></div><div><b>${good}일</b><small>하루 ${t}쪽 이상</small></div></div>` +
+    `${b.status === 'done' && b.review ? `<div class="bkd-rev">“${esc(b.review)}”</div>` : ''}` +
+    `<div class="sec-title" style="margin:16px 2px 8px;">읽은 기록 ${keys.length}일</div>` +
+    (rows || '<div class="rt-empty" style="padding:14px;">아직 읽은 기록이 없어요</div>');
+}
+document.getElementById('bkdClose').onclick = () => document.getElementById('bkdModal').classList.remove('show');
+document.getElementById('bkdMore').onclick = () => { document.getElementById('bkdModal').classList.remove('show'); bookActions(bkdId); };
 function coverHtml(b) {
   const u = safeUrl(b.coverUrl), col = BOOK_CAT_COLOR[b.category] || BOOK_CAT_COLOR['기타'];
   return `<div class="bk-cover" style="--p:${col}">${u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>📖</span></div>`;
 }
 function renderBooks() {
   if (document.getElementById('tab-books').hidden) return;
+  if (bkdId && document.getElementById('bkdModal').classList.contains('show')) renderBookDetail();
   checkLevelUp();
   if (!bookWeekStart) bookWeekStart = weekStartOf(new Date());
   if (bookY === undefined) { const n = new Date(); bookY = n.getFullYear(); bookM = n.getMonth(); }
@@ -2865,6 +3213,11 @@ function bookRows(from, to) {   // 기간 안에 기록이 있거나 읽는 중�
   const logs = getBookLogs(), fk = dayKey(from), tk = dayKey(to);
   return getBooks().filter(b => b.status === 'reading' || Object.keys(logs[b.id] || {}).some(k => k >= fk && k <= tk));
 }
+const RAINBOW = ['#ff1744', '#ff7a00', '#ffdd00', '#00e054', '#00d0ea', '#2b6bff', '#a62cff'];   // 고채도 빨강→주황→노랑→초록→청록→파랑→보라 (주의 1~7번째 칸)
+function rainbowAt(p) {   // p: 0~1 → 위 7색 사이를 oklch 로 섞은 색
+  const x = Math.max(0, Math.min(1, p)) * (RAINBOW.length - 1), i = Math.min(RAINBOW.length - 2, Math.floor(x)), f = Math.round((x - i) * 100);
+  return `color-mix(in oklch, ${RAINBOW[i]} ${100 - f}%, ${RAINBOW[i + 1]})`;
+}
 function renderBookWeek() {
   const logs = getBookLogs(), days = weekDays(bookWeekStart), t = readThreshold(), tk = dayKey(new Date());
   const rows = bookRows(days[0], days[6]);
@@ -2874,10 +3227,10 @@ function renderBookWeek() {
     const tl = bookTimeline(b, logs);
     const cells = days.map(d => {
       const dk = dayKey(d), e = tl[dk], fut = dk > tk;
-      return `<div class="bw ${e ? (e.read >= t ? 'ok' : 'low') : ''} ${fut ? 'off' : ''}" ${fut ? '' : `onclick="openBookLog('${b.id}','${dk}')"`}><span class="wc-d">${WD[d.getDay()]}</span><span class="bw-v">${e ? '+' + e.read + '쪽' : ''}</span></div>`;
+      return `<div class="bw ${e ? (e.read >= t ? 'ok' : 'low') : ''} ${fut ? 'off' : ''}" style="--rc:${RAINBOW[days.indexOf(d)]}" ${fut ? '' : `onclick="openBookLog('${b.id}','${dk}')"`}><span class="wc-d">${WD[d.getDay()]}</span><span class="bw-v">${e ? '+' + e.read + '쪽' : ''}</span></div>`;
     }).join('');
     return `<div class="wk-card"><div class="wk-head" style="padding:10px 12px;"><span class="wk-nm">${esc(b.title)}</span><span class="lv-sub" style="flex:none;">${bookProgress(b, logs)}%</span></div><div class="wk-cells">${cells}</div></div>`;
-  }).join('');
+  }).join('') + `<div class="bw-leg"><span>진한 색 = 하루 ${t}쪽 이상</span><span>연한 색 = 그보다 적게</span></div>`;
 }
 function renderBookMonth() {
   const logs = getBookLogs(), days = monthDaysOf(bookY, bookM), t = readThreshold(), tk = dayKey(new Date());
@@ -2886,30 +3239,72 @@ function renderBookMonth() {
   if (!rows.length) return nav + '<div class="rt-empty">이 달에 읽은 책이 없어요</div>';
   return nav + rows.map(b => {
     const tl = bookTimeline(b, logs); let sum = 0;
-    const dots = days.map(d => {
+    let cells = '';
+    for (let i = 0; i < colOffset(days[0]); i++) cells += '<div class="bm-c pad"></div>';
+    days.forEach((d, i) => {
       const dk = dayKey(d), e = tl[dk]; if (e) sum += e.read;
-      return `<i class="bd ${e ? (e.read >= t ? 'ok' : 'low') : ''}" ${dk > tk ? '' : `onclick="openBookLog('${b.id}','${dk}')"`} title="${d.getDate()}일"></i>`;
-    }).join('');
-    return `<div class="wk-card" style="padding:10px 12px;"><div class="wk-nm" style="margin-bottom:8px;">${esc(b.title)}</div><div class="bd-grid">${dots}</div>` +
+      const rc = rainbowAt(i / (days.length - 1));   // 월초 코랄 → 월말 보라, 날짜 순서대로 번진다
+      cells += `<div class="bm-c ${e ? (e.read >= t ? 'ok' : 'low') : ''} ${dk > tk ? 'off' : ''} ${dk === tk ? 'today' : ''}" style="--rc:${rc}" ${dk > tk ? '' : `onclick="openBookLog('${b.id}','${dk}')"`}>${d.getDate()}</div>`;
+    });
+    return `<div class="wk-card" style="padding:10px 12px;"><div class="wk-nm" style="margin-bottom:6px;">${esc(b.title)}</div>` +
+      `<div class="bm-dow">${weekOrder().map(i => `<div>${WD[i]}</div>`).join('')}</div><div class="bm-grid">${cells}</div>` +
       `<div class="lv-sub" style="margin-top:8px;"><span>이번 달 +${sum}쪽</span><span>${bookProgress(b, logs)}%</span></div></div>`;
-  }).join('');
+  }).join('') + `<div class="bw-leg"><span>진한 색 = 하루 ${t}쪽 이상</span><span>연한 색 = 그보다 적게</span><span>색은 월초 → 월말 순서</span></div>`;
 }
+let shelfQ = '', shelfRate = '', shelfPer = '', shelfFrom = '', shelfTo = '', shelfSort = 'new';
+function setShelf(k, v) { if (k === 'rate') shelfRate = v; else if (k === 'per') shelfPer = v; else if (k === 'sort') shelfSort = v; else if (k === 'from') shelfFrom = v; else if (k === 'to') shelfTo = v; renderBooks(); }
+function shelfRange() {
+  const n = new Date(), tk = dayKey(n);
+  if (shelfPer === 'm') return [dayKey(new Date(n.getFullYear(), n.getMonth(), 1)), tk];
+  if (shelfPer === '3m') return [dayKey(new Date(n.getFullYear(), n.getMonth() - 3, n.getDate())), tk];
+  if (shelfPer === 'y') return [n.getFullYear() + '-01-01', tk];
+  if (shelfPer === 'c') return [shelfFrom || '0000-01-01', shelfTo || '9999-12-31'];
+  return null;
+}
+function bookSpan(b, logs) { const k = Object.keys(logs[b.id] || {}).sort(); return { from: k[0] || b.startedAt || '', to: b.status === 'done' ? (b.finishedAt || k[k.length - 1] || '') : (b.status === 'reading' ? dayKey(new Date()) : (k[k.length - 1] || '')) }; }
+function bookEnd(b, logs) { const k = Object.keys(logs[b.id] || {}).sort(); return b.finishedAt || k[k.length - 1] || b.startedAt || ''; }
+function shelfFiltering() { return !!(shelfQ.trim() || shelfRate || shelfPer || bookFilter); }
+function shelfListHtml() {
+  const books = getBooks(), logs = getBookLogs(), q = shelfQ.trim().toLowerCase(), rg = shelfRange();
+  const filtering = shelfFiltering();   // 검색·필터 중이면 읽는 중·중단한 책도 함께 찾는다
+  let list = books.filter(b => (filtering ? true : b.status === 'done') && (!bookFilter || b.category === bookFilter));
+  if (q) list = list.filter(b => {
+    const notes = Object.values(logs[b.id] || {}).map(e => (e && e.note) || '').join(' ');
+    return [b.title, b.author, b.publisher, b.review, notes].join(' ').toLowerCase().includes(q);
+  });
+  if (shelfRate === '5') list = list.filter(b => b.rating === 5);
+  else if (shelfRate === '4+') list = list.filter(b => b.rating >= 4);
+  else if (shelfRate === '3-') list = list.filter(b => b.rating >= 1 && b.rating <= 3);
+  if (rg) list = list.filter(b => { const sp = bookSpan(b, logs); return sp.from <= rg[1] && (sp.to || sp.from) >= rg[0]; });
+  const byEnd = (a, b) => bookEnd(b, logs).localeCompare(bookEnd(a, logs));
+  list.sort((a, b) => shelfSort === 'hi' ? (b.rating || 0) - (a.rating || 0) || byEnd(a, b)
+    : shelfSort === 'lo' ? (a.rating || 9) - (b.rating || 9) || byEnd(a, b) : byEnd(a, b));
+  const md = k => k ? Number(k.slice(5, 7)) + '/' + Number(k.slice(8, 10)) : '';
+  let html = filtering ? `<div class="bk-meta" style="margin:4px 2px 6px;">${list.length}권 (읽는 중·중단 포함)</div>` : '';
+  html += list.length ? list.map(b => { const sp = bookSpan(b, logs); return `<div class="bk-row" onclick="openBookDetail('${b.id}')"><div class="bk-top">${coverHtml(b)}<div class="bk-info"><div class="bk-title">${esc(b.title)}</div>` +
+    `<div class="bk-meta">${esc(b.author)} · ${esc(b.category)}${b.status === 'done' ? '' : ` · <b>${b.status === 'reading' ? '읽는 중' : '중단'} ${bookProgress(b, logs)}%</b>`}</div><div class="bk-meta">${esc((sp.from || '').slice(0, 4))} ${md(sp.from)} ~ ${b.status === 'reading' ? '오늘' : md(sp.to)}</div>${b.status === 'done' ? `<div class="stars-ro">${'★'.repeat(b.rating || 0)}${'☆'.repeat(5 - (b.rating || 0))}</div>` : ''}` +
+    `${b.review ? `<div class="bk-meta">${esc(b.review)}</div>` : ''}</div></div></div>`; }).join('') : `<div class="rt-empty">${filtering ? '조건에 맞는 책이 없어요' : '완독한 책이 아직 없어요'}</div>`;
+  const other = books.filter(b => b.status === 'dropped');
+  if (other.length && !filtering) html += '<div class="sec-title" style="margin:16px 2px 8px;">중단한 책</div>' + other.map(b => `<div class="shop-row" onclick="openBookDetail('${b.id}')"><span class="shop-nm">${esc(b.title)}</span><span class="lv-date">중단</span></div>`).join('');
+  return html;
+}
+function refreshShelfList() { const el = document.getElementById('shelfList'); if (el) el.innerHTML = shelfListHtml(); }
 function renderBookShelf() {
   const books = getBooks(), done = books.filter(b => b.status === 'done'), tg = getTargets();
-  let html = '<div class="field" style="border:0;padding-top:0;"><label>분야별 완독 (평생)</label></div>';
+  const ch = (cur, val, label, k) => `<button class="chip ${cur === val ? 'sel' : ''}" onclick="setShelf('${k}','${val}')">${label}</button>`;
+  let html = `<input type="search" class="text-input" id="shelfQ" style="width:100%;margin:0 0 8px;" placeholder="🔍 제목 · 저자 · 감상 검색" value="${esc(shelfQ)}" oninput="shelfQ=this.value;refreshShelfList()">` +
+    `<div class="chips" style="margin-bottom:6px;">${ch(shelfPer, '', '전체 기간', 'per')}${ch(shelfPer, 'm', '이번 달', 'per')}${ch(shelfPer, '3m', '최근 3개월', 'per')}${ch(shelfPer, 'y', '올해', 'per')}${ch(shelfPer, 'c', '직접', 'per')}</div>` +
+    (shelfPer === 'c' ? `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;font-size:12px;color:var(--muted);"><input type="date" class="text-input" style="flex:1;margin:0;" value="${esc(shelfFrom)}" onchange="setShelf('from',this.value)"> ~ <input type="date" class="text-input" style="flex:1;margin:0;" value="${esc(shelfTo)}" onchange="setShelf('to',this.value)"></div>` : '') +
+    `<div class="chips" style="margin-bottom:6px;">${ch(shelfRate, '', '평점 전체', 'rate')}${ch(shelfRate, '5', '😍 5점', 'rate')}${ch(shelfRate, '4+', '👍 4점 이상', 'rate')}${ch(shelfRate, '3-', '😕 3점 이하', 'rate')}</div>` +
+    `<div class="chips" style="margin-bottom:10px;">${ch(shelfSort, 'new', '최근 읽은 순', 'sort')}${ch(shelfSort, 'hi', '평점 높은 순', 'sort')}${ch(shelfSort, 'lo', '평점 낮은 순', 'sort')}</div>` +
+    '<div class="field" style="border:0;padding-top:0;"><label>분야별 완독 (평생)</label></div>';
   BOOK_CATS.forEach(c => {
     const n = done.filter(b => b.category === c).length, T = Number(tg[c]) || 0, pct = T ? Math.min(100, Math.round(n / T * 100)) : 0;
     html += `<div class="shelf-row" onclick="editTarget('${c}')"><span class="pill" style="--p:${BOOK_CAT_COLOR[c]}">${c}</span><div class="progress-bg" style="flex:1;margin:0;height:8px;"><div class="progress-fill" style="width:${pct}%"></div></div><span class="shelf-n">${n} / ${T}</span></div>`;
   });
   html += `<div class="chips" style="margin:14px 0 8px;"><button class="chip ${bookFilter ? '' : 'sel'}" onclick="setBookFilter('')">전체</button>` +
     BOOK_CATS.map(c => `<button class="chip ${bookFilter === c ? 'sel' : ''}" onclick="setBookFilter('${c}')">${c}</button>`).join('') + '</div>';
-  const list = done.filter(b => !bookFilter || b.category === bookFilter).sort((a, b) => String(b.finishedAt).localeCompare(String(a.finishedAt)));
-  html += list.length ? list.map(b => `<div class="bk-row" onclick="bookActions('${b.id}')"><div class="bk-top">${coverHtml(b)}<div class="bk-info"><div class="bk-title">${esc(b.title)}</div>` +
-    `<div class="bk-meta">${esc(b.author)} · ${esc(b.category)} · ${esc(b.finishedAt || '')}</div><div class="stars-ro">${'★'.repeat(b.rating || 0)}${'☆'.repeat(5 - (b.rating || 0))}</div>` +
-    `${b.review ? `<div class="bk-meta">${esc(b.review)}</div>` : ''}</div></div></div>`).join('') : '<div class="rt-empty">완독한 책이 아직 없어요</div>';
-  const other = books.filter(b => b.status === 'dropped');
-  if (other.length) html += '<div class="sec-title" style="margin:16px 2px 8px;">중단한 책</div>' + other.map(b => `<div class="shop-row" onclick="bookActions('${b.id}')"><span class="shop-nm">${esc(b.title)}</span><span class="lv-date">중단</span></div>`).join('');
-  return html;
+  return html + `<div id="shelfList">${shelfListHtml()}</div>`;
 }
 function setBookFilter(c) { bookFilter = c; renderBooks(); }
 function editTarget(c) {
@@ -3103,6 +3498,61 @@ function goSettings(sec) {
 }
 function secHtml(id, title, body) { return `<details class="set-sec" id="sec-${id}"><summary>${title}</summary><div class="set-body">${body}</div></details>`; }
 function togHtml(id, items, cur, fn) { return `<div class="toggle" id="${id}">` + items.map(([v, l]) => `<button class="${v === cur ? 'sel' : ''}" onclick="${fn}('${v}')">${l}</button>`).join('') + '</div>'; }
+let shopLogN = 10;
+function shopLogMore() { shopLogN += 10; renderSettings(); }
+function purchaseLabel(p) {
+  if (p.name) return (p.emoji || '') + ' ' + p.name;
+  const x = p.itemId === BUILTIN_REST.id ? BUILTIN_REST : getShopItems().find(y => y.id === p.itemId);
+  return x ? x.emoji + ' ' + x.name : '(삭제된 품목)';
+}
+let shopLogFilter = '';
+function setShopLogFilter(v) { shopLogFilter = v; shopLogN = 10; renderSettings(); }
+function unusedRewards() { return getPurchases().filter(p => p.itemId !== BUILTIN_REST.id && !p.usedAt); }
+function toggleUsed(id) {
+  const ps = getPurchases(), p = ps.find(x => x.id === id); if (!p) return;
+  p.usedAt = p.usedAt ? null : dayKey(new Date());
+  localStorage.setItem('shop_purchases', JSON.stringify(ps));
+  toast(p.usedAt ? '✅ 사용 완료로 표시했어요' : '사용 전으로 되돌렸어요');
+  renderSettings(); renderLevelScreen();
+}
+function delPurchase(id) {
+  const ps = getPurchases(), p = ps.find(x => x.id === id); if (!p) return;
+  const rest = p.itemId === BUILTIN_REST.id;
+  if (!confirm(purchaseLabel(p) + ' (' + p.date + ') 구입 기록을 지울까요?\n🪙 ' + p.cost + '코인이 돌아와요.' + (rest ? '\n쉬는 날 이용권도 1개 줄어요.' : ''))) return;
+  localStorage.setItem('shop_purchases', JSON.stringify(ps.filter(x => x.id !== id)));
+  if (rest) setTokens(getTokens() - 1);
+  renderSettings(); renderLevelScreen();
+}
+function shopLogHtml() {
+  const ps = getPurchases();
+  if (!ps.length) return '<div class="hint" style="margin-top:6px;">아직 구입한 게 없어요. 내정보 상단 상점에서 코인으로 구입하면 여기에 쌓여요.</div>';
+  const total = ps.reduce((a, p) => a + (Number(p.cost) || 0), 0), by = {};
+  ps.forEach(p => { const k = purchaseLabel(p); (by[k] = by[k] || { n: 0, c: 0 }); by[k].n++; by[k].c += Number(p.cost) || 0; });
+  const unused = unusedRewards().length;
+  let sorted = ps.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)));
+  if (shopLogFilter === 'unused') sorted = sorted.filter(p => p.itemId !== BUILTIN_REST.id && !p.usedAt);
+  const thisYear = String(new Date().getFullYear());
+  const dl = d => (String(d).slice(0, 4) === thisYear ? '' : String(d).slice(0, 4) + ' ') + Number(String(d).slice(5, 7)) + '/' + Number(String(d).slice(8, 10));
+  return `<div class="lv-row" style="margin:8px 0 12px;"><div><b>${ps.length}회</b><small>총 구입</small></div><div><b>🪙 ${total}</b><small>사용한 코인</small></div><div><b>🎁 ${unused}</b><small>안 쓴 보상</small></div></div>` +
+    `<div class="field" style="border:0;padding:0 0 8px;"><label>품목별</label>` +
+    Object.keys(by).sort((a, b) => by[b].n - by[a].n).map(k => `<div class="shop-row"><span class="shop-nm">${esc(k)}</span><span class="shop-cost">× ${by[k].n}</span><span class="shop-cost" style="min-width:64px;text-align:right;">🪙 ${by[k].c}</span></div>`).join('') + `</div>` +
+    `<div class="field" style="border:0;padding:0;"><label>구입 기록 (최근 순)</label>` +
+    `<div class="chips" style="margin:6px 0;"><button class="chip ${shopLogFilter ? '' : 'sel'}" onclick="setShopLogFilter('')">전체</button><button class="chip ${shopLogFilter ? 'sel' : ''}" onclick="setShopLogFilter('unused')">🎁 안 쓴 것 (${unused})</button></div>` +
+    (sorted.length ? sorted.slice(0, shopLogN).map(p => {
+      const isRest = p.itemId === BUILTIN_REST.id;
+      const use = isRest ? '<span class="shop-use none">이용권</span>' : p.usedAt ? `<button class="shop-use done" onclick="toggleUsed('${p.id}')" aria-label="사용 취소">✓ ${esc(dl(p.usedAt))}</button>` : `<button class="shop-use" onclick="toggleUsed('${p.id}')">사용</button>`;
+      return `<div class="shop-row"><span class="lv-date" style="min-width:48px;text-align:left;">${esc(dl(p.date))}</span><span class="shop-nm ${p.usedAt ? 'used' : ''}">${esc(purchaseLabel(p))}</span><span class="shop-cost">-${p.cost}</span>${use}<button class="shop-x" onclick="delPurchase('${p.id}')" aria-label="기록 삭제">✕</button></div>`;
+    }).join('') : '<div class="hint" style="margin:8px 0;">안 쓴 보상이 없어요 👍</div>') +
+    (sorted.length > shopLogN ? `<button class="more-btn" onclick="shopLogMore()">더보기 (${sorted.length - shopLogN}개 남음)</button>` : '') + `</div>`;
+}
+function sickListHtml() {
+  const sk = getSickDays(), keys = Object.keys(sk).sort().reverse();
+  if (!keys.length) return '<div class="hint" style="margin-top:6px;">지정한 아픈 날이 없어요 ([오늘] 탭 요일 날짜를 길게 누르면 지정)</div>';
+  return `<div class="hint" style="margin:4px 0 6px;">총 ${keys.length}일 · 달성률·연속에서 빠져요</div>` + keys.slice(0, 10).map(k => {
+    const d = parseDayKey(k);
+    return `<div class="shop-row"><span class="lv-date" style="min-width:70px;text-align:left;">${d.getMonth() + 1}/${d.getDate()} (${WD[d.getDay()]})</span><span class="shop-nm">${esc(sk[k]) || '<span style="color:var(--muted)">사유 없음</span>'}</span><button class="shop-x" onclick="unmarkSick('${k}')" aria-label="해제">✕</button></div>`;
+  }).join('') + (keys.length > 10 ? `<div class="hint">최근 10일만 보여요</div>` : '');
+}
 function renderSettings() {
   const wrap = document.getElementById('settingsList'); if (!wrap) return;
   const open = new Set([...wrap.querySelectorAll('details[open]')].map(d => d.id));
@@ -3117,6 +3567,7 @@ function renderSettings() {
     `<div style="display:flex;gap:4px;align-items:center;font-size:12px;"><input type="number" id="lgGreen" min="1" max="100" value="${Math.round(lightGreen() * 100)}" style="width:54px;" onchange="setLight()">%<input type="number" id="lgYellow" min="1" max="99" value="${Math.round(lightYellow() * 100)}" style="width:54px;" onchange="setLight()">%</div></div>`);
   h += secHtml('habit', '✅ 습관',
     `<div class="field"><label>보관된 습관</label>` + (arch.length ? arch.map(a => `<div class="shop-row"><span class="shop-nm">${esc(a.icon)} ${esc(a.name)}</span><button class="shop-buy" onclick="archiveHabit('${a.id}',false);renderSettings()">복원</button><button class="shop-x" onclick="delArchived('${a.id}')" aria-label="삭제">✕</button></div>`).join('') : '<div class="hint" style="margin-top:6px;">없음</div>') + '</div>' +
+    `<div class="field"><label>🤒 아픈 날</label>` + sickListHtml() + `</div>` +
     `<div class="field"><label>테마(카테고리)</label>` + allCats().map((c, i) => `<div class="shop-row"><span class="pill" style="--p:${hexOk(c.color) ? c.color : '#cccccc'}">${esc(c.name)}</span><span style="flex:1"></span><input type="color" value="${hexOk(c.color) ? c.color : '#cccccc'}" onchange="setCatColor(${i},this.value)" style="width:34px;height:28px;border:0;background:none;padding:0;"><button class="shop-x" onclick="renameCat(${i})" aria-label="이름 변경">✎</button><button class="shop-x" onclick="delCat(${i})" aria-label="삭제">✕</button></div>`).join('') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addCat()">＋ 테마 추가</button></div>` +
     `<div class="field" style="border:0;"><label>습관 순서</label><div class="hint" style="margin:4px 0 6px;">≡ 를 잡고 끌어서 바꿔요</div><div id="orderList">` +
@@ -3130,6 +3581,7 @@ function renderSettings() {
     `<div class="field"><label>상점 품목 관리</label>` + (getShopItems().map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">🪙 ${it.cost}</span><button class="shop-x" onclick="editShopItem('${it.id}')" aria-label="수정">✎</button><button class="shop-x" onclick="delShopItem('${it.id}');renderSettings()" aria-label="삭제">✕</button></div>`).join('') || '<div class="hint" style="margin-top:6px;">직접 만든 품목이 없어요 (🛌 쉬는 날 이용권은 기본 제공)</div>') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addShopItem();renderSettings()">＋ 품목 추가</button></div>` +
     `<div class="settings-row" style="border:0;"><div><label>하루 XP 상한</label><div class="hint">기본 150</div></div><input type="number" min="10" value="${cap}" onchange="setXpCap(this.value)"></div>`);
+  h += secHtml('shop', '🛍 상점 · 구입 기록', shopLogHtml());
   h += secHtml('hr', '❤️ 심박·신체',
     `<div class="sub" style="font-size:12px;color:var(--muted);margin-bottom:6px;">Zone 계산과 칼로리 추정 기준을 설정합니다.</div>` +
     `<div class="settings-row"><div><label>나이</label><div class="hint">최대심박 = 220 − 나이</div></div><input type="number" id="ageInput" min="10" max="100" value="${settings.age}"></div>` +
