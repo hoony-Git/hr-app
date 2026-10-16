@@ -14,7 +14,7 @@ command -v node >/dev/null || { echo "node 가 필요합니다 (https://nodejs.o
 jget() {
   node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const o=JSON.parse(s);console.log(new Function("o","return "+process.argv[1])(o))}catch(e){console.log("<non-json>")}})' "$1"
 }
-call() { curl -sL -X POST -H 'Content-Type: text/plain' --data "$1" "$SYNC_URL"; }
+call() { curl -sL -H 'Content-Type: text/plain' --data "$1" "$SYNC_URL"; }
 fail=0
 check() { # 이름 실제 기대
   if [ "$2" = "$3" ]; then echo "PASS  $1 ($2)"; else echo "FAIL  $1 (기대: $3, 실제: $2)"; fail=1; fi
