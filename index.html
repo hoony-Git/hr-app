@@ -1850,13 +1850,19 @@ function syncShowConflict(r, bkKey, first) {
 
 // ---- 설정 화면 동작 ----
 const SYNC_URL_RE = /^(https:\/\/script\.google\.com\/(a\/macros\/[^\/]+\/|macros\/)s\/[^\/]+\/exec|http:\/\/(localhost|127\.0\.0\.1):\d+\/exec)$/;
+// 입력 중인 값을 임시 보관: 다른 앱(메모 등)에 다녀오다 브라우저가 페이지를 다시 불러와도 입력이 사라지지 않게
+function syncDraft() { try { return JSON.parse(localStorage.getItem('sync_draft')) || {}; } catch(e) { return {}; } }
+function syncDraftSave() {
+  try { localStorage.setItem('sync_draft', JSON.stringify({ url: document.getElementById('syncUrl').value, token: document.getElementById('syncToken').value, dev: document.getElementById('syncDev').value })); } catch(e) {}
+}
 function syncSaveCfg() {
   const url = document.getElementById('syncUrl').value.trim(), token = document.getElementById('syncToken').value.trim();
   const dev = document.getElementById('syncDev').value.trim().slice(0, 30);
   if (url && !SYNC_URL_RE.test(url)) { toast('주소는 https://script.google.com/…/exec 형태여야 해요'); return false; }
   if (url && !token) { toast('비밀키도 입력하세요'); return false; }
+  if (!url && token) { toast('동기화 주소가 비어 있어요 — 주소를 입력하세요'); return false; }
   const was = syncCfg(), wasOn = syncEnabled();
-  localStorage.setItem('sync_url', url); localStorage.setItem('sync_token', token);
+  localStorage.setItem('sync_url', url); localStorage.setItem('sync_token', token); localStorage.removeItem('sync_draft');
   if (dev) localStorage.setItem('sync_device', dev);
   // 켜짐/꺼짐이 바뀌거나 주소가 바뀌면 서버 번호표를 버리고 처음 연결처럼 비교한다 (꺼져 있던 동안의 변경을 놓치지 않기 위해)
   if (wasOn !== syncEnabled() || was.url !== url) { localStorage.removeItem('sync_rev'); SYNC.dirty.clear(); syncSaveDirty(); }
@@ -3942,9 +3948,9 @@ function renderSettings() {
     `<button class="btn-primary btn-wide" style="margin-top:12px;" onclick="saveHrSettings()">저장</button>`);
   h += secHtml('sync', '🔄 동기화',
     `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6;">폰과 PC가 같은 기록을 보게 합니다. 비워 두면 지금처럼 이 기기에만 저장돼요. 설치 방법은 gas/README.md 를 보세요.</div>` +
-    `<div class="field"><label>동기화 주소</label><input type="text" class="text-input" id="syncUrl" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(syncCfg().url)}" autocomplete="off" autocapitalize="off" spellcheck="false"></div>` +
-    `<div class="field"><label>비밀키</label><input type="password" class="text-input" id="syncToken" value="${esc(syncCfg().token)}" autocomplete="off"></div>` +
-    `<div class="field"><label>이 기기 이름</label><input type="text" class="text-input" id="syncDev" maxlength="30" placeholder="비워 두면 자동으로 정해져요" value="${esc(localStorage.getItem('sync_device') || '')}"></div>` +
+    `<div class="field"><label>동기화 주소</label><input type="text" class="text-input" id="syncUrl" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(syncDraft().url != null ? syncDraft().url : syncCfg().url)}" oninput="syncDraftSave()" autocomplete="off" autocapitalize="off" spellcheck="false"></div>` +
+    `<div class="field"><label>비밀키</label><input type="password" class="text-input" id="syncToken" value="${esc(syncDraft().token != null ? syncDraft().token : syncCfg().token)}" oninput="syncDraftSave()" autocomplete="off"></div>` +
+    `<div class="field"><label>이 기기 이름</label><input type="text" class="text-input" id="syncDev" maxlength="30" placeholder="비워 두면 자동으로 정해져요" value="${esc(syncDraft().dev != null ? syncDraft().dev : (localStorage.getItem('sync_device') || ''))}" oninput="syncDraftSave()"></div>` +
     `<div class="controls" style="margin:10px 0;"><button onclick="syncSaveCfg()" style="background:var(--surface2);">저장</button><button onclick="syncTest()" style="background:var(--surface2);">연결 테스트</button><button onclick="syncManual()" style="background:var(--surface2);">지금 동기화</button></div>` +
     `<div class="hint" id="syncStatusLine" style="line-height:1.7;"></div>` +
     `<div class="hint" style="margin-top:8px;line-height:1.7;">${syncKeyBytesHtml()}</div>`);
