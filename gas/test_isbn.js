@@ -69,9 +69,28 @@ t('상류 오류: 응답 오류코드 / HTTP 오류 / 예외 — 인증키가 �
   for (const thrower of [() => { throw new Error('failed https://www.nl.go.kr/?cert_key=' + SECRET); }, () => ({ getResponseCode: () => 200, getContentText: () => 'not json ' + SECRET })]) {
     r = load({ props: base, nl: thrower }).post({ token: 'tok', action: 'isbn', isbn: '9788937461798' });
     assert.strictEqual(r.error, 'upstream_error'); assert.ok(!JSON.stringify(r).includes(SECRET));
+    assert.ok(r.detail && r.detail.includes('***'), '이유는 보이되 키는 *** 로 가려짐: ' + r.detail);   // 인코딩된 키도 가려지는지는 아래 별도 시험
   }
+  // 특수문자가 든 키는 주소에서 인코딩된 모양(%2B 등)으로 오류 문장에 섞일 수 있다 — 원문·인코딩형 모두 가려져야 한다
+  const WEIRD = 'ab+/=cd';
+  r = load({ props: { SYNC_TOKEN: 'tok', NL_CERT_KEY: WEIRD }, nl: () => { throw new Error('DNS error: https://x/?cert_key=' + encodeURIComponent(WEIRD) + ' / raw ' + WEIRD); } })
+    .post({ token: 'tok', action: 'isbn', isbn: '9788937461798' });
+  const js = JSON.stringify(r);
+  assert.ok(!js.includes(encodeURIComponent(WEIRD)) && !js.includes(WEIRD), js);
+  assert.ok(r.detail.includes('***'), r.detail);
   r = load({ props: base, nl: () => ok([1, 2]) }).post({ token: 'tok', action: 'isbn', isbn: '9788937461798' });
   assert.strictEqual(r.error, 'upstream_error');
+});
+t('인증키 앞뒤 공백·줄바꿈은 제거해서 요청', () => {
+  const { post, calls } = load({ props: { SYNC_TOKEN: 'tok', NL_CERT_KEY: '  ' + SECRET + '\n' }, nl: () => ok({ docs: [DOC] }) });
+  assert.strictEqual(post({ token: 'tok', action: 'isbn', isbn: '9788937461798' }).ok, true);
+  assert.ok(calls[0].includes('cert_key=' + SECRET + '&'), calls[0]);
+});
+t('원인 구분: 오류 이유가 "fetch:" / "json:" 으로 시작', () => {
+  let r = load({ props: base, nl: () => { throw new Error('권한 없음'); } }).post({ token: 'tok', action: 'isbn', isbn: '9788937461798' });
+  assert.ok(r.detail.startsWith('fetch: 권한 없음'), r.detail);
+  r = load({ props: base, nl: () => ({ getResponseCode: () => 200, getContentText: () => '<html>오류</html>' }) }).post({ token: 'tok', action: 'isbn', isbn: '9788937461798' });
+  assert.ok(r.detail.startsWith('json: <html>'), r.detail);
 });
 t('저자·출판사 표기 다듬기 (실제 응답 값)', () => {
   const { sb } = load({ props: base, nl: () => ok({}) });

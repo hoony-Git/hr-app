@@ -154,19 +154,21 @@ var ISBN_CACHE_SEC = 21600;   // 같은 ISBN 은 6시간 동안 캐시 (Apps Scr
 function doIsbn_(req) {
   var isbn = typeof req.isbn === 'string' ? req.isbn.trim() : '';
   if (!/^97[89]\d{10}$/.test(isbn)) return { ok: false, error: 'bad_isbn' };
-  var key = PropertiesService.getScriptProperties().getProperty('NL_CERT_KEY');
+  var key = String(PropertiesService.getScriptProperties().getProperty('NL_CERT_KEY') || '').trim();   // 붙여넣을 때 섞인 앞뒤 공백·줄바꿈 제거
   if (!key) return { ok: false, error: 'not_configured' };
   var cache = CacheService.getScriptCache(), ck = 'isbn:' + isbn, hit = cache.get(ck);
   if (hit) { try { return JSON.parse(hit); } catch (e) {} }
-  var data;
+  var text, data;
   try {
     var url = NL_ENDPOINT + '?cert_key=' + encodeURIComponent(key) + '&result_style=json&page_no=1&page_size=1&isbn=' + isbn;
     var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     if (resp.getResponseCode() !== 200) return { ok: false, error: 'upstream_error', code: 'http_' + resp.getResponseCode() };
-    data = JSON.parse(resp.getContentText('UTF-8'));
+    text = resp.getContentText('UTF-8');
   } catch (err) {
-    return { ok: false, error: 'upstream_error' };   // 오류 문장에 인증키가 든 주소가 섞일 수 있어 내용은 돌려주지 않는다
+    return { ok: false, error: 'upstream_error', detail: scrub_('fetch: ' + (err && err.message || err), key) };   // 이유는 알려 주되 인증키는 가린다
   }
+  try { data = JSON.parse(text); }
+  catch (err) { return { ok: false, error: 'upstream_error', detail: scrub_('json: ' + String(text).slice(0, 160), key) }; }
   if (!data || typeof data !== 'object' || Array.isArray(data) || data.RESULT === 'ERROR') {
     return { ok: false, error: 'upstream_error', code: String((data && data.ERR_CODE) || '') };
   }
@@ -179,6 +181,11 @@ function doIsbn_(req) {
   return result;
 }
 
+function scrub_(t, key) {   // 문장 속 인증키(원문·주소 인코딩형)를 *** 로 바꾼다
+  var out = String(t);
+  if (key) out = out.split(key).join('***').split(encodeURIComponent(key)).join('***');
+  return out.slice(0, 200);
+}
 function clean_(v, limit) { return typeof v === 'string' ? v.trim().slice(0, limit || 200) : ''; }
 function cleanAuthor_(raw) {   // '프랑수아즈 사강 [지음] ;김남주 옮김' -> '프랑수아즈 사강' (첫 항목만, 끝의 역할 표시 제거)
   var first = clean_(String(raw || '').split(';')[0], 200), prev;
@@ -208,9 +215,14 @@ function testIsbn() {
 }
 // 응답의 실제 항목 이름 확인용: 첫 항목의 이름과 값을 로그로 남긴다
 function testIsbnRaw() {
-  var key = PropertiesService.getScriptProperties().getProperty('NL_CERT_KEY');
+  var key = String(PropertiesService.getScriptProperties().getProperty('NL_CERT_KEY') || '').trim();
   if (!key) { Logger.log('NL_CERT_KEY 스크립트 속성이 없어요'); return; }
   var url = NL_ENDPOINT + '?cert_key=' + encodeURIComponent(key) + '&result_style=json&page_no=1&page_size=1&isbn=9788937461798';
-  var text = UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getContentText('UTF-8');
-  Logger.log(text.split(key).join('***').slice(0, 3000));
+  try {
+    var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    Logger.log('HTTP ' + resp.getResponseCode() + ' | ' + scrub_(resp.getContentText('UTF-8'), key).slice(0, 180));
+    Logger.log(String(resp.getContentText('UTF-8')).split(key).join('***').slice(0, 2500));
+  } catch (err) {
+    Logger.log('요청 실패: ' + scrub_(err && err.message || err, key));
+  }
 }
