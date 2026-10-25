@@ -6,6 +6,7 @@
  *   get: { sinceRev?, metaOnly? }           -> { ok, rev, updatedAt, device, bytes, data? }
  *   put: { baseRev, device, changes }       -> 바뀐 키만 합침 (값 null = 키 삭제)
  *   put: { baseRev, device, data }          -> 전체 교체 (첫 동기화 / 이 기기 기록으로 덮어쓰기)
+ *   isbn: { isbn }                          -> { ok, book: {title, author, publisher, pages, coverUrl, addCode} }  (국립중앙도서관 서지정보)
  * - 저장: 내 드라이브의 hr-app-sync.json  { rev, updatedAt, device, data }
  */
 
@@ -21,6 +22,7 @@ function doPost(e) {
     if (!tokenOk_(req.token)) return out_({ ok: false, error: 'unauthorized' });
     if (req.action === 'get') return out_(doGet_(req));
     if (req.action === 'put') return out_(doPut_(req));
+    if (req.action === 'isbn') return out_(doIsbn_(req));
     return out_({ ok: false, error: 'bad_action' });
   } catch (err) {
     return out_({ ok: false, error: 'server_error', message: String(err && err.message || err) });
@@ -142,4 +144,66 @@ function pruneBackups_(folder) {
   if (files.length <= KEEP_BACKUPS) return;
   files.sort(function (a, b) { return a.getName() < b.getName() ? 1 : -1; });   // 이름(시각) 내림차순 = 최신 먼저
   for (var i = KEEP_BACKUPS; i < files.length; i++) files[i].setTrashed(true);
+}
+
+// ---------- ISBN 조회 (국립중앙도서관 서지정보 API) ----------
+// 인증키는 스크립트 속성 NL_CERT_KEY 에만 둔다 (코드·응답·로그에 넣지 않는다). 위 비밀키 확인을 통과한 요청만 여기까지 온다.
+var NL_ENDPOINT = 'https://www.nl.go.kr/seoji/SearchApi.do';
+var ISBN_CACHE_SEC = 21600;   // 같은 ISBN 은 6시간 동안 캐시 (Apps Script 캐시 최대치)
+
+function doIsbn_(req) {
+  var isbn = typeof req.isbn === 'string' ? req.isbn.trim() : '';
+  if (!/^97[89]\d{10}$/.test(isbn)) return { ok: false, error: 'bad_isbn' };
+  var key = PropertiesService.getScriptProperties().getProperty('NL_CERT_KEY');
+  if (!key) return { ok: false, error: 'not_configured' };
+  var cache = CacheService.getScriptCache(), ck = 'isbn:' + isbn, hit = cache.get(ck);
+  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  var data;
+  try {
+    var url = NL_ENDPOINT + '?cert_key=' + encodeURIComponent(key) + '&result_style=json&page_no=1&page_size=1&isbn=' + isbn;
+    var resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    if (resp.getResponseCode() !== 200) return { ok: false, error: 'upstream_error', code: 'http_' + resp.getResponseCode() };
+    data = JSON.parse(resp.getContentText('UTF-8'));
+  } catch (err) {
+    return { ok: false, error: 'upstream_error' };   // 오류 문장에 인증키가 든 주소가 섞일 수 있어 내용은 돌려주지 않는다
+  }
+  if (!data || typeof data !== 'object' || Array.isArray(data) || data.RESULT === 'ERROR') {
+    return { ok: false, error: 'upstream_error', code: String((data && data.ERR_CODE) || '') };
+  }
+  var docs = data.docs;
+  if (!Array.isArray(docs) || !docs.length || !docs[0] || typeof docs[0] !== 'object') return { ok: false, error: 'not_found' };
+  var book = mapDoc_(docs[0]);
+  if (!book.title) return { ok: false, error: 'not_found' };
+  var result = { ok: true, book: book };
+  try { cache.put(ck, JSON.stringify(result), ISBN_CACHE_SEC); } catch (e) {}
+  return result;
+}
+
+function clean_(v, limit) { return typeof v === 'string' ? v.trim().slice(0, limit || 200) : ''; }
+function parsePages_(raw) {   // '352 p.' 같은 문자열에서 첫 정수만. 못 뽑으면 null
+  var m = typeof raw === 'string' ? raw.match(/\d+/) : null;
+  return m ? parseInt(m[0], 10) : null;
+}
+// 응답 항목 이름은 국립중앙도서관 문서 기준 추정값 — 실제 응답으로 확인되면 여기만 고치면 된다
+function mapDoc_(d) {
+  var cover = clean_(d.TITLE_URL, 500);
+  if (cover.indexOf('http://') === 0) cover = 'https://' + cover.slice(7);   // 앱이 https 페이지라 http 표지는 막힌다
+  return {
+    title: clean_(d.TITLE), author: clean_(d.AUTHOR), publisher: clean_(d.PUBLISHER),
+    pages: parsePages_(d.PAGE), coverUrl: cover, addCode: clean_(d.EA_ADD_CODE, 10)
+  };
+}
+
+// ---------- 편집기에서 직접 실행하는 점검용 (웹앱으로는 호출되지 않음) ----------
+// 처음 한 번 실행하면 "외부 서비스 연결" 권한 승인 창이 뜬다. 인증키는 로그에 남기지 않는다.
+function testIsbn() {
+  Logger.log(JSON.stringify(doIsbn_({ isbn: '9788937461798' })));
+}
+// 응답의 실제 항목 이름 확인용: 첫 항목의 이름과 값을 로그로 남긴다
+function testIsbnRaw() {
+  var key = PropertiesService.getScriptProperties().getProperty('NL_CERT_KEY');
+  if (!key) { Logger.log('NL_CERT_KEY 스크립트 속성이 없어요'); return; }
+  var url = NL_ENDPOINT + '?cert_key=' + encodeURIComponent(key) + '&result_style=json&page_no=1&page_size=1&isbn=9788937461798';
+  var text = UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getContentText('UTF-8');
+  Logger.log(text.split(key).join('***').slice(0, 3000));
 }

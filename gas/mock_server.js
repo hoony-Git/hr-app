@@ -13,6 +13,7 @@ const PORT = Number(process.argv[2]) || 8787;
 let files = [];       // {name, content, trashed, folder}
 let folders = [];     // {name}
 let tick = 0;
+let nlCalls = 0; const cacheMap = {};   // 모의 외부 호출 횟수 / 모의 캐시
 function resetDrive() { files = []; folders = []; }
 function mkFile(f) {
   return {
@@ -36,7 +37,12 @@ function mkFolder(fd) {
 const sandbox = {
   DriveApp,
   ContentService: { MimeType: { JSON: 'json' }, createTextOutput: t => ({ text: t, setMimeType() { return this; } }) },
-  PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k === 'SYNC_TOKEN' ? TOKEN : null) }) },
+  PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k === 'SYNC_TOKEN' ? TOKEN : k === 'NL_CERT_KEY' ? (process.env.NL_CERT_KEY || 'MOCKKEY') : null) }) },
+  // ISBN 조회용 모의: 실제 외부 서버에 나가지 않고 항상 같은 책 정보를 준다 (9780306406157 은 '없음')
+  UrlFetchApp: { fetch: url => { nlCalls++; const none = /isbn=9780306406157/.test(url); const body = none ? { TOTAL_COUNT: '0', docs: [] } : { TOTAL_COUNT: '1', docs: [{ TITLE: ' 어린 왕자 ', AUTHOR: '생텍쥐페리', PUBLISHER: '문학동네', PAGE: '352 p.', EA_ADD_CODE: '03860', TITLE_URL: 'http://cover.example/a.jpg' }] };
+      return { getResponseCode: () => 200, getContentText: () => JSON.stringify(body) }; } },
+  CacheService: { getScriptCache: () => ({ get: k => cacheMap[k] || null, put: (k, v) => { cacheMap[k] = v; } }) },
+  encodeURIComponent, parseInt, RegExp, Array, Logger: { log() {} },
   LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock() {} }) },
   Utilities: { formatDate: () => { tick++; const p = n => String(n).padStart(2, '0'); return `20260101-0000${p(Math.floor(tick / 1000) % 100)}-${String(tick % 1000).padStart(3, '0')}`; } },
   JSON, Date, Error, String, Object, Array,
@@ -64,7 +70,8 @@ http.createServer((req, res) => {
   if (url === '/__dropresp') { dropResp = !dropResp; res.writeHead(200, CORS); return res.end(String(dropResp)); }
   if (url === '/__offline') { offline = !offline; res.writeHead(200, CORS); return res.end(String(offline)); }
   if (url === '/__log') { res.writeHead(200, { ...CORS, 'Content-Type': 'application/json' }); return res.end(JSON.stringify(log)); }
-  if (url === '/__reset') { resetDrive(); log = []; res.writeHead(200, CORS); return res.end('reset'); }
+  if (url === '/__nlcalls') { res.writeHead(200, CORS); return res.end(String(nlCalls)); }
+  if (url === '/__reset') { resetDrive(); log = []; nlCalls = 0; Object.keys(cacheMap).forEach(k => delete cacheMap[k]); res.writeHead(200, CORS); return res.end('reset'); }
   if (url !== '/exec') { res.writeHead(404, CORS); return res.end(); }
   if (offline) { return req.socket.destroy(); }
   let body = '';

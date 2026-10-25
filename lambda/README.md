@@ -1,5 +1,7 @@
 # ISBN 프록시 (Phase 6)
 
+> **참고**: ISBN 조회는 AWS Lambda 대신 기존 구글 Apps Script 창구(`gas/`)로 하기로 해서 이 폴더는 현재 사용하지 않습니다. (코드·시험은 참고용으로 남겨 둠)
+
 `isbn_proxy.py` 를 AWS Lambda(Python 3.12) 에 올리고 **Function URL** (인증 NONE) 을 켠다.
 
 1. 환경변수 `NL_CERT_KEY` = 국립중앙도서관 인증키 (코드·저장소에 넣지 않는다)
