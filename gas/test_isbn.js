@@ -1,6 +1,6 @@
 // ISBN 조회(Code.gs 의 doIsbn_) 점검: 실제 구글·국립중앙도서관에 접속하지 않고 Apps Script 부품만 흉내 낸다.
 //   node gas/test_isbn.js
-// ※ 응답 항목 이름(TITLE/AUTHOR/…)은 국립중앙도서관 문서 기준 추정이다. 실제 응답으로 확인되기 전까지 "추정 이름 기준" 점검이다.
+// 응답 항목 이름은 실제 응답(2026-10-26)으로 확인했다. 아래 시험 값 중 '실제 값'이라고 적은 것은 그때 받은 응답에서 가져왔다.
 const fs = require('fs'), path = require('path'), vm = require('vm'), assert = require('assert');
 
 const SECRET = 'SECRETKEY123';
@@ -73,8 +73,16 @@ t('상류 오류: 응답 오류코드 / HTTP 오류 / 예외 — 인증키가 �
   r = load({ props: base, nl: () => ok([1, 2]) }).post({ token: 'tok', action: 'isbn', isbn: '9788937461798' });
   assert.strictEqual(r.error, 'upstream_error');
 });
+t('저자·출판사 표기 다듬기 (실제 응답 값)', () => {
+  const { sb } = load({ props: base, nl: () => ok({}) });
+  [['프랑수아즈 사강 [지음] ;김남주 옮김', '프랑수아즈 사강'], ['제임스 클리어 지음 ;이한이 옮김', '제임스 클리어'], ['조지 오웰', '조지 오웰'],
+   ['앙투안 드 생텍쥐페리', '앙투안 드 생텍쥐페리'], ['유발 하라리', '유발 하라리'], ['', ''], [null, ''], ['홍길동 지음 [글]', '홍길동']]
+    .forEach(([raw, want]) => assert.strictEqual(sb.cleanAuthor_(raw), want, String(raw)));
+  [['(주)민음사', '민음사'], ['민음사', '민음사'], ['열린책들', '열린책들'], ['문학동네(주)', '문학동네'], [null, '']]
+    .forEach(([raw, want]) => assert.strictEqual(sb.cleanPublisher_(raw), want, String(raw)));
+});
 t('쪽수 해석', () => {
   const { sb } = load({ props: base, nl: () => ok({}) });
-  [['352 p.', 352], ['xii, 120p', 120], ['', null], [null, null], ['쪽수없음', null], [352, null]].forEach(([raw, want]) => assert.strictEqual(sb.parsePages_(raw), want, String(raw)));
+  [['352 p.', 352], ['약 640쪽 내외', 640], ['359 p.', 359], ['448', 448], ['xii, 120p', 120], ['', null], [null, null], ['쪽수없음', null], [352, null]].forEach(([raw, want]) => assert.strictEqual(sb.parsePages_(raw), want, String(raw)));
 });
 console.log('\n전부 통과 (' + n + '개)');

@@ -180,16 +180,23 @@ function doIsbn_(req) {
 }
 
 function clean_(v, limit) { return typeof v === 'string' ? v.trim().slice(0, limit || 200) : ''; }
+function cleanAuthor_(raw) {   // '프랑수아즈 사강 [지음] ;김남주 옮김' -> '프랑수아즈 사강' (첫 항목만, 끝의 역할 표시 제거)
+  var first = clean_(String(raw || '').split(';')[0], 200), prev;
+  do { prev = first; first = first.replace(/\s*\[?(지음|지은이|글|저|저자|엮음|편)\]?\s*$/, ''); } while (first !== prev);
+  return first.trim();
+}
+function cleanPublisher_(raw) { return clean_(raw, 100).replace(/^\(주\)\s*/, '').replace(/\s*\(주\)$/, '').trim(); }
 function parsePages_(raw) {   // '352 p.' 같은 문자열에서 첫 정수만. 못 뽑으면 null
   var m = typeof raw === 'string' ? raw.match(/\d+/) : null;
   return m ? parseInt(m[0], 10) : null;
 }
-// 응답 항목 이름은 국립중앙도서관 문서 기준 추정값 — 실제 응답으로 확인되면 여기만 고치면 된다
+// 응답 항목 이름(TITLE/AUTHOR/PUBLISHER/PAGE/EA_ADD_CODE/TITLE_URL)은 실제 응답으로 확인함 (2026-10-26).
+// 실제 값은 지저분하다: AUTHOR '프랑수아즈 사강 [지음] ;김남주 옮김', PUBLISHER '(주)민음사', PAGE ''·'약 640쪽 내외'·'359 p.', TITLE_URL 대부분 빈 값
 function mapDoc_(d) {
   var cover = clean_(d.TITLE_URL, 500);
   if (cover.indexOf('http://') === 0) cover = 'https://' + cover.slice(7);   // 앱이 https 페이지라 http 표지는 막힌다
   return {
-    title: clean_(d.TITLE), author: clean_(d.AUTHOR), publisher: clean_(d.PUBLISHER),
+    title: clean_(d.TITLE), author: cleanAuthor_(d.AUTHOR), publisher: cleanPublisher_(d.PUBLISHER),
     pages: parsePages_(d.PAGE), coverUrl: cover, addCode: clean_(d.EA_ADD_CODE, 10)
   };
 }
