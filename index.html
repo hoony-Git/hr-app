@@ -1658,9 +1658,9 @@ function syncKeyBytesHtml() {
 }
 
 // ---- 서버 호출 ----
-async function syncCall(body, cfg) {
+async function syncCall(body, cfg, ms) {
   const c = cfg || syncCfg();
-  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 45000);
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms || 45000);
   try {
     // text/plain 이라 브라우저가 사전 확인(preflight)을 하지 않는다
     const payload = JSON.stringify(Object.assign({ token: c.token }, body));
@@ -3296,14 +3296,18 @@ async function fetchJson(url, ms) {
   try { const r = await fetch(url, { signal: ctl.signal }); if (!r.ok) return null; return await r.json(); } catch (e) { return null; } finally { clearTimeout(t); }
 }
 const bstr = v => (typeof v === 'string' ? v.trim().slice(0, 200) : '');
-// 1순위 내 프록시(Lambda), 2순위 Google Books(키 없이 쓰는 무료 조회라 일일 한도로 막힐 수 있음). 못 찾으면 null
+// 조회 순서: 내 Apps Script → (설정돼 있으면) Lambda 프록시 → Google Books(키 없는 무료 조회라 일일 한도로 막힐 수 있음). 못 찾으면 null
 async function fetchBookInfo(isbn) {
+  const fromProxy = j => { const pages = parseInt(j.pages);
+    return { isbn, title: bstr(j.title), author: bstr(j.author), publisher: bstr(j.publisher), coverUrl: safeUrl(j.coverUrl), category: catFromAddCode(j.addCode), startPage: 1, endPage: pages > 0 ? pages : '' }; };
+  // 1순위: 동기화에 쓰는 내 Apps Script (국립중앙도서관 인증키는 거기에만 있다). 동기화 주소·비밀키가 설정된 기기에서만 쓴다
+  if (syncEnabled()) {
+    const r = await syncCall({ action: 'isbn', isbn }, null, 15000);
+    if (r && r.ok && r.book && typeof r.book.title === 'string' && r.book.title.trim()) return fromProxy(r.book);
+  }
   if (ISBN_PROXY_URL) {
     const j = await fetchJson(ISBN_PROXY_URL + (ISBN_PROXY_URL.includes('?') ? '&' : '?') + 'isbn=' + encodeURIComponent(isbn));
-    if (j && typeof j.title === 'string' && j.title.trim()) {
-      const pages = parseInt(j.pages);
-      return { isbn, title: bstr(j.title), author: bstr(j.author), publisher: bstr(j.publisher), coverUrl: safeUrl(j.coverUrl), category: catFromAddCode(j.addCode), startPage: 1, endPage: pages > 0 ? pages : '' };
-    }
+    if (j && typeof j.title === 'string' && j.title.trim()) return fromProxy(j);
   }
   const g = await fetchJson('https://www.googleapis.com/books/v1/volumes?maxResults=1&q=isbn:' + encodeURIComponent(isbn));
   const v = g && Array.isArray(g.items) && g.items[0] && g.items[0].volumeInfo;
