@@ -1927,10 +1927,10 @@ function updateConnUI() {
   if (!S.connected && S.device) document.getElementById('connectLabel').textContent = '⚡ 재연결';
 }
 let toastT;
-function toast(msg) {
+function toast(msg, ms) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2800);
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), ms || 2800);
 }
 
 // ====================== 습관 캘린더 ======================
@@ -3290,7 +3290,20 @@ function catFromAddCode(code) {   // 부가기호 5자리: 끝 3자리가 내용
   if (s.length !== 5) return '기타';
   return { '8': '문학', '9': '역사', '1': '철학', '4': '과학' }[s.slice(-3)[0]] || '기타';
 }
-function noBookInfo(isbn) { toast('책 정보를 찾지 못했어요. 직접 입력해 주세요.'); openBookModal(null, { isbn }); }
+let isbnWhy = '';   // 마지막 조회가 실패한 이유 (화면 안내용)
+function isbnWhyText() { return '책 정보를 찾지 못했어요' + (isbnWhy ? ' — ' + isbnWhy : '') + '. 직접 입력해 주세요.'; }
+function syncWhy(r) {
+  const e = r && r.error;
+  if (e === 'unauthorized') return '동기화 비밀키가 서버와 달라요 (내정보 > 동기화)';
+  if (e === 'network') return '동기화 서버에 연결하지 못했어요 (인터넷·주소 확인)';
+  if (e === 'bad_response') return '동기화 서버 응답이 이상해요 (주소·배포 권한 확인)';
+  if (e === 'bad_action') return '서버가 ISBN 조회를 모르는 옛 버전이에요 (Apps Script 새 버전 배포 필요)';
+  if (e === 'not_configured') return '서버에 도서관 인증키(NL_CERT_KEY)가 없어요';
+  if (e === 'not_found') return '국립중앙도서관에도 없는 번호예요';
+  if (e === 'upstream_error') return '도서관 서버 오류 (' + String(r.detail || r.code || '').slice(0, 60) + ')';
+  return String(e || '알 수 없는 오류');
+}
+function noBookInfo(isbn) { toast(isbnWhyText(), 7000); openBookModal(null, { isbn }); }
 async function fetchJson(url, ms) {
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms || 6000);
   try { const r = await fetch(url, { signal: ctl.signal }); if (!r.ok) return null; return await r.json(); } catch (e) { return null; } finally { clearTimeout(t); }
@@ -3301,10 +3314,12 @@ async function fetchBookInfo(isbn) {
   const fromProxy = j => { const pages = parseInt(j.pages);
     return { isbn, title: bstr(j.title), author: bstr(j.author), publisher: bstr(j.publisher), coverUrl: safeUrl(j.coverUrl), category: catFromAddCode(j.addCode), startPage: 1, endPage: pages > 0 ? pages : '' }; };
   // 1순위: 동기화에 쓰는 내 Apps Script (국립중앙도서관 인증키는 거기에만 있다). 동기화 주소·비밀키가 설정된 기기에서만 쓴다
+  isbnWhy = '';
   if (syncEnabled()) {
     const r = await syncCall({ action: 'isbn', isbn }, null, 15000);
     if (r && r.ok && r.book && typeof r.book.title === 'string' && r.book.title.trim()) return fromProxy(r.book);
-  }
+    isbnWhy = syncWhy(r);
+  } else isbnWhy = '동기화가 꺼져 있어 국립중앙도서관 조회를 못 썼어요 (내정보 > 동기화 설정)';
   if (ISBN_PROXY_URL) {
     const j = await fetchJson(ISBN_PROXY_URL + (ISBN_PROXY_URL.includes('?') ? '&' : '?') + 'isbn=' + encodeURIComponent(isbn));
     if (j && typeof j.title === 'string' && j.title.trim()) return fromProxy(j);
@@ -3331,7 +3346,7 @@ async function fillFromIsbn(isbn) {
   document.getElementById('bkIsbn').value = isbn;
   toast('책 정보를 찾는 중…');
   const info = await fetchBookInfo(isbn);
-  if (!info) { toast('책 정보를 찾지 못했어요. 제목·쪽수는 직접 입력해 주세요.'); return; }
+  if (!info) { toast(isbnWhyText(), 7000); return; }
   const setIfEmpty = (id, v) => { const el = document.getElementById(id); if (v !== '' && v != null && !String(el.value).trim()) el.value = v; };
   setIfEmpty('bkTitle', info.title); setIfEmpty('bkAuthor', info.author); setIfEmpty('bkPub', info.publisher); setIfEmpty('bkEnd', info.endPage);
   if (info.coverUrl && !BE.coverUrl) BE.coverUrl = info.coverUrl;
