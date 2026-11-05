@@ -1016,10 +1016,17 @@ async function connect() {
     S.char.addEventListener('characteristicvaluechanged', onHR);
     S.connected = true; updateConnUI();
     toast('연결됨: ' + (S.device.name || '심박계'));
+    autoStartWorkout();
   } catch (e) {
     setStatus('미연결');
     if (e.name !== 'NotFoundError') toast('연결 실패: ' + e.message);
   }
+}
+// 운동 화면을 보고 있을 때 심박계가 연결되면 바로 운동 시작 (이미 운동 중이면 그대로 둔다 — 끊겼다 재연결돼도 기록이 초기화되지 않게)
+function autoStartWorkout() {
+  if (S.active || !S.connected) return;
+  if (document.getElementById('tab-hr').hidden || document.getElementById('tab-workout').hidden) return;   // 측정 탭 등에서는 시작하지 않음
+  startWorkout();
 }
 function onDisconnect() {
   S.connected = false;
@@ -1035,6 +1042,7 @@ async function reconnect() {
       await S.char.startNotifications();
       S.char.addEventListener('characteristicvaluechanged', onHR);
       S.connected = true; updateConnUI(); toast('재연결됨');
+      autoStartWorkout();
     } catch (e) { toast('재연결 실패'); }
   } else { connect(); }
 }
