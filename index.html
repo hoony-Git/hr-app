@@ -814,7 +814,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
         <button class="pill-btn" type="button" id="bkIsbnGo">조회</button>
         <button class="pill-btn" type="button" id="bkIsbnScan" aria-label="바코드 스캔">📷</button>
       </div></div>
-    <div class="field"><label>분야</label><div class="chips" id="bkCats"></div></div>
+    <div class="field"><label>분야</label><div class="chips" id="bkCats"></div><div id="bkCatHint" class="hidden" style="font-size:12px;color:#888;margin-top:6px;"></div></div>
     <div class="settings-row">
       <div><label>첫 장 · 끝 장</label><div class="hint">읽기 시작·끝나는 페이지 번호</div></div>
       <div style="display:flex;gap:6px;align-items:center;">
@@ -3285,10 +3285,25 @@ function validEan13(s) {
   let sum = 0; for (let i = 0; i < 12; i++) sum += Number(s[i]) * (i % 2 ? 3 : 1);
   return (10 - sum % 10) % 10 === Number(s[12]);
 }
-function catFromAddCode(code) {   // 부가기호 5자리: 끝 3자리가 내용분류, 그 첫 자리가 KDC 주류
-  const s = String(code || '').replace(/\D/g, '');
-  if (s.length !== 5) return '기타';
-  return { '8': '문학', '9': '역사', '1': '철학', '4': '과학' }[s.slice(-3)[0]] || '기타';
+function catFromKdc(kdc) {   // KDC 3자리의 첫 자리가 주류. 3자리 숫자가 아니면 null (= 모름, 선택을 건드리지 않는다)
+  const s = typeof kdc === 'string' ? kdc.trim() : '';
+  if (!/^\d{3}$/.test(s)) return null;
+  return { '8': '문학', '9': '역사', '1': '철학', '4': '과학' }[s[0]] || '기타';
+}
+function kdcOfBook(j) {   // 서버가 kdc 를 주면 그대로, 옛 서버/옛 캐시(kdc 없음)면 부가기호 5자리의 끝 3자리
+  if (j && j.kdc !== undefined) return j.kdc;
+  const a = j && typeof j.addCode === 'string' ? j.addCode.trim() : '';
+  return /^\d{5}$/.test(a) ? a.slice(-3) : null;
+}
+function catFromGoogle(cats) {   // Google Books categories 는 문구 전체가 정확히 일치할 때만 (Political Science 가 과학으로 가면 안 됨)
+  const m = { 'fiction': '문학', 'poetry': '문학', 'drama': '문학', 'literary collections': '문학', 'history': '역사', 'philosophy': '철학', 'science': '과학' };
+  for (const c of Array.isArray(cats) ? cats : []) { const k = typeof c === 'string' ? m[c.trim().toLowerCase()] : null; if (k) return { cat: k, name: c.trim() }; }
+  return null;
+}
+function applyAutoCat(be, info) {   // 책 추가 화면의 분야를 자동 선택. 사용자가 칩을 직접 눌렀거나 기존 책 수정 중이면 건드리지 않는다
+  if (!be || be.id || be.catManual || !info || !info.catAuto) return false;
+  be.cat = info.catAuto.cat; be.catHint = info.catAuto.hint;
+  return true;
 }
 let isbnWhy = '';   // 마지막 조회가 실패한 이유 (화면 안내용)
 function isbnWhyText() { return '책 정보를 찾지 못했어요' + (isbnWhy ? ' — ' + isbnWhy : '') + '. 직접 입력해 주세요.'; }
@@ -3312,24 +3327,34 @@ const bstr = v => (typeof v === 'string' ? v.trim().slice(0, 200) : '');
 // 조회 순서: 내 Apps Script → (설정돼 있으면) Lambda 프록시 → Google Books(키 없는 무료 조회라 일일 한도로 막힐 수 있음). 못 찾으면 null
 async function fetchBookInfo(isbn) {
   const fromProxy = j => { const pages = parseInt(j.pages);
-    return { isbn, title: bstr(j.title), author: bstr(j.author), publisher: bstr(j.publisher), coverUrl: safeUrl(j.coverUrl), category: catFromAddCode(j.addCode), startPage: 1, endPage: pages > 0 ? pages : '' }; };
+    return { isbn, title: bstr(j.title), author: bstr(j.author), publisher: bstr(j.publisher), coverUrl: safeUrl(j.coverUrl), category: '기타', catAuto: kdcAuto(kdcOfBook(j)), startPage: 1, endPage: pages > 0 ? pages : '' }; };
+  const kdcAuto = kdc => { const c = catFromKdc(kdc); return c ? { cat: c, hint: '분야 자동 선택: ' + c + ' (KDC ' + kdc[0] + 'xx)' } : null; };
+  // 도서관 정보는 있는데 분류(KDC)가 없을 때만 Google Books 의 분야 문구를 한 번 더 본다 (못 읽으면 선택을 그대로 둔다)
+  const withGoogleCat = async info => {
+    if (info.catAuto) return info;
+    const g = await fetchJson('https://www.googleapis.com/books/v1/volumes?maxResults=1&q=isbn:' + encodeURIComponent(isbn));
+    const v = g && Array.isArray(g.items) && g.items[0] && g.items[0].volumeInfo, m = v && catFromGoogle(v.categories);
+    if (m) info.catAuto = { cat: m.cat, hint: '분야 자동 선택: ' + m.cat + ' (Google Books: ' + m.name + ')' };
+    return info;
+  };
   // 1순위: 동기화에 쓰는 내 Apps Script (국립중앙도서관 인증키는 거기에만 있다). 동기화 주소·비밀키가 설정된 기기에서만 쓴다
   isbnWhy = '';
   if (syncEnabled()) {
     const r = await syncCall({ action: 'isbn', isbn }, null, 15000);
-    if (r && r.ok && r.book && typeof r.book.title === 'string' && r.book.title.trim()) return fromProxy(r.book);
+    if (r && r.ok && r.book && typeof r.book.title === 'string' && r.book.title.trim()) return withGoogleCat(fromProxy(r.book));
     isbnWhy = syncWhy(r);
   } else isbnWhy = '동기화가 꺼져 있어 국립중앙도서관 조회를 못 썼어요 (내정보 > 동기화 설정)';
   if (ISBN_PROXY_URL) {
     const j = await fetchJson(ISBN_PROXY_URL + (ISBN_PROXY_URL.includes('?') ? '&' : '?') + 'isbn=' + encodeURIComponent(isbn));
-    if (j && typeof j.title === 'string' && j.title.trim()) return fromProxy(j);
+    if (j && typeof j.title === 'string' && j.title.trim()) return withGoogleCat(fromProxy(j));
   }
   const g = await fetchJson('https://www.googleapis.com/books/v1/volumes?maxResults=1&q=isbn:' + encodeURIComponent(isbn));
   const v = g && Array.isArray(g.items) && g.items[0] && g.items[0].volumeInfo;
   if (v && typeof v.title === 'string' && v.title.trim()) {
     const pages = parseInt(v.pageCount), img = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
     return { isbn, title: bstr(v.title), author: Array.isArray(v.authors) ? bstr(v.authors.join(', ')) : '', publisher: bstr(v.publisher),
-      coverUrl: safeUrl(String(img || '').replace(/^http:/, 'https:')), category: '기타', startPage: 1, endPage: pages > 0 ? pages : '' };
+      coverUrl: safeUrl(String(img || '').replace(/^http:/, 'https:')), category: '기타', startPage: 1, endPage: pages > 0 ? pages : '',
+      catAuto: (m => m && { cat: m.cat, hint: '분야 자동 선택: ' + m.cat + ' (Google Books: ' + m.name + ')' })(catFromGoogle(v.categories)) };
   }
   return null;
 }
@@ -3350,7 +3375,7 @@ async function fillFromIsbn(isbn) {
   const setIfEmpty = (id, v) => { const el = document.getElementById(id); if (v !== '' && v != null && !String(el.value).trim()) el.value = v; };
   setIfEmpty('bkTitle', info.title); setIfEmpty('bkAuthor', info.author); setIfEmpty('bkPub', info.publisher); setIfEmpty('bkEnd', info.endPage);
   if (info.coverUrl && !BE.coverUrl) BE.coverUrl = info.coverUrl;
-  if (BE.cat === '기타' && info.category !== '기타') { BE.cat = info.category; refreshBookModal(); }
+  if (applyAutoCat(BE, info)) refreshBookModal();
   toast('채웠어요 — 내용을 확인하세요');
 }
 let scanStream = null, scanTimer = null, scanSupported = false;
@@ -3396,9 +3421,10 @@ let BE = null;
 function openBookModal(id, pre) {
   const b = id ? getBooks().find(x => x.id === id) : null;
   const src = b || pre || {};
-  BE = { id: id || null, cat: src.category || '기타', daily10: !!src.daily10, status: b ? b.status : 'reading', rating: b && b.rating ? b.rating : 0, coverUrl: safeUrl(src.coverUrl) };
+  BE = { id: id || null, cat: src.category || '기타', catManual: false, catHint: '', daily10: !!src.daily10, status: b ? b.status : 'reading', rating: b && b.rating ? b.rating : 0, coverUrl: safeUrl(src.coverUrl) };
   document.getElementById('bkTitleH').textContent = id ? '책 수정' : '책 추가';
   document.getElementById('bkSave').textContent = id ? '저장' : '추가';
+  applyAutoCat(BE, pre);
   document.getElementById('bkIsbn').value = src.isbn || '';
   document.getElementById('bkTitle').value = src.title || '';
   document.getElementById('bkAuthor').value = src.author || '';
@@ -3412,6 +3438,7 @@ function openBookModal(id, pre) {
 }
 function refreshBookModal() {
   document.getElementById('bkCats').innerHTML = BOOK_CATS.map(c => `<button class="chip ${BE.cat === c ? 'sel' : ''}" data-c="${c}">${c}</button>`).join('');
+  const hint = document.getElementById('bkCatHint'); hint.textContent = BE.catHint || ''; hint.classList.toggle('hidden', !BE.catHint);
   document.querySelectorAll('#bkD10 button').forEach(b => b.classList.toggle('sel', (b.dataset.v === '1') === BE.daily10));
   document.querySelectorAll('#bkStatus button').forEach(b => b.classList.toggle('sel', b.dataset.s === BE.status));
   document.getElementById('bkDoneOnly').classList.toggle('hidden', BE.status !== 'done');
@@ -3420,7 +3447,7 @@ function refreshBookModal() {
 document.getElementById('bkIsbnGo').onclick = () => fillFromIsbn();
 document.getElementById('bkIsbnScan').onclick = () => startScan(fillFromIsbn);
 document.getElementById('bkIsbn').addEventListener('input', e => { const v = e.target.value.replace(/[^0-9]/g, ''); if (v.length === 13 && validEan13(v)) fillFromIsbn(v); });
-document.getElementById('bkCats').onclick = e => { const b = e.target.closest('button'); if (b) { BE.cat = b.dataset.c; refreshBookModal(); } };
+document.getElementById('bkCats').onclick = e => { const b = e.target.closest('button'); if (b) { BE.cat = b.dataset.c; BE.catManual = true; BE.catHint = ''; refreshBookModal(); } };
 document.getElementById('bkD10').onclick = e => { const b = e.target.closest('button'); if (b) { BE.daily10 = b.dataset.v === '1'; refreshBookModal(); } };
 document.getElementById('bkStatus').onclick = e => { const b = e.target.closest('button'); if (b) { BE.status = b.dataset.s; refreshBookModal(); } };
 document.getElementById('bkStars').onclick = e => { const b = e.target.closest('button'); if (b) { BE.rating = Number(b.dataset.r); refreshBookModal(); } };

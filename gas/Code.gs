@@ -6,7 +6,7 @@
  *   get: { sinceRev?, metaOnly? }           -> { ok, rev, updatedAt, device, bytes, data? }
  *   put: { baseRev, device, changes }       -> 바뀐 키만 합침 (값 null = 키 삭제)
  *   put: { baseRev, device, data }          -> 전체 교체 (첫 동기화 / 이 기기 기록으로 덮어쓰기)
- *   isbn: { isbn }                          -> { ok, book: {title, author, publisher, pages, coverUrl, addCode} }  (국립중앙도서관 서지정보)
+ *   isbn: { isbn }                          -> { ok, book: {title, author, publisher, pages, coverUrl, addCode, kdc} }  (국립중앙도서관 서지정보)
  * - 저장: 내 드라이브의 hr-app-sync.json  { rev, updatedAt, device, data }
  */
 
@@ -193,6 +193,10 @@ function cleanAuthor_(raw) {   // '프랑수아즈 사강 [지음] ;김남주 �
   return first.trim();
 }
 function cleanPublisher_(raw) { return clean_(raw, 100).replace(/^\(주\)\s*/, '').replace(/\s*\(주\)$/, '').trim(); }
+function kdcFromAddCode_(raw) {   // 부가기호 5자리('03860')의 끝 3자리('860') = KDC 내용분류. 5자리 숫자가 아니면 null
+  var s = typeof raw === 'string' ? raw.trim() : '';
+  return /^\d{5}$/.test(s) ? s.slice(-3) : null;
+}
 function parsePages_(raw) {   // '352 p.' 같은 문자열에서 첫 정수만. 못 뽑으면 null
   var m = typeof raw === 'string' ? raw.match(/\d+/) : null;
   return m ? parseInt(m[0], 10) : null;
@@ -204,7 +208,7 @@ function mapDoc_(d) {
   if (cover.indexOf('http://') === 0) cover = 'https://' + cover.slice(7);   // 앱이 https 페이지라 http 표지는 막힌다
   return {
     title: clean_(d.TITLE), author: cleanAuthor_(d.AUTHOR), publisher: cleanPublisher_(d.PUBLISHER),
-    pages: parsePages_(d.PAGE), coverUrl: cover, addCode: clean_(d.EA_ADD_CODE, 10)
+    pages: parsePages_(d.PAGE), coverUrl: cover, addCode: clean_(d.EA_ADD_CODE, 10), kdc: kdcFromAddCode_(d.EA_ADD_CODE)
   };
 }
 

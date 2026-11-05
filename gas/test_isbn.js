@@ -44,7 +44,7 @@ t('인증키 속성이 없으면 not_configured (외부 호출 없음)', () => {
 t('성공: 항목 변환 + https 표지 + 요청 주소 구성', () => {
   const { post, calls } = load({ props: base, nl: () => ok({ docs: [DOC] }) });
   const r = post({ token: 'tok', action: 'isbn', isbn: '9788937461798' });
-  assert.deepStrictEqual(r, { ok: true, book: { title: '어린 왕자', author: '생텍쥐페리', publisher: '문학동네', pages: 352, coverUrl: 'https://cover.example/a.jpg', addCode: '03860' } });
+  assert.deepStrictEqual(r, { ok: true, book: { title: '어린 왕자', author: '생텍쥐페리', publisher: '문학동네', pages: 352, coverUrl: 'https://cover.example/a.jpg', addCode: '03860', kdc: '860' } });
   assert.ok(calls[0].includes('isbn=9788937461798') && calls[0].includes('result_style=json') && calls[0].includes('cert_key=' + SECRET));
   assert.ok(!JSON.stringify(r).includes(SECRET));
 });
