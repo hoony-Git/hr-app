@@ -2138,8 +2138,8 @@ function renderHabitTrend(){
     if(new Date(hCalYear,hCalMonth,d).getTime()>today) break;
     let v = Number(logs[dayKey(new Date(hCalYear,hCalMonth,d))]);
     if(!Number.isFinite(v)) v = undefined;
-    if(cum){ run += (v===undefined ? 0 : (h.type==='check' ? (v>=1?1:0) : v)); pts.push({d, v:run}); }
-    else if(v!==undefined) pts.push({d, v});
+    if(cum){ const add = (v===undefined ? 0 : (h.type==='check' ? (v>=1?1:0) : v)); run += add; pts.push({d, v:run, rec:add>0}); }   // rec = 그날 기록이 있는 날
+    else if(v!==undefined) pts.push({d, v, rec:true});
   }
   const hasData = cum ? run>0 : pts.length>=2;
   document.getElementById('habitTrendTitle').textContent = (cum ? '누적 추이' : '수치 추세') + ' · ' + (hCalMonth+1) + '월';
@@ -2161,8 +2161,17 @@ function renderHabitTrend(){
   ctx.font='10px sans-serif'; ctx.fillStyle=muted; ctx.strokeStyle=muted+'33'; ctx.lineWidth=1;
   ctx.textAlign='right'; ctx.textBaseline='middle';
   [lo,(lo+hi2)/2,hi2].forEach(v=>{ const y=yOf(v); ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(w-padR,y); ctx.stroke(); ctx.fillText(fmtNum(v),padL-4,y); });
+  // 기록한 날: 세로 점선 + 날짜 라벨(겹치면 생략). 월 첫날·말일은 흐리게 보조로
+  const text = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#ececee';
   ctx.textAlign='center'; ctx.textBaseline='top';
-  [1,8,15,22,dim].forEach(d=>ctx.fillText(d,xOf(d),hgt-padB+4));
+  ctx.strokeStyle=col+'55'; ctx.setLineDash([2,3]);
+  pts.forEach(p=>{ if(p.rec){ ctx.beginPath(); ctx.moveTo(xOf(p.d),padT); ctx.lineTo(xOf(p.d),padT+ph); ctx.stroke(); } });
+  ctx.setLineDash([]);
+  const labelX = [];
+  const putLabel=(d,c,bold)=>{ const x=xOf(d); if(labelX.some(u=>Math.abs(u-x)<16)) return; labelX.push(x); ctx.fillStyle=c; ctx.font=(bold?'bold ':'')+'10px sans-serif'; ctx.fillText(d,x,hgt-padB+4); };
+  pts.forEach(p=>{ if(p.rec) putLabel(p.d,text,true); });
+  [1,dim].forEach(d=>putLabel(d,muted,false));
+  ctx.font='10px sans-serif';
   if(!cum && Number.isFinite(h.goal) && h.goal>=lo && h.goal<=hi2){
     ctx.strokeStyle=ZONE_COLORS_HEX[2]+'88'; ctx.setLineDash([4,4]);
     ctx.beginPath(); ctx.moveTo(padL,yOf(h.goal)); ctx.lineTo(w-padR,yOf(h.goal)); ctx.stroke(); ctx.setLineDash([]);
@@ -2171,7 +2180,7 @@ function renderHabitTrend(){
   pts.forEach((p,i)=>{ const x=xOf(p.d), y=yOf(p.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
   ctx.strokeStyle=col; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
   ctx.fillStyle=col;
-  pts.forEach(p=>{ ctx.beginPath(); ctx.arc(xOf(p.d),yOf(p.v),2.5,0,7); ctx.fill(); });
+  pts.forEach(p=>{ ctx.beginPath(); ctx.arc(xOf(p.d),yOf(p.v),p.rec?4:1.6,0,7); ctx.fill(); if(p.rec){ ctx.strokeStyle=text; ctx.lineWidth=1.2; ctx.stroke(); } });
   const last = pts[pts.length-1];
   document.getElementById('habitTrendSum').textContent = cum
     ? '이번 달 누적 ' + (h.type==='time' ? fmtDur(last.v) : fmtNum(last.v) + (h.type==='check' ? '일' : (h.unit||'')))
