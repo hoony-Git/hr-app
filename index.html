@@ -368,6 +368,8 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .mq { aspect-ratio: 1; border-radius: 5px; font-size: 8px; display: flex; align-items: center; justify-content: center; background: var(--tl-none); color: var(--muted); }
   .mq.on { color: var(--on-tl); }
   .mq.faint { opacity: .3; }
+  .mq { position: relative; }
+  .mq.over::after { content: '★'; position: absolute; top: -1px; right: 1px; font-size: 7px; line-height: 1; color: #fff; text-shadow: 0 0 2px rgba(0,0,0,.55); }
   .mc-f { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; font-size: 11px; color: var(--muted); }
   .mc-f b { color: var(--text); font-weight: 700; }
   .rate-t { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
@@ -2981,7 +2983,7 @@ function habitCard(c, h, days, today, mode) {
   days.forEach(d => {
     const sc = sched(c, h, d), fut = d.getTime() > today.getTime(), ach = dach(c, h, d);
     let cls = 'mq', st = '';
-    if (ach === 'green') { cls += ' on'; st = ` style="background:${h.color}"`; }
+    if (ach === 'green') { cls += ' on'; st = ` style="background:${h.color}"`; const v = dval(c, h, d); if ((h.type === 'time' || h.type === 'count') && v >= h.goal * 1.5) cls += ' over'; }   // 목표의 1.5배 이상 = 모서리 ★
     else if (ach === 'yellow') { cls += ' on'; st = ` style="background:repeating-linear-gradient(135deg,${h.color} 0 3px,color-mix(in srgb,${h.color} 28%,var(--tl-none)) 3px 6px)"`; }
     else if (!sc || fut) cls += ' faint';
     cells += `<div class="${cls}"${st}>${d.getDate()}</div>`;
