@@ -2124,6 +2124,7 @@ function renderHabitCalendar(){
     `<span>🔥 <b>${g}</b></span><span>💪 <b>${y}</b></span><span>💤 <b>${r}</b></span><span>실천 <b>${g+y+r}</b>일</span>`;
   renderHabitTrend();
 }
+let trendSel = null, trendGeo = null;   // 점을 눌러 고른 날 {key,d} / 마지막 그림의 점 좌표
 // 월간 추세 그래프: 시간·횟수·체크 = 누적 꺾은선 / 수치(몸무게 등) = 일별 값 꺾은선. 선택한 습관 + 위 달력의 월을 따라간다.
 function renderHabitTrend(){
   const card = document.getElementById('habitTrendCard');
@@ -2138,7 +2139,7 @@ function renderHabitTrend(){
     if(new Date(hCalYear,hCalMonth,d).getTime()>today) break;
     let v = Number(logs[dayKey(new Date(hCalYear,hCalMonth,d))]);
     if(!Number.isFinite(v)) v = undefined;
-    if(cum){ const add = (v===undefined ? 0 : (h.type==='check' ? (v>=1?1:0) : v)); run += add; pts.push({d, v:run, rec:add>0}); }   // rec = 그날 기록이 있는 날
+    if(cum){ const add = (v===undefined ? 0 : (h.type==='check' ? (v>=1?1:0) : v)); run += add; pts.push({d, v:run, rec:add>0, add}); }   // rec = 그날 기록이 있는 날
     else if(v!==undefined) pts.push({d, v, rec:true});
   }
   const hasData = cum ? run>0 : pts.length>=2;
@@ -2181,11 +2182,35 @@ function renderHabitTrend(){
   ctx.strokeStyle=col; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
   ctx.fillStyle=col;
   pts.forEach(p=>{ ctx.beginPath(); ctx.arc(xOf(p.d),yOf(p.v),p.rec?4:1.6,0,7); ctx.fill(); if(p.rec){ ctx.strokeStyle=text; ctx.lineWidth=1.2; ctx.stroke(); } });
+  trendGeo = { key: h.id + '|' + hCalYear + '|' + hCalMonth, pts: pts.map(p => ({ d: p.d, x: xOf(p.d) })) };
+  const sel = (trendSel && trendSel.key === trendGeo.key) ? pts.find(p => p.d === trendSel.d) : null;
+  if(sel){   // 고른 날 말풍선
+    const day = (hCalMonth+1) + '/' + sel.d, un = h.unit || '';
+    const amt = x => h.type==='time' ? fmtDur(x) : fmtNum(x) + un;
+    const txt = !cum ? day + ' · ' + fmtNum(sel.v) + un
+      : h.type==='check' ? day + (sel.add ? ' · 달성' : ' · 기록 없음') + ' (누적 ' + fmtNum(sel.v) + '일)'
+      : day + (sel.add ? ' · +' + amt(sel.add) : ' · 기록 없음') + ' (누적 ' + amt(sel.v) + ')';
+    ctx.font='bold 11px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    const tw = ctx.measureText(txt).width + 16, sx = xOf(sel.d), sy = yOf(sel.v);
+    const bx = Math.max(2, Math.min(w - tw - 2, sx - tw/2)), by = sy - 14 - 22 >= 0 ? sy - 14 - 22 : sy + 14;
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(sx,sy,6,0,7); ctx.stroke();
+    ctx.fillStyle='#000c'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx,by,tw,22,6) : ctx.rect(bx,by,tw,22); ctx.fill();
+    ctx.strokeStyle=col; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.fillText(txt,bx+8,by+11);
+  }
   const last = pts[pts.length-1];
   document.getElementById('habitTrendSum').textContent = cum
     ? '이번 달 누적 ' + (h.type==='time' ? fmtDur(last.v) : fmtNum(last.v) + (h.type==='check' ? '일' : (h.unit||'')))
     : '최근 ' + fmtNum(last.v) + (h.unit||'') + (pts.length>1 ? ' (월초 대비 ' + (last.v-pts[0].v>=0?'+':'') + fmtNum(last.v-pts[0].v) + (h.unit||'') + ')' : '');
 }
+document.getElementById('habitTrendChart').addEventListener('click', e => {   // 점(날짜 칸)을 누르면 그날 값 말풍선, 같은 날 다시 누르거나 빈 곳을 누르면 닫힘
+  if(!trendGeo) return;
+  const x = e.clientX - e.currentTarget.getBoundingClientRect().left;
+  let best = null;
+  trendGeo.pts.forEach(p => { const dx = Math.abs(p.x - x); if(dx <= 14 && (!best || dx < best.dx)) best = { d: p.d, dx }; });
+  trendSel = (best && !(trendSel && trendSel.key === trendGeo.key && trendSel.d === best.d)) ? { key: trendGeo.key, d: best.d } : null;
+  renderHabitTrend();
+});
 function hCalShift(delta){
   if(hCalYear===undefined){ const n=new Date(); hCalYear=n.getFullYear(); hCalMonth=n.getMonth(); }
   hCalMonth+=delta;
