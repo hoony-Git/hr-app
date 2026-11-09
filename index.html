@@ -663,8 +663,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   </div>
 
   <div class="card" id="habitTrendCard" style="display:none;">
-    <div class="sec-title" style="margin:0 0 12px;">수치 추세</div>
-    <div class="chart-wrap" style="height:160px;"><canvas id="habitTrendChart"></canvas></div>
+    <div class="sec-title" id="habitTrendTitle" style="margin:0 0 12px;">추세</div>
+    <div class="chart-wrap" style="height:180px;"><canvas id="habitTrendChart"></canvas></div>
+    <div class="cal-month-stat" id="habitTrendSum"></div>
   </div>
 
   <div class="sec-title" style="margin:24px 2px 12px;">습관 요약</div>
@@ -2121,30 +2122,58 @@ function renderHabitCalendar(){
     `<span>🔥 <b>${g}</b></span><span>💪 <b>${y}</b></span><span>💤 <b>${r}</b></span><span>실천 <b>${g+y+r}</b>일</span>`;
   renderHabitTrend();
 }
+// 월간 추세 그래프: 시간·횟수·체크 = 누적 꺾은선 / 수치(몸무게 등) = 일별 값 꺾은선. 선택한 습관 + 위 달력의 월을 따라간다.
 function renderHabitTrend(){
   const card = document.getElementById('habitTrendCard');
-  const h = getHabits().find(x=>x.id===calHabitId);
-  if(!h || h.type!=='measure'){ card.style.display='none'; return; }
-  const logs = getHabitLogs()[calHabitId] || {};
-  const entries = Object.keys(logs).map(k=>{ return {t:parseDayKey(k).getTime(), v:logs[k]}; }).sort((a,b)=>a.t-b.t);
-  if(entries.length<2){ card.style.display='none'; return; }
+  const hs = getHabits(), hi = hs.findIndex(x=>x.id===calHabitId);
+  if(hi<0 || hCalYear===undefined){ card.style.display='none'; return; }
+  const h = normHabit(hs[hi], hi), cum = h.type!=='measure';
+  const logs = getHabitLogs()[h.id] || {};
+  const dim = new Date(hCalYear,hCalMonth+1,0).getDate();
+  const today = todayStart().getTime();
+  const pts = []; let run = 0;   // pts: {d:일, v:값}
+  for(let d=1; d<=dim; d++){
+    if(new Date(hCalYear,hCalMonth,d).getTime()>today) break;
+    let v = Number(logs[dayKey(new Date(hCalYear,hCalMonth,d))]);
+    if(!Number.isFinite(v)) v = undefined;
+    if(cum){ run += (v===undefined ? 0 : (h.type==='check' ? (v>=1?1:0) : v)); pts.push({d, v:run}); }
+    else if(v!==undefined) pts.push({d, v});
+  }
+  const hasData = cum ? run>0 : pts.length>=2;
+  document.getElementById('habitTrendTitle').textContent = (cum ? '누적 추이' : '수치 추세') + ' · ' + (hCalMonth+1) + '월';
+  if(!hasData){ card.style.display='none'; return; }
   card.style.display='';
   const cv = document.getElementById('habitTrendChart');
   const dpr = window.devicePixelRatio||1, w=cv.clientWidth, hgt=cv.clientHeight;
+  if(!w || !hgt) return;
   cv.width=w*dpr; cv.height=hgt*dpr;
-  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr); ctx.clearRect(0,0,w,hgt);
-  const vals = entries.map(e=>e.v);
-  const lo=Math.min(...vals)*0.97, hi=Math.max(...vals)*1.03, range=(hi-lo)||1;
-  const yOf=v=>hgt-((v-lo)/range*hgt*0.82)-hgt*0.09;
-  if(h.goal>=lo && h.goal<=hi){
-    ctx.strokeStyle=ZONE_COLORS_HEX[2]+'88'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
-    ctx.beginPath(); ctx.moveTo(0,yOf(h.goal)); ctx.lineTo(w,yOf(h.goal)); ctx.stroke(); ctx.setLineDash([]);
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,hgt);
+  const muted = getComputedStyle(document.body).getPropertyValue('--muted').trim() || '#8b8e95';
+  const col = hexOk(h.color) ? h.color : '#a855f7';
+  const padL=34, padR=8, padT=10, padB=18, pw=w-padL-padR, ph=hgt-padT-padB;
+  const vals = pts.map(p=>p.v);
+  let lo = cum ? 0 : Math.min(...vals)*0.97, hi2 = Math.max(...vals)*(cum?1.1:1.03);
+  if(!cum && Number.isFinite(h.goal) && h.goal>0){ lo=Math.min(lo,h.goal*0.97); hi2=Math.max(hi2,h.goal*1.03); }
+  const range = (hi2-lo)||1;
+  const xOf=d=>padL+(dim===1?0:(d-1)/(dim-1)*pw), yOf=v=>padT+ph-((v-lo)/range*ph);
+  ctx.font='10px sans-serif'; ctx.fillStyle=muted; ctx.strokeStyle=muted+'33'; ctx.lineWidth=1;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  [lo,(lo+hi2)/2,hi2].forEach(v=>{ const y=yOf(v); ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(w-padR,y); ctx.stroke(); ctx.fillText(fmtNum(v),padL-4,y); });
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  [1,8,15,22,dim].forEach(d=>ctx.fillText(d,xOf(d),hgt-padB+4));
+  if(!cum && Number.isFinite(h.goal) && h.goal>=lo && h.goal<=hi2){
+    ctx.strokeStyle=ZONE_COLORS_HEX[2]+'88'; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(padL,yOf(h.goal)); ctx.lineTo(w-padR,yOf(h.goal)); ctx.stroke(); ctx.setLineDash([]);
   }
   ctx.beginPath();
-  entries.forEach((e,i)=>{ const x=entries.length===1?w/2:i/(entries.length-1)*w; const y=yOf(e.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.strokeStyle='#a855f7'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
-  ctx.fillStyle='#a855f7';
-  entries.forEach((e,i)=>{ const x=entries.length===1?w/2:i/(entries.length-1)*w; const y=yOf(e.v); ctx.beginPath(); ctx.arc(x,y,3,0,7); ctx.fill(); });
+  pts.forEach((p,i)=>{ const x=xOf(p.d), y=yOf(p.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.strokeStyle=col; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+  ctx.fillStyle=col;
+  pts.forEach(p=>{ ctx.beginPath(); ctx.arc(xOf(p.d),yOf(p.v),2.5,0,7); ctx.fill(); });
+  const last = pts[pts.length-1];
+  document.getElementById('habitTrendSum').textContent = cum
+    ? '이번 달 누적 ' + (h.type==='time' ? fmtDur(last.v) : fmtNum(last.v) + (h.type==='check' ? '일' : (h.unit||'')))
+    : '최근 ' + fmtNum(last.v) + (h.unit||'') + (pts.length>1 ? ' (월초 대비 ' + (last.v-pts[0].v>=0?'+':'') + fmtNum(last.v-pts[0].v) + (h.unit||'') + ')' : '');
 }
 function hCalShift(delta){
   if(hCalYear===undefined){ const n=new Date(); hCalYear=n.getFullYear(); hCalMonth=n.getMonth(); }
