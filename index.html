@@ -3059,7 +3059,91 @@ function renderStatsExtra() {
   html += '</div>' + (sk.length > 4 ? `<button class="sk-more" onclick="toggleStreaks()">${streakOpen ? '접기 ▴' : '전체 ' + sk.length + '개 보기 ▾'}</button>` : '') + '</div>';
   const wm = weeklyZone2Min(), goal = settings.goal || 150;
   html += `<div class="card"><div class="sec-title" style="margin:0 0 10px;">이번 주 Zone 2</div><div class="home-week"><span class="hw-val">${wm}분</span><span class="hw-goal">/ 목표 ${goal}분</span></div><div class="progress-bg" style="margin-top:10px;"><div class="progress-fill" style="width:${Math.min(100, wm / goal * 100)}%"></div></div></div>`;
+  html += '<div class="card" id="woTrendCard"><div class="sec-title" style="margin:0 0 8px;">운동 누적 (분)</div>' +
+    '<div class="cal-nav"><button onclick="woShift(-1)">‹</button><div class="cal-title" id="woTrendTitle">—</div><button onclick="woShift(1)">›</button></div>' +
+    '<div class="chart-wrap" style="height:180px;"><canvas id="woTrendChart" onclick="woTrendClick(event)"></canvas></div>' +
+    '<div class="cal-legend"><span style="color:#7fa3e0">● 총 시간</span><span style="color:' + ZONE_COLORS_HEX[2] + '">● Zone 2</span></div>' +
+    '<div class="cal-month-stat" id="woTrendSum"></div></div>';
   document.getElementById('statsExtra').innerHTML = html;
+  renderWorkoutTrend();
+}
+// 월간 운동 누적 그래프: 총 운동 시간 + Zone 2 시간 (심박 세션 기준, 분 단위 누적). 날짜 칸을 누르면 그날 값
+let woY, woM, woSel = null, woGeo = null;
+function woInit() { if (woY === undefined) { const n = new Date(); woY = n.getFullYear(); woM = n.getMonth(); } }
+function woShift(n) {
+  woInit(); woM += n;
+  if (woM < 0) { woM = 11; woY--; } else if (woM > 11) { woM = 0; woY++; }
+  woSel = null; renderWorkoutTrend();
+}
+function woTrendClick(e) {
+  if (!woGeo) return;
+  const x = e.clientX - e.currentTarget.getBoundingClientRect().left;
+  let best = null;
+  woGeo.pts.forEach(p => { const dx = Math.abs(p.x - x); if (dx <= 14 && (!best || dx < best.dx)) best = { d: p.d, dx }; });
+  woSel = (best && woSel !== best.d) ? best.d : null;
+  renderWorkoutTrend();
+}
+function renderWorkoutTrend() {
+  woInit();
+  const cv = document.getElementById('woTrendChart'); if (!cv) return;
+  document.getElementById('woTrendTitle').textContent = woY + '년 ' + (woM + 1) + '월';
+  const sum = document.getElementById('woTrendSum');
+  const dim = new Date(woY, woM + 1, 0).getDate(), today = todayStart().getTime();
+  const tot = {}, z2 = {};
+  getSessions().forEach(s => {
+    const t = Number(s.date); if (!Number.isFinite(t)) return;
+    const dt = new Date(t); if (dt.getFullYear() !== woY || dt.getMonth() !== woM) return;
+    const k = dt.getDate(), dur = Number(s.duration), z = Number((s.zoneSec || [])[2]);
+    tot[k] = (tot[k] || 0) + (Number.isFinite(dur) ? dur : 0) / 60;
+    z2[k] = (z2[k] || 0) + (Number.isFinite(z) ? z : 0) / 60;
+  });
+  const pts = []; let a = 0, b = 0;
+  for (let d = 1; d <= dim; d++) {
+    if (new Date(woY, woM, d).getTime() > today) break;
+    const at = tot[d] || 0, az = z2[d] || 0; a += at; b += az;
+    pts.push({ d, t: a, z: b, at, az, rec: d in tot });
+  }
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, hgt = cv.clientHeight;
+  if (!w || !hgt) return;
+  cv.width = w * dpr; cv.height = hgt * dpr;
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, hgt);
+  if (a <= 0) { woGeo = null; sum.textContent = '이 달은 운동 기록이 없어요'; return; }
+  const cs = getComputedStyle(document.body), muted = cs.getPropertyValue('--muted').trim() || '#8b8e95', text = cs.getPropertyValue('--text').trim() || '#ececee';
+  const cT = '#7fa3e0', cZ = ZONE_COLORS_HEX[2];
+  const padL = 34, padR = 8, padT = 10, padB = 18, pw = w - padL - padR, ph = hgt - padT - padB;
+  const hi = a * 1.1;
+  const xOf = d => padL + (dim === 1 ? 0 : (d - 1) / (dim - 1) * pw), yOf = v => padT + ph - v / hi * ph;
+  ctx.font = '10px sans-serif'; ctx.fillStyle = muted; ctx.strokeStyle = muted + '33'; ctx.lineWidth = 1;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  [0, hi / 2, hi].forEach(v => { const y = yOf(v); ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke(); ctx.fillText(Math.round(v), padL - 4, y); });
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.strokeStyle = cT + '55'; ctx.setLineDash([2, 3]);
+  pts.forEach(p => { if (p.rec) { ctx.beginPath(); ctx.moveTo(xOf(p.d), padT); ctx.lineTo(xOf(p.d), padT + ph); ctx.stroke(); } });
+  ctx.setLineDash([]);
+  const labelX = [];
+  const putLabel = (d, c, bold) => { const x = xOf(d); if (labelX.some(u => Math.abs(u - x) < 16)) return; labelX.push(x); ctx.fillStyle = c; ctx.font = (bold ? 'bold ' : '') + '10px sans-serif'; ctx.fillText(d, x, hgt - padB + 4); };
+  pts.forEach(p => { if (p.rec) putLabel(p.d, text, true); });
+  [1, dim].forEach(d => putLabel(d, muted, false));
+  [['t', cT], ['z', cZ]].forEach(([key, col]) => {
+    ctx.beginPath();
+    pts.forEach((p, i) => { const x = xOf(p.d), y = yOf(p[key]); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.fillStyle = col;
+    pts.forEach(p => { ctx.beginPath(); ctx.arc(xOf(p.d), yOf(p[key]), p.rec ? 3.5 : 1.5, 0, 7); ctx.fill(); });
+  });
+  woGeo = { pts: pts.map(p => ({ d: p.d, x: xOf(p.d) })) };
+  const sel = pts.find(p => p.d === woSel);
+  if (sel) {
+    const txt = (woM + 1) + '/' + sel.d + (sel.rec ? ' · 총 +' + fmtDur(sel.at) + ' · Z2 +' + fmtDur(sel.az) : ' · 기록 없음');
+    ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(txt).width + 16, sx = xOf(sel.d), sy = yOf(sel.t);
+    const bx = Math.max(2, Math.min(w - tw - 2, sx - tw / 2)), by = sy - 36 >= 0 ? sy - 36 : sy + 14;
+    ctx.strokeStyle = text; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx, sy, 6, 0, 7); ctx.stroke();
+    ctx.fillStyle = '#000c'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, by, tw, 22, 6) : ctx.rect(bx, by, tw, 22); ctx.fill();
+    ctx.strokeStyle = cT; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.fillText(txt, bx + 8, by + 11);
+  }
+  sum.textContent = '이번 달 총 ' + fmtDur(a) + ' · Zone 2 ' + fmtDur(b);
 }
 
 // 기록 화면 갱신 (logHabit·삭제 등 기존 함수가 호출)
