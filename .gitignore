@@ -2,3 +2,7 @@
 .env
 .env.*
 *.key
+
+# 시간 기록 시험 산출물 / 작업 메모
+tests/screens/
+worklog*
