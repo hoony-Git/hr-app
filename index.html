@@ -3198,8 +3198,31 @@ function renderStatsExtra() {
     '<div class="chart-wrap" style="height:180px;"><canvas id="woTrendChart" onclick="woTrendClick(event)"></canvas></div>' +
     '<div class="cal-legend"><span style="color:#7fa3e0">● 총 시간</span><span style="color:' + ZONE_COLORS_HEX[2] + '">● Zone 2</span></div>' +
     '<div class="cal-month-stat" id="woTrendSum"></div></div>';
+  html += '<div class="card" id="statReport"></div>';
   document.getElementById('statsExtra').innerHTML = html;
-  renderWorkoutTrend();
+  renderWorkoutTrend(); renderStatReport();
+}
+// 통계 월간 보고: 운동(심박 세션) + 습관 달성. 위 "운동 누적" 카드의 월 선택(woY/woM)과 같이 움직인다
+function repDelta(cur, prev, unit) { const d = cur - prev; return '<em class="' + (d > 0 ? 'up' : d < 0 ? 'dn' : '') + '" style="font-style:normal;font-size:12px;margin-left:4px">' + (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(d) + unit + '</em>'; }
+function renderStatReport() {
+  const box = document.getElementById('statReport'); if (!box) return;
+  try {
+    woInit();
+    const sessions = getSessions().filter(s => s && isFinite(s.date)), c = hctx(), today = todayStart();
+    const agg = (y, m) => {
+      const ss = sessions.filter(s => { const d = new Date(Number(s.date)); return d.getFullYear() === y && d.getMonth() === m; });
+      return { n: ss.length, min: Math.round(ss.reduce((a, s) => a + (Number(s.duration) || 0), 0) / 60), z2: Math.round(ss.reduce((a, s) => a + ((s.zoneSec && Number(s.zoneSec[2])) || 0), 0) / 60), days: new Set(ss.map(s => dayKey(new Date(Number(s.date))))).size };
+    };
+    const cur = agg(woY, woM), pm = woM === 0 ? [woY - 1, 11] : [woY, woM - 1], prev = agg(pm[0], pm[1]);
+    const days = monthDaysOf(woY, woM);
+    let g = 0, y = 0, r = 0; days.forEach(d => { const lt = dayLight(c, d, today); if (lt === 'green') g++; else if (lt === 'yellow') y++; else if (lt === 'red') r++; });
+    const habits = c.vis.map(h => { const a = aggHabit(c, h, days, today, true); return { h, a, pct: a.sch ? Math.round(a.ach / a.sch * 100) : 0 }; });
+    let h = `<div class="sec-title" style="margin:0 0 10px;">${woY}년 ${woM + 1}월 보고 <small style="font-weight:400;color:var(--muted)">(지난달 대비)</small></div>`;
+    h += `<div class="cal-month-stat"><span>운동 <b>${cur.n}</b>회${repDelta(cur.n, prev.n, '')}</span><span>총 <b>${cur.min}</b>분${repDelta(cur.min, prev.min, '')}</span><span>Zone 2 <b>${cur.z2}</b>분${repDelta(cur.z2, prev.z2, '')}</span><span>운동한 날 <b>${cur.days}</b>일${repDelta(cur.days, prev.days, '')}</span></div>`;
+    h += `<div class="cal-month-stat" style="margin-top:8px"><span>🟢 <b>${g}</b></span><span>🟡 <b>${y}</b></span><span>🔴 <b>${r}</b></span></div>`;
+    h += habits.length ? '<div style="margin-top:10px">' + habits.map(x => `<div class="lv-sub" style="padding:4px 0"><span>${esc(x.h.icon || '⭐')} ${esc(x.h.name)}</span><span><b>${x.pct}%</b> · ${x.a.ach}/${x.a.sch}일</span></div>`).join('') + '</div>' : '<div class="bk-meta" style="margin-top:8px">습관을 추가하면 달성률이 표시돼요</div>';
+    box.innerHTML = h;
+  } catch (e) { console.error('renderStatReport', e); box.innerHTML = '<div class="bk-meta">월간 보고를 그리다 문제가 생겼어요</div>'; }
 }
 // 월간 운동 누적 그래프: 총 운동 시간 + Zone 2 시간 (심박 세션 기준, 분 단위 누적). 날짜 칸을 누르면 그날 값
 let woY, woM, woSel = null, woGeo = null;
@@ -3207,7 +3230,7 @@ function woInit() { if (woY === undefined) { const n = new Date(); woY = n.getFu
 function woShift(n) {
   woInit(); woM += n;
   if (woM < 0) { woM = 11; woY--; } else if (woM > 11) { woM = 0; woY++; }
-  woSel = null; renderWorkoutTrend();
+  woSel = null; renderWorkoutTrend(); renderStatReport();
 }
 function woTrendClick(e) {
   if (!woGeo) return;
@@ -3924,12 +3947,33 @@ function renderBookWeek() {
     return `<div class="wk-card"><div class="wk-head" style="padding:10px 12px;"><span class="wk-nm">${esc(b.title)}</span><span class="lv-sub" style="flex:none;">${bookProgress(b, logs)}%</span></div><div class="wk-cells">${cells}</div></div>`;
   }).join('') + `<div class="bw-leg"><span>진한 색 = 하루 ${t}쪽 이상</span><span>연한 색 = 그보다 적게</span></div>`;
 }
+// 독서 월간 보고: 읽은 쪽·읽은 날·하루 N쪽 달성일·완독 권수·책별 쪽수 (지난달 대비)
+function bookMonthReport(y, m) {
+  const logs = getBookLogs(), books = getBooks(), t = readThreshold();
+  const agg = (yy, mm) => {
+    const pre = dayKey(new Date(yy, mm, 1)).slice(0, 7), perDay = {}, perBook = [];
+    let done = 0;
+    books.forEach(b => {
+      const tl = bookTimeline(b, logs); let sum = 0;
+      Object.keys(tl).forEach(dk => { if (dk.slice(0, 7) === pre && tl[dk].read > 0) { sum += tl[dk].read; perDay[dk] = (perDay[dk] || 0) + tl[dk].read; } });
+      if (sum > 0) perBook.push({ b, sum });
+      if (b.status === 'done' && String(b.finishedAt || '').slice(0, 7) === pre) done++;
+    });
+    const pages = Object.values(perDay).reduce((a, v) => a + v, 0);
+    return { pages, days: Object.keys(perDay).length, ok: Object.values(perDay).filter(v => v >= t).length, done, perBook: perBook.sort((a, b) => b.sum - a.sum) };
+  };
+  const cur = agg(y, m), prev = m === 0 ? agg(y - 1, 11) : agg(y, m - 1);
+  let h = `<div class="card"><div class="sec-title" style="margin:0 0 10px;">${y}년 ${m + 1}월 보고 <small style="font-weight:400;color:var(--muted)">(지난달 대비)</small></div>`;
+  h += `<div class="cal-month-stat"><span>읽은 쪽 <b>${cur.pages}</b>${repDelta(cur.pages, prev.pages, '')}</span><span>읽은 날 <b>${cur.days}</b>일${repDelta(cur.days, prev.days, '')}</span><span>하루 ${t}쪽↑ <b>${cur.ok}</b>일${repDelta(cur.ok, prev.ok, '')}</span><span>완독 <b>${cur.done}</b>권${repDelta(cur.done, prev.done, '')}</span></div>`;
+  h += cur.perBook.length ? '<div style="margin-top:10px">' + cur.perBook.slice(0, 5).map(x => `<div class="lv-sub" style="padding:4px 0"><span>${esc(x.b.title)}</span><span><b>+${x.sum}쪽</b></span></div>`).join('') + '</div>' : '';
+  return h + '</div>';
+}
 function renderBookMonth() {
   const logs = getBookLogs(), days = monthDaysOf(bookY, bookM), t = readThreshold(), tk = dayKey(new Date());
   const rows = bookRows(days[0], days[days.length - 1]);
   const nav = `<div class="stat-nav" style="margin-top:0;"><button onclick="bookShift(-1)">‹</button><div class="cal-title">${bookY}년 ${bookM + 1}월</div><button onclick="bookShift(1)">›</button></div>`;
   if (!rows.length) return nav + '<div class="rt-empty">이 달에 읽은 책이 없어요</div>';
-  return nav + rows.map(b => {
+  return nav + bookMonthReport(bookY, bookM) + rows.map(b => {
     const tl = bookTimeline(b, logs); let sum = 0;
     let cells = '';
     for (let i = 0; i < colOffset(days[0]); i++) cells += '<div class="bm-c pad"></div>';
