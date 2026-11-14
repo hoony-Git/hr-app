@@ -4741,7 +4741,7 @@ function weeklyZone2Min(){
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
 // ====================== 설정 · 내정보 (Phase 5) ======================
-const APP_VERSION = '3.0';
+const APP_VERSION = '3.1', APP_VERSION_DATE = '2026-11-15';   // index.html 을 고쳐 배포할 때마다 같이 올린다
 const CAT_PALETTE = ['#fde2e2', '#d5f5f3', '#ece4fb', '#fbdde3', '#ecf7c8', '#fff6b0', '#fde2c8', '#d6ecff', '#e2f5d3', '#f3dcf7'];
 function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
 function wsDay() { return settings.weekStart === 'sun' ? 0 : 1; }                       // 주 시작 요일 (JS getDay 값)
@@ -4982,7 +4982,7 @@ function renderSettings() {
     `<div class="progress-bg" style="margin:6px 0 4px;height:8px;"><div class="progress-fill" style="width:${pct}%;${pct > 70 ? 'background:var(--tl-red);' : ''}"></div></div>` +
     (pct > 70 ? '<div class="hint" style="color:var(--tl-red);">⚠ 70%를 넘었어요. 백업하고 오래된 운동 기록을 정리하세요.</div>' : ''));
   h += secHtml('info', 'ℹ️ 정보',
-    `<div class="settings-row"><label>앱 버전</label><span>${APP_VERSION}</span></div><div class="settings-row"><label>schema_version</label><span>${esc(localStorage.getItem('schema_version') || '-')}</span></div>`);
+    `<div class="settings-row"><label>앱 버전</label><span>${APP_VERSION} (${APP_VERSION_DATE})</span></div><div class="settings-row"><label>schema_version</label><span>${esc(localStorage.getItem('schema_version') || '-')}</span></div>`);
   wrap.innerHTML = h;
   syncUpdateUI();
   open.forEach(id => { const d = document.getElementById(id); if (d) d.open = true; });
