@@ -502,7 +502,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-row-t small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
   .tl-tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: var(--surface2); color: var(--muted); font-weight: 600; }
   .tl-tag.on { background: var(--accent-soft); color: var(--accent); }
-  .tl-gridwrap { max-height: 62vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); -webkit-overflow-scrolling: touch; }
+  .tl-gridwrap { max-height: 48vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); -webkit-overflow-scrolling: touch; }
   .tl-grid { display: grid; grid-template-columns: 26px repeat(7, minmax(0, 1fr)); }
   .tl-gh { position: sticky; top: 0; z-index: 3; background: var(--surface); font-size: 12px; font-weight: 600; text-align: center; padding: 5px 0; border-bottom: 1px solid var(--border); line-height: 1.25; }
   .tl-gh small { font-weight: 500; color: var(--muted); }
@@ -517,6 +517,8 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
   .tl-dot.auto { background: repeating-linear-gradient(45deg, var(--muted) 0 2px, transparent 2px 4px); }
   .tl-info { margin-top: 10px; font-size: 14px; line-height: 1.5; }
+  #tlCellInfo:not(:empty) { position: fixed; left: 14px; right: 14px; bottom: calc(env(safe-area-inset-bottom) + 76px); max-width: 532px; margin: 0 auto; z-index: 25; }
+  #tlCellInfo .tl-info { margin-top: 0; box-shadow: 0 -2px 14px rgba(0,0,0,.25); }
   .tl-h { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
   .tl-h small { font-weight: 500; color: var(--muted); }
   .tl-note { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
@@ -4440,7 +4442,7 @@ function tlShowCellInfo(i, grid, entries, cats) {
     else if (en.source === 'manual') h += `<div class="tl-actions"><button class="tl-sm" data-act="edit" data-id="${esc(en.id)}">편집</button></div>`;
     else h += `<div class="tl-actions"><button class="tl-sm" data-act="overwrite" data-id="${esc(en.id)}">수동 기록으로 덮어쓰기</button></div>`;
   }
-  box.innerHTML = h + '</div>';
+  box.innerHTML = h + '<div class="tl-actions" style="margin-top:8px"><button class="tl-sm" data-act="selclose">닫기</button></div></div>';
 }
 function tlCellTap(i) {
   const now = Date.now();
@@ -4597,6 +4599,7 @@ function tlAct(el) {
     case 'wprev': TLS.wStart -= 7 * TL_DAY; TLS.sel = null; TLS.fillA = null; tlRender(); break;
     case 'wnext': TLS.wStart += 7 * TL_DAY; TLS.sel = null; TLS.fillA = null; tlRender(); break;
     case 'fill': TLS.fill = !TLS.fill; TLS.fillA = null; TLS.sel = null; tlRender(); break;
+    case 'selclose': TLS.sel = null; tlRender(); break;
     case 'fillcancel': TLS.fillA = null; TLS.fill = false; tlRender(); break;
     case 'fillfrom': TLS.fill = true; TLS.fillA = i; TLS.sel = null; tlRender(); break;
     case 'cell': tlCellTap(i); break;
