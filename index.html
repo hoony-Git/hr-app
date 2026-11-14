@@ -4395,7 +4395,10 @@ function tlRenderWeek(body) {
   const ws = TLS.wStart, we = ws + 7 * TL_DAY, entries = tlEntriesFor(ws, we, now), segs = tlResolve(entries, now), grid = tlGrid(segs, ws), st = tlStats(segs, ws, we, cats, now);
   const old = document.getElementById('tlGridWrap'); if (old) TLS.gridScroll = old.scrollTop;
   let h = `<div class="stat-nav"><button data-act="wprev">‹</button><div class="cal-title">${esc(tlMD(ws))} ~ ${esc(tlMD(we - 1))}${ws === tlWeekStart(now) ? ' (이번 주)' : ''}</div><button data-act="wnext">›</button></div>`;
-  h += `<div class="tl-actions" style="margin:0 0 8px"><button class="tl-sm${TLS.fill ? ' on' : ''}" data-act="fill">${TLS.fill ? '✓ 채우기 켜짐 — 시작 칸, 끝 칸을 차례로 누르세요' : '＋ 빈 시간 채우기'}</button></div>`;
+  if (TLS.fillA != null) {
+    const [fs] = tlCellRange(TLS.fillA);
+    h += `<div class="tl-actions" style="margin:0 0 8px"><button class="tl-sm on" data-act="fillcancel">✓ ${esc(TL_DOW[Math.floor(TLS.fillA / 96)])} ${esc(tlHM(fs))}부터 — 끝 칸을 누르세요 (취소: 여기 누르기)</button></div>`;
+  } else h += `<div class="tl-actions" style="margin:0 0 8px"><button class="tl-sm${TLS.fill ? ' on' : ''}" data-act="fill">${TLS.fill ? '✓ 채우기 켜짐 — 시작 칸, 끝 칸을 차례로 누르세요' : '＋ 빈 시간 채우기'}</button><small style="margin-left:8px;color:var(--text-dim,#888)">빈 칸을 누르면 바로 시작점이 돼요</small></div>`;
   h += '<div class="tl-gridwrap" id="tlGridWrap"><div class="tl-grid"><div class="tl-gh"></div>';
   for (let d = 0; d < 7; d++) { const ds = ws + d * TL_DAY; h += `<div class="tl-gh${ds === tlDayStart(now) ? ' today' : ''}">${TL_DOW[d]}<br><small>${tlParts(ds).d}</small></div>`; }
   for (let r = 0; r < 96; r++) {
@@ -4441,8 +4444,9 @@ function tlShowCellInfo(i, grid, entries, cats) {
 }
 function tlCellTap(i) {
   const now = Date.now();
-  if (TLS.fill) {
-    if (TLS.fillA == null) { TLS.fillA = i; tlRender(); return; }
+  const emptyCell = !(TLS._grid && TLS._grid[Math.floor(i / 96)] && TLS._grid[Math.floor(i / 96)][i % 96]);
+  if (TLS.fill || TLS.fillA != null || emptyCell) {   // 빈 칸을 누르면 바로 시작점, 다음 칸을 누르면 끝점
+    if (TLS.fillA == null) { TLS.fillA = i; TLS.sel = null; tlRender(); return; }
     const a = Math.min(TLS.fillA, i), b = Math.max(TLS.fillA, i);
     const s = tlCellRange(a)[0]; let e = tlCellRange(b)[1];
     if (s >= now) { toast('아직 지나지 않은 시간이에요'); TLS.fillA = null; tlRender(); return; }
@@ -4593,6 +4597,7 @@ function tlAct(el) {
     case 'wprev': TLS.wStart -= 7 * TL_DAY; TLS.sel = null; TLS.fillA = null; tlRender(); break;
     case 'wnext': TLS.wStart += 7 * TL_DAY; TLS.sel = null; TLS.fillA = null; tlRender(); break;
     case 'fill': TLS.fill = !TLS.fill; TLS.fillA = null; TLS.sel = null; tlRender(); break;
+    case 'fillcancel': TLS.fillA = null; TLS.fill = false; tlRender(); break;
     case 'fillfrom': TLS.fill = true; TLS.fillA = i; TLS.sel = null; tlRender(); break;
     case 'cell': tlCellTap(i); break;
     case 'mprev': { const d = new Date(Date.UTC(TLS.mY, TLS.mM - 2, 1)); TLS.mY = d.getUTCFullYear(); TLS.mM = d.getUTCMonth() + 1; tlRender(); break; }
