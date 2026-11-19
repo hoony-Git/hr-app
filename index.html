@@ -4142,6 +4142,7 @@ function renderBookMap(body) {
   const fields = data.fields.map(f => `<div class="bm-f">${esc(f.cat)}<b>${f.completed}/${f.target}</b>${f.count}권${f.candidates ? `<br><span style="color:#fb923c">후보 ${f.candidates}</span>` : ''}<div class="bar"><i style="width:${Math.min(100, f.pct || 0)}%;background:${BookMap.CAT_COLOR[f.cat]}"></i></div></div>`).join('');
   body.innerHTML = `<div class="bm-fields">${fields}</div>` +
     `<div class="bm-wrap"><canvas class="bm-canvas" id="bmCanvas" aria-label="독서 지도"></canvas><div id="bmSheet"></div></div>` +
+    (safeUrl(settings.insightsUrl) ? `<a class="btn-primary btn-wide" id="bmInsights" href="${esc(safeUrl(settings.insightsUrl))}" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;text-decoration:none;margin:10px 0 2px;">AI 인사이트 열기 ↗</a>` : '') +
     `<div class="bm-legend"><span>● 밝을수록 별점 높음</span><span>○ 읽는 중</span><span style="color:#fde047">✦ 최근 30일 완독</span><span style="color:#7dd3fc">◆ 감상·메모</span><span style="color:#fb923c">● 다시 분류할 후보 (ISBN 있는데 기타)</span></div>` +
     `<input class="text-input" id="bmQ" placeholder="제목·감상·메모 검색" value="${esc(bookMapQ)}" style="width:100%;">` +
     `<div id="bmRes"></div>`;
@@ -4872,7 +4873,7 @@ function weeklyZone2Min(){
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
 // ====================== 설정 · 내정보 (Phase 5) ======================
-const APP_VERSION = '3.3', APP_VERSION_DATE = '2026-11-15';   // index.html 을 고쳐 배포할 때마다 같이 올린다
+const APP_VERSION = '3.4', APP_VERSION_DATE = '2026-11-20';   // index.html 을 고쳐 배포할 때마다 같이 올린다
 const CAT_PALETTE = ['#fde2e2', '#d5f5f3', '#ece4fb', '#fbdde3', '#ecf7c8', '#fff6b0', '#fde2c8', '#d6ecff', '#e2f5d3', '#f3dcf7'];
 function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
 function wsDay() { return settings.weekStart === 'sun' ? 0 : 1; }                       // 주 시작 요일 (JS getDay 값)
@@ -4916,6 +4917,12 @@ function setDailyPages(v) { const n = parseInt(v); if (!(n >= 1 && n <= 500)) { 
 // 목표 기준 (insight_goals). zone2_weekly_min 이 없으면 hr_settings.goal 을 쓴다 (metrics.js goals())
 function insightGoals() { const g = readJSON('insight_goals', {}), o = g && typeof g === 'object' && !Array.isArray(g) ? g : {};
   return { youtube_max_min_per_day: Number(o.youtube_max_min_per_day) > 0 ? Number(o.youtube_max_min_per_day) : 60, sleep_min_hours: Number(o.sleep_min_hours) > 0 ? Number(o.sleep_min_hours) : 7, zone2_weekly_min: Number(o.zone2_weekly_min) > 0 ? Number(o.zone2_weekly_min) : null }; }
+function setInsightsUrl(v) {   // hr_settings.insightsUrl (설정과 같이 동기화). https 주소만, 비우면 지움
+  const s = String(v || '').trim();
+  if (s && !/^https:\/\/[^\s"'<>]+$/.test(s)) { toast('https:// 로 시작하는 주소를 넣으세요'); renderSettings(); return; }
+  if (s) settings.insightsUrl = s; else delete settings.insightsUrl;
+  saveSettingsObj(); toast(s ? '저장됨' : '주소를 지웠어요');
+}
 function setInsightGoal(k, v, lo, hi) {
   const g = readJSON('insight_goals', {}), o = g && typeof g === 'object' && !Array.isArray(g) ? g : {};
   if (String(v).trim() === '' && k === 'zone2_weekly_min') delete o[k];
@@ -5095,7 +5102,9 @@ function renderSettings() {
     `<div class="sub" style="font-size:12px;color:var(--muted);margin-bottom:6px;">통계·AI 조언이 비교하는 기준입니다.</div>` +
     `<div class="settings-row"><div><label>유튜브 하루 최대 (분)</label><div class="hint">기본 60</div></div><input type="number" min="1" max="1440" value="${ig.youtube_max_min_per_day}" onchange="setInsightGoal('youtube_max_min_per_day',this.value,1,1440)"></div>` +
     `<div class="settings-row"><div><label>수면 최소 (시간)</label><div class="hint">기본 7</div></div><input type="number" min="1" max="14" step="0.5" value="${ig.sleep_min_hours}" onchange="setInsightGoal('sleep_min_hours',this.value,1,14)"></div>` +
-    `<div class="settings-row"><div><label>주간 Zone 2 (분)</label><div class="hint">비워 두면 심박 설정의 목표(${settings.goal || 150}분)</div></div><input type="number" min="30" max="600" placeholder="${settings.goal || 150}" value="${ig.zone2_weekly_min || ''}" onchange="setInsightGoal('zone2_weekly_min',this.value,30,600)"></div>`);
+    `<div class="settings-row"><div><label>주간 Zone 2 (분)</label><div class="hint">비워 두면 심박 설정의 목표(${settings.goal || 150}분)</div></div><input type="number" min="30" max="600" placeholder="${settings.goal || 150}" value="${ig.zone2_weekly_min || ''}" onchange="setInsightGoal('zone2_weekly_min',this.value,30,600)"></div>` +
+    `<div class="field" style="border:0;"><label>AI 인사이트 주소</label><div class="hint" style="margin:4px 0 6px;">claude.ai 에 올린 인사이트 페이지 주소. 넣으면 독서 &gt; 지도에 '열기' 버튼이 생겨요 (비우면 숨김)</div>` +
+    `<input type="url" class="text-input" id="insightsUrl" placeholder="https://…" value="${esc(safeUrl(settings.insightsUrl))}" onchange="setInsightsUrl(this.value)" style="width:100%;"></div>`);
   h += secHtml('reward', '🏆 레벨·보상',
     `<div class="field"><label>칭호 편집</label>` + xpTitles().map((t, i) => `<div class="shop-row"><span style="font-size:12px;color:var(--muted)">Lv.</span><input type="number" min="1" value="${t.level}" style="width:60px;" onchange="setTitle(${i},'level',this.value)"><input type="text" class="text-input" maxlength="12" value="${esc(t.name)}" style="flex:1;min-width:0;" onchange="setTitle(${i},'name',this.value)"><button class="shop-x" onclick="delTitle(${i})" aria-label="삭제">✕</button></div>`).join('') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addTitle()">＋ 칭호 추가</button></div>` +
