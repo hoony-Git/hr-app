@@ -101,16 +101,18 @@
 /*@@BOOKMAP@@*/
 </script>
 <script>
-// ============ 채워 넣을 값 (claude.ai 에 올리기 전에 직접 채우기) ============
-// Google Drive 커넥터의 표시 이름과 도구 이름, 인자 이름. 이 페이지는 읽기만 하고 Drive 에 절대 쓰지 않는다.
-const DRIVE_SERVER = '';            // TODO: 예) 'Google Drive'
-const SEARCH_TOOL = '';             // TODO: 파일 찾는 도구 이름
-const SEARCH_QUERY_ARG = '';        // TODO: 그 도구의 검색어 인자 이름
-const SEARCH_QUERY = "title = 'hr-app-sync.json'";   // TODO: 커넥터 검색 문법에 맞게
-const READ_TOOL = '';               // TODO: 파일 내용 읽는 도구 이름
-const READ_ID_ARG = '';             // TODO: 그 도구의 파일 ID 인자 이름
+// ============ Drive 설정 (claude.ai Google Drive 커넥터) ============
+// 이 페이지는 읽기만 하고 Drive 에 절대 쓰지 않는다. 게시 때 mcp 권한은 search_files·download_file_content 두 도구만.
+const DRIVE_SERVER = 'Google Drive';
+const SEARCH_TOOL = 'search_files';
+const SEARCH_QUERY_ARG = 'query';
+const SEARCH_QUERY = "title = 'hr-app-sync.json' and trashed = false";
+const SEARCH_EXTRA = { excludeContentSnippets: true, pageSize: 5 };
+// read_file_content 는 요약된 글 형태라 손실·잘림이 있을 수 있어, 원본 바이트(base64)를 주는 download_file_content 를 쓴다
+const READ_TOOL = 'download_file_content';
+const READ_ID_ARG = 'fileId';
 const SYNC_FILE_NAME = 'hr-app-sync.json';
-// =========================================================================
+// ==================================================================
 
 const M = window.HRMetrics, $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -122,24 +124,51 @@ function storeFrom(json) {
   if (!json || typeof json !== 'object' || !json.data || typeof json.data !== 'object' || Array.isArray(json.data)) throw new Error('hr-app 기록 파일 모양이 아니에요 (data 항목 없음)');
   const r = M.parseStore(json.data);
   if (!r.store.book_list && !r.store.hr_sessions && !Object.keys(r.store).some(k => /^time_log_/.test(k))) throw new Error('책·운동·시간 기록이 하나도 없어요');
-  return { store: r.store, bad: r.bad, when: json.updatedAt || json.exportedAt || '' };
+  return { store: r.store, bad: r.bad, synced: json.updatedAt != null ? json.updatedAt : null, exported: json.exportedAt || null };
 }
-function findFileId(p) {   // 검색 결과 어디에 있든 이름이 맞는 항목의 id 를 찾는다
-  let hit = null;
-  (function walk(v) {
-    if (hit || !v || typeof v !== 'object') return;
-    if (Array.isArray(v)) { v.forEach(walk); return; }
-    const nm = v.title || v.name;
-    if (typeof v.id === 'string' && typeof nm === 'string' && nm === SYNC_FILE_NAME) { hit = v.id; return; }
-    Object.values(v).forEach(walk);
-  })(p);
-  return hit;
+// 결과 모양을 아직 실제로 본 적이 없어 넓게 받는다. 오류 안내에는 값이 아니라 키 이름·글자 종류만 보여 준다.
+const keysOf = p => (Array.isArray(p) ? '배열 ' + p.length + '개' : p && typeof p === 'object' ? '키: ' + (Object.keys(p).join(', ') || '(없음)') : typeof p);
+function asObj(p) { if (typeof p === 'string') { try { return JSON.parse(p); } catch (e) {} } return p; }
+// 검색 결과: payload.files[] / payload.items[] / payload[] 에서 id 가 있는 항목. 여럿이면 가장 최근에 수정된 것
+function pickFileId(payload) {
+  const p = asObj(payload);
+  const list = (p && Array.isArray(p.files) && p.files) || (p && Array.isArray(p.items) && p.items) || (Array.isArray(p) && p) || [];
+  const ok = list.filter(f => f && typeof f.id === 'string' && f.id);
+  if (!ok.length) return { id: null, why: '검색 결과에서 파일 id 를 찾지 못했어요 (결과 ' + keysOf(p) + ')' };
+  const t = f => { const v = f.modifiedTime || f.modified_time || f.modifiedDate || f.modified || f.updatedTime; const n = Date.parse(v); return isFinite(n) ? n : -Infinity; };
+  ok.sort((a, b) => t(b) - t(a));
+  return { id: ok[0].id, count: ok.length };
 }
-function jsonFromPayload(p) {   // 읽기 결과에서 { rev, data } 객체를 꺼낸다 (문자열이면 JSON 으로)
-  if (p && typeof p === 'object' && p.data && typeof p.data === 'object') return p;
-  if (typeof p === 'string') { try { return JSON.parse(p); } catch (e) { const i = p.indexOf('{'), j = p.lastIndexOf('}'); if (i >= 0 && j > i) return JSON.parse(p.slice(i, j + 1)); } }
-  if (p && typeof p === 'object') for (const v of Object.values(p)) { if (typeof v === 'string' && v.includes('"data"')) { try { return jsonFromPayload(v); } catch (e) {} } }
-  throw new Error('파일 내용을 JSON 으로 읽지 못했어요');
+// 다운로드 결과에서 base64 문자열 찾기: content / data / base64 / 처음 나오는 긴 문자열
+function findB64(payload, result) {
+  const p = asObj(payload);
+  if (typeof p === 'string') return p;
+  if (p && typeof p === 'object') {
+    for (const k of ['content', 'data', 'base64']) if (typeof p[k] === 'string' && p[k]) return p[k];
+    const long = Object.values(p).find(v => typeof v === 'string' && v.length >= 64);
+    if (long) return long;
+  }
+  for (const c of (result && result.content) || []) {   // payload 가 없을 때: 내용 블록의 blob/text
+    const s = (c && c.resource && (c.resource.blob || c.resource.text)) || (c && (c.blob || c.data || c.text));
+    if (typeof s === 'string' && s) return s;
+  }
+  return null;
+}
+function charClasses(s) {   // 내용 대신 글자 종류만: 영문 a, 숫자 9, 공백 _, JSON 기호는 그대로, 그 밖의 기호 ., 비ASCII #
+  return Array.from(String(s).slice(0, 80)).map(c => /[A-Za-z]/.test(c) ? 'a' : /[0-9]/.test(c) ? '9' : /\s/.test(c) ? '_' : /[{}\[\]":,]/.test(c) ? c : c.charCodeAt(0) < 128 ? '.' : '#').join('');
+}
+function decodeSyncFile(s) {
+  let text;
+  const t = s.trim();
+  if (t[0] === '{') text = t;   // 이미 JSON 글자로 온 경우
+  else {
+    let bin;
+    try { bin = atob(t.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/')); }
+    catch (e) { throw { why: '파일 내용이 base64 가 아니에요 (앞 80자 글자 종류: ' + charClasses(t) + ')' }; }
+    text = new TextDecoder('utf-8').decode(Uint8Array.from(bin, c => c.charCodeAt(0))).replace(/^﻿/, '');
+  }
+  try { return JSON.parse(text); }
+  catch (e) { throw { why: '파일 내용을 JSON 으로 읽지 못했어요 (앞 80자 글자 종류: ' + charClasses(text) + ')' }; }
 }
 const MCP_WHY = {
   needs_reauth: 'Drive 연결이 만료됐어요 — claude.ai 설정 → 커넥터에서 다시 연결하세요',
@@ -156,11 +185,14 @@ async function loadFromDrive() {
   const mcp = await claude.use('mcp');
   if (!mcp) throw { why: '이 화면에서는 커넥터를 쓸 수 없어요' };
   try {
-    const s = await mcp.callTool(DRIVE_SERVER, SEARCH_TOOL, { [SEARCH_QUERY_ARG]: SEARCH_QUERY });
-    const id = findFileId(s.payload);
-    if (!id) throw { why: 'Drive 에서 ' + SYNC_FILE_NAME + ' 을 찾지 못했어요' };
-    const r = await mcp.callTool(DRIVE_SERVER, READ_TOOL, { [READ_ID_ARG]: id });
-    return storeFrom(jsonFromPayload(r.payload !== undefined ? r.payload : (r.content || []).map(c => c.text || '').join('')));
+    const s = await mcp.callTool(DRIVE_SERVER, SEARCH_TOOL, Object.assign({ [SEARCH_QUERY_ARG]: SEARCH_QUERY }, SEARCH_EXTRA));
+    const f = pickFileId(s.payload);
+    if (!f.id) throw { why: f.why };
+    const r = await mcp.callTool(DRIVE_SERVER, READ_TOOL, { [READ_ID_ARG]: f.id });
+    const b64 = findB64(r.payload, r);
+    if (!b64) throw { why: '다운로드 결과에서 파일 내용을 찾지 못했어요 (결과 ' + keysOf(asObj(r.payload)) + ')' };
+    try { return storeFrom(decodeSyncFile(b64)); }
+    catch (e) { throw e && e.why ? e : { why: String(e && e.message || e) }; }
   } catch (e) {
     if (e && e.why) throw e;
     if (e && e.code) throw { why: (MCP_WHY[e.code] || 'Drive 읽기 실패') + ' (' + e.code + ')' };
@@ -180,7 +212,8 @@ $('file').onchange = () => {
 };
 function setStore(r, label) {
   STORE = r.store;
-  $('src').textContent = label + (r.when ? ' · 기록 시각 ' + String(r.when).replace('T', ' ').slice(0, 16) : '') + (r.bad.length ? ' · 읽지 못한 항목: ' + r.bad.join(', ') : '');
+  const when = v => { const d = new Date(typeof v === 'number' || /^\d+$/.test(String(v)) ? Number(v) : v); return isFinite(d) ? d.toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }) : String(v).slice(0, 30); };
+  $('src').textContent = label + (r.synced != null ? ' · 마지막 동기화: ' + when(r.synced) : r.exported ? ' · 내보낸 시각: ' + when(r.exported) : '') + (r.bad.length ? ' · 읽지 못한 항목: ' + r.bad.join(', ') : '');
   renderAll();
 }
 
