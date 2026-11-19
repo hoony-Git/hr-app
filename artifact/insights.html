@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>내 기록 인사이트</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #111214; --surface: #1b1c1f; --surface2: #25272b; --border: #2e3035;
+    --text: #ececee; --muted: #8b8e95; --accent: #22c55e; --warn: #f59e0b; --bad: #ef4444; --info: #7dd3fc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 12px 16px 40px; }
+  h1 { font-size: 18px; margin: 4px 0 10px; }
+  .src { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; }
+  .tabs button { flex: none; padding: 9px 12px; border: 0; border-radius: 12px 12px 0 0; background: transparent; color: var(--muted); font: 600 13px system-ui, sans-serif; cursor: pointer; }
+  .tabs button.sel { background: var(--surface); color: var(--text); }
+  .card { background: var(--surface); border-radius: 16px; padding: 14px; margin-bottom: 10px; }
+  .card h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sub { font-size: 12px; color: var(--muted); }
+  .row { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .row:last-child { border-bottom: 0; }
+  .row b { font-variant-numeric: tabular-nums; }
+  .bar { height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; margin-top: 6px; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--surface2); color: var(--muted); margin-left: 4px; }
+  .tag.ok { color: var(--accent); } .tag.over, .tag.under { color: var(--warn); } .tag.low { color: var(--muted); }
+  .fields { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
+  .fields div { background: var(--surface); border-radius: 10px; padding: 8px 2px; text-align: center; font-size: 11px; color: var(--muted); }
+  .fields b { display: block; font-size: 13px; color: var(--text); }
+  .mapwrap { position: relative; border-radius: 16px; overflow: hidden; background: #0b0f17; }
+  canvas { display: block; width: 100%; height: 420px; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 70%; overflow-y: auto; background: var(--surface); border-radius: 16px 16px 0 0; padding: 14px 16px; box-shadow: 0 -6px 20px rgba(0,0,0,.45); }
+  .sheet h3 { font-size: 15px; margin-right: 32px; }
+  .sheet .x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border: 0; border-radius: 8px; background: var(--surface2); color: var(--text); }
+  .note { font-size: 13px; margin: 6px 0; } .note small { color: var(--muted); margin-right: 6px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); margin: 8px 2px; }
+  input[type=text], textarea { width: 100%; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font: inherit; }
+  .res { padding: 9px 4px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13px; } .res small { color: var(--muted); }
+  .btn { border: 0; border-radius: 10px; padding: 10px 14px; background: var(--accent); color: #04210f; font: 600 14px system-ui, sans-serif; cursor: pointer; }
+  .btn.ghost { background: var(--surface2); color: var(--text); font-weight: 500; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .presets .btn { font-size: 13px; padding: 8px 10px; }
+  .chat { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .msg { padding: 10px 12px; border-radius: 12px; white-space: pre-wrap; font-size: 14px; }
+  .msg.me { align-self: flex-end; background: #14532d; max-width: 85%; }
+  .msg.ai { background: var(--surface); }
+  .msg.err { background: #3b1414; color: #fecaca; }
+  .ask { display: flex; gap: 6px; } .ask textarea { min-height: 44px; resize: vertical; }
+  .warn { background: #2a2414; color: #fde68a; border-radius: 12px; padding: 10px 12px; font-size: 13px; margin-bottom: 10px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>내 기록 인사이트</h1>
+  <div class="src" id="src">기록을 불러오는 중…</div>
+  <div id="loadBox" class="card hidden">
+    <h2>기록 파일 직접 열기</h2>
+    <div class="sub" id="loadWhy" style="margin-bottom:8px"></div>
+    <input type="file" id="file" accept=".json,application/json">
+    <div class="sub" style="margin-top:6px">hr-app 내정보 → 백업 내보내기 파일, 또는 Drive 의 hr-app-sync.json. 파일은 이 화면 안에서만 읽어요.</div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button data-t="map" class="sel">독서 지도</button>
+    <button data-t="ex">운동</button>
+    <button data-t="time">시간</button>
+    <button data-t="ai" id="aiTab">AI에게 묻기</button>
+  </div>
+  <section id="t-map">
+    <div class="fields" id="fields"></div>
+    <div class="mapwrap"><canvas id="cv" aria-label="독서 지도"></canvas><div id="sheet"></div></div>
+    <div class="legend"><span>● 밝을수록 별점 높음</span><span>○ 읽는 중</span><span style="color:#fde047">✦ 최근 30일 완독</span><span style="color:#7dd3fc">◆ 감상·메모</span><span style="color:#fb923c">● 다시 분류할 후보</span></div>
+    <input type="text" id="q" placeholder="제목·감상·메모 검색">
+    <div id="res"></div>
+  </section>
+  <section id="t-ex" class="hidden"></section>
+  <section id="t-time" class="hidden"></section>
+  <section id="t-ai" class="hidden">
+    <div class="sub" style="margin-bottom:8px">AI 는 아래 화면에 나온 계산 결과와 책 제목·감상·메모만 봅니다. 운동 조언은 컨디션 관리용이며, 증상이 있으면 의사와 상담하세요.</div>
+    <div class="presets" id="presets">
+      <button class="btn ghost" data-p="이번 주 운동 어때?">이번 주 운동 어때?</button>
+      <button class="btn ghost" data-p="오늘 시간 어떻게 썼어?">오늘 시간 어떻게 썼어?</button>
+      <button class="btn ghost" data-p="내가 읽은 책 중 ○○ 관련은?" data-fill="1">내가 읽은 책 중 ○○ 관련은?</button>
+      <button class="btn ghost" data-p="다음에 읽을 책 추천">다음에 읽을 책 추천</button>
+    </div>
+    <div class="chat" id="chat"></div>
+    <div class="ask"><textarea id="askIn" placeholder="질문을 입력하세요"></textarea><button class="btn" id="askBtn">묻기</button></div>
+    <button class="btn ghost hidden" id="stopBtn" style="margin-top:6px">멈추기</button>
+  </section>
+</div>
+
+<script>
+// 공유 지표 계산 (hr-app 과 artifact/insights.html 이 같은 파일을 쓴다).
+// 순수 함수만: 화면(DOM)·저장소(localStorage)에 손대지 않는다. 입력은 { 저장키: 이미 JSON.parse 한 값 } 객체.
+// 숫자는 전부 여기서 계산한다. AI 는 이 결과만 받아서 해석한다.
+// 표본 규칙: 평균·비교 지표는 { n, coverage, insufficient } 를 붙인다. insufficient = coverage < 0.7 또는 n < 3.
+//            단순 개수·합계(책 권수, 이번 주 Zone 2 합계 등)는 사실 그 자체라 insufficient 를 항상 false 로 둔다 (n 은 붙임).
+(function (root) {
+  'use strict';
+  const DAY = 86400000, MIN = 60000, KST = 9 * 3600000;
+  const BOOK_CATS = ['문학', '역사', '철학', '과학', '기타'];
+  const DEFAULT_TARGETS = { '문학': 300, '역사': 200, '철학': 100, '과학': 100, '기타': 100 };
+  const GOAL_DEFAULTS = { youtube_max_min_per_day: 60, sleep_min_hours: 7 };
+  const LOG_KEY = /^time_log_\d{4}_\d{2}$/;
+
+  // ---------- 입력 정리 (밖에서 온 값은 모양을 믿지 않는다) ----------
+  const arr = v => (Array.isArray(v) ? v : []);
+  const obj = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  const num = v => (typeof v === 'number' && isFinite(v) ? v : (typeof v === 'string' && v.trim() !== '' && isFinite(Number(v)) ? Number(v) : null));
+  const str = v => (typeof v === 'string' ? v : '');
+  const isDay = s => /^\d{4}-\d{2}-\d{2}$/.test(str(s));
+  const r1 = v => (v == null ? null : Math.round(v * 10) / 10);
+  const mean = a => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  const pct = (v, g) => (v != null && g > 0 ? Math.round(v / g * 1000) / 10 : null);
+  function sample(n, coverage) { return { n, coverage: coverage == null ? null : Math.round(coverage * 1000) / 1000, insufficient: (coverage != null && coverage < 0.7) || n < 3 }; }
+
+  // hr-app-sync.json 의 data 는 { 키: 문자열 } — 이걸 { 키: 값 } 으로. 못 읽는 키는 건너뛰고 이름을 돌려준다
+  function parseStore(strMap) {
+    const out = {}, bad = [];
+    Object.keys(obj(strMap)).forEach(k => {
+      const v = strMap[k];
+      if (typeof v !== 'string') { out[k] = v; return; }
+      try { out[k] = JSON.parse(v); } catch (e) { bad.push(k); }
+    });
+    return { store: out, bad };
+  }
+
+  // ---------- 날짜 ----------
+  const kst = ms => new Date(ms + KST);   // getUTC* 로 한국 시간 읽기 (시간 탭과 같은 기준)
+  const pad = n => String(n).padStart(2, '0');
+  const kstDayStart = ms => Math.floor((ms + KST) / DAY) * DAY - KST;
+  const kstDayKey = ms => { const d = kst(ms); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); };
+  const kstDow = ms => (kst(ms).getUTCDay() + 6) % 7;   // 0=월
+  const kstFromDay = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str(s)); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) - KST : NaN; };
+  const localDayKey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+
+  // ================= 독서 =================
+  function bookNotes(logs, id) {   // [{day, page, note}] 메모가 있는 날만, 날짜순
+    const L = obj(obj(logs)[id]);
+    return Object.keys(L).filter(isDay).sort().map(k => ({ day: k, page: num(L[k] && L[k].page), note: str(L[k] && L[k].note).trim() })).filter(x => x.note);
+  }
+  function cleanBooks(store) {
+    return arr(store.book_list).filter(b => b && typeof b === 'object' && typeof b.id === 'string').map(b => ({
+      id: b.id, title: str(b.title) || '(제목 없음)', author: str(b.author), category: BOOK_CATS.includes(b.category) ? b.category : '기타',
+      status: str(b.status), rating: num(b.rating) >= 1 && num(b.rating) <= 5 ? num(b.rating) : null, review: str(b.review).trim(),
+      startedAt: isDay(b.startedAt) ? b.startedAt : null, finishedAt: isDay(b.finishedAt) ? b.finishedAt : null,
+      isbn: str(b.isbn).replace(/[^0-9]/g, ''), kdc: /^\d{3}$/.test(str(b.kdc)) ? b.kdc : null,
+    }));
+  }
+  const isDone = b => b.status === 'done';
+  const isCandidate = b => !!b.isbn && b.category === '기타';   // ISBN 이 있는데 분야가 기타 = 다시 분류할 후보
+
+  function reading(store, now) {
+    const books = cleanBooks(store), logs = obj(store.book_logs), tg = Object.assign({}, DEFAULT_TARGETS);
+    Object.keys(obj(store.book_targets)).forEach(c => { const v = num(store.book_targets[c]); if (BOOK_CATS.includes(c) && v != null && v >= 0) tg[c] = v; });
+    const fields = BOOK_CATS.map(c => {
+      const list = books.filter(b => b.category === c), done = list.filter(isDone).length;
+      return { cat: c, count: list.length, completed: done, target: tg[c], pct: pct(done, tg[c]), candidates: list.filter(isCandidate).length };
+    });
+    const nd = new Date(now), monthly = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(nd.getFullYear(), nd.getMonth() - i, 1), ym = d.getFullYear() + '-' + pad(d.getMonth() + 1);
+      monthly.push({ month: ym, completed: books.filter(b => isDone(b) && b.finishedAt && b.finishedAt.slice(0, 7) === ym).length });
+    }
+    const notesPerBook = books.map(b => ({ id: b.id, title: b.title, notes: bookNotes(logs, b.id).length, hasReview: !!b.review })).filter(x => x.notes || x.hasReview);
+    const recent = books.filter(b => isDone(b) && b.finishedAt).sort((a, b) => (a.finishedAt < b.finishedAt ? 1 : -1)).slice(0, 5)
+      .map(b => ({ id: b.id, title: b.title, category: b.category, finishedAt: b.finishedAt, rating: b.rating }));
+    const done = books.filter(isDone).length;
+    return {
+      total: books.length, completed: done, reading: books.filter(b => b.status === 'reading').length,
+      candidates: books.filter(isCandidate).length, fields, monthly, notesPerBook, recent,
+      n: books.length, coverage: null, insufficient: false,
+    };
+  }
+
+  // 지도에 넘길 데이터 (책 + 메모 + 승인된 연결만)
+  function mapData(store, now) {
+    const books = cleanBooks(store), logs = obj(store.book_logs), ids = new Set(books.map(b => b.id));
+    const links = arr(store.book_links).filter(l => l && l.approved === true && ids.has(l.a) && ids.has(l.b) && l.a !== l.b)
+      .map(l => ({ a: l.a, b: l.b, reason: str(l.reason) }));
+    const r = reading(store, now), cut = localDayKey(new Date(now - 30 * DAY));
+    return {
+      fields: r.fields,
+      books: books.map(b => Object.assign({}, b, {
+        notes: bookNotes(logs, b.id), candidate: isCandidate(b),
+        recent: isDone(b) && !!b.finishedAt && b.finishedAt >= cut,
+        linked: links.filter(l => l.a === b.id || l.b === b.id).map(l => ({ id: l.a === b.id ? l.b : l.a, reason: l.reason })),
+      })),
+      links,
+    };
+  }
+
+  // 제목·저자·감상·메모 검색 (소문자 포함 여부)
+  function searchBooks(store, q, limit) {
+    const s = str(q).trim().toLowerCase(); if (!s) return [];
+    const logs = obj(store.book_logs);
+    return cleanBooks(store).map(b => {
+      const notes = bookNotes(logs, b.id), hits = [];
+      if ((b.title + ' ' + b.author).toLowerCase().includes(s)) hits.push('제목');
+      if (b.review.toLowerCase().includes(s)) hits.push('감상');
+      const nh = notes.filter(x => x.note.toLowerCase().includes(s));
+      if (nh.length) hits.push('메모');
+      return hits.length ? { id: b.id, title: b.title, author: b.author, category: b.category, status: b.status, rating: b.rating, finishedAt: b.finishedAt, review: b.review, notes: notes, matched: hits } : null;
+    }).filter(Boolean).slice(0, limit || 50);
+  }
+
+  // ================= 운동 =================
+  // 주 시작: weekStart 'sun' 이면 일요일, 그 외 월요일. 기기 현지 시간 기준 (심박 탭 startOfWeek 와 같은 방식)
+  function localWeekStart(now, weekStart) {
+    const ws = weekStart === 'sun' ? 0 : 1, d = new Date(now);
+    d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() - ws + 7) % 7);
+    return d.getTime();
+  }
+  function cleanSessions(store) {
+    return arr(store.hr_sessions).map(s => ({ date: num(s && s.date), duration: num(s && s.duration), z2: num(s && Array.isArray(s.zoneSec) ? s.zoneSec[2] : null) }))
+      .filter(s => s.date != null);   // 날짜 없는 기록은 버린다
+  }
+  function measureWindow(ms, now, days, morningOnly) {
+    const from = now - days * DAY;
+    const pick = ms.filter(m => m.date > from && m.date <= now && (!morningOnly || new Date(m.date).getHours() < 10));
+    const stat = key => {
+      const v = pick.filter(m => m[key] != null), dayset = new Set(v.map(m => localDayKey(new Date(m.date))));
+      return Object.assign({ mean: r1(mean(v.map(m => m[key]))) }, sample(v.length, dayset.size / days));
+    };
+    return { rhr: stat('rhr'), hrv: stat('hrv') };
+  }
+  function compare(ms, now, morningOnly) {
+    const w7 = measureWindow(ms, now, 7, morningOnly), w30 = measureWindow(ms, now, 30, morningOnly), out = {};
+    ['rhr', 'hrv'].forEach(k => {
+      const a = w7[k], b = w30[k];
+      out[k] = { mean7: a.mean, n7: a.n, coverage7: a.coverage, mean30: b.mean, n30: b.n, coverage30: b.coverage,
+        diff: a.mean != null && b.mean != null ? r1(a.mean - b.mean) : null, insufficient: a.insufficient || b.insufficient };
+    });
+    return out;
+  }
+  function exercise(store, now, weekStart) {
+    const ss = cleanSessions(store), settings = obj(store.hr_settings);
+    const ws = localWeekStart(now, weekStart != null ? weekStart : settings.weekStart);
+    const week = ss.filter(s => s.date >= ws);
+    const z2sec = week.reduce((a, s) => a + (s.z2 || 0), 0), goal = num(settings.goal) > 0 ? num(settings.goal) : 150;
+    const prev4 = ss.filter(s => s.date >= ws - 28 * DAY && s.date < ws).length;
+    const last = ss.reduce((m, s) => Math.max(m, s.date), -Infinity);
+    const ms = arr(store.hr_measures).map(m => ({ date: num(m && m.date), rhr: num(m && m.rhr) > 0 ? num(m.rhr) : null, hrv: num(m && m.hrv) > 0 ? num(m.hrv) : null })).filter(m => m.date != null);
+    return {
+      weekStart: ws,
+      zone2: { min: Math.round(z2sec / 60), goal, pct: pct(Math.round(z2sec / 60), goal), n: week.length, coverage: null, insufficient: false },
+      sessions: { thisWeek: week.length, prev4Weeks: prev4, prev4WeeksAvg: r1(prev4 / 4), n: ss.length, coverage: null, insufficient: false },
+      daysSinceLast: isFinite(last) ? Math.floor((now - last) / DAY) : null,
+      measures: { all: compare(ms, now, false), morning: compare(ms, now, true), note: 'morning = 현지 시각 10시 전 측정만' },
+    };
+  }
+
+  // ================= 시간 =================
+  // 시간 탭(TL-CORE)과 같은 규칙: 겹치면 수동이 자동을 이기고, 같은 종류끼리는 나중에 시작한 쪽이 이긴다. 진행 중 기록은 now 까지.
+  function timeEntries(store, now) {
+    const all = [];
+    Object.keys(store).filter(k => LOG_KEY.test(k)).forEach(k => arr(store[k]).forEach(e => {
+      if (e && typeof e.catId === 'string' && num(e.start) != null && (e.end == null || (num(e.end) != null && num(e.end) > num(e.start))))
+        all.push({ id: String(e.id), start: num(e.start), end: e.end == null ? null : num(e.end), catId: e.catId, source: e.source || 'manual' });
+    }));
+    arr(store.hr_sessions).forEach(s => {   // 심박 운동 = 자동 '운동' 기록 (저장되지 않고 매번 계산되는 것과 같게)
+      const end = num(s && s.date), dur = num(s && s.duration);
+      if (end != null && dur > 0 && dur < 12 * 3600) all.push({ id: 'auto-hr-' + end, start: end - dur * 1000, end, catId: 'exercise', source: 'auto-hr' });
+    });
+    const cur = obj(store.time_current);
+    if (typeof cur.catId === 'string' && num(cur.start) != null) all.push({ id: '__cur', start: num(cur.start), end: null, catId: cur.catId, source: 'manual' });
+    return all;
+  }
+  function resolve(entries, now) {
+    const es = [];
+    entries.forEach(e => { const t = e.end == null ? now : e.end; if (t > e.start) es.push({ e, s: e.start, t, pri: e.source === 'manual' ? 1 : 0 }); });
+    const bs = [...new Set(es.flatMap(x => [x.s, x.t]))].sort((a, b) => a - b), out = [];
+    for (let i = 0; i + 1 < bs.length; i++) {
+      const a = bs[i], b = bs[i + 1];
+      let best = null;
+      for (const x of es) if (x.s <= a && x.t >= b && (!best || x.pri > best.pri || (x.pri === best.pri && x.s > best.s))) best = x;
+      if (best) out.push({ start: a, end: b, catId: best.e.catId });
+    }
+    return out;
+  }
+  // [from,to) 를 하루(한국 시간)씩 잘라 { 날짜: { 분류: 분 } }
+  function byDay(segs, from, to) {
+    const days = {};
+    segs.forEach(s => {
+      let a = Math.max(s.start, from); const end = Math.min(s.end, to);
+      while (a < end) {
+        const b = Math.min(kstDayStart(a) + DAY, end), k = kstDayKey(a), d = days[k] || (days[k] = {});
+        d[s.catId] = (d[s.catId] || 0) + (b - a) / MIN; a = b;
+      }
+    });
+    return days;
+  }
+  const dayTotal = d => Object.keys(d).reduce((a, k) => a + d[k], 0);
+  // 저장된 분류 목록이 없거나 깨졌으면 시간 탭처럼 기본 분류를 쓴다 (index.html TL_DEFAULT_CATS 와 같은 이름 — 테스트가 확인)
+  const DEFAULT_CAT_NAMES = { sleep: '수면', work: '회사 업무', dev: '트레이딩·개발', read: '독서', exercise: '운동', study: '공부', move: '이동', chores: '식사·집안일', people: '사람·가족', rest: '휴식', phone: '폰·SNS', web: '웹서핑', youtube: '유튜브 시청', etc: '기타' };
+  function catList(store) {
+    const a = arr(store.time_categories), ok = a.length && a.every(c => c && typeof c.id === 'string' && typeof c.name === 'string');
+    return ok ? a.map(c => ({ id: c.id, name: c.name })) : Object.keys(DEFAULT_CAT_NAMES).map(id => ({ id, name: DEFAULT_CAT_NAMES[id] }));
+  }
+  function timeuse(store, day, now) {
+    const d0 = kstFromDay(day); if (!isFinite(d0)) return { error: 'bad_day' };
+    const segs = resolve(timeEntries(store, now), now), cats = catList(store);
+    const name = id => { const c = cats.find(x => x.id === id); return c ? c.name : id; };
+    const todayEnd = Math.min(d0 + DAY, Math.max(now, d0)), todayMap = byDay(segs, d0, d0 + DAY)[day] || {};
+    // 비교 기준: 그 날 앞 28일. 평균 = 기록이 있는 날 수로 나눔 (시간 탭 월간 보고의 하루 평균과 같은 방식)
+    const hist = byDay(segs, d0 - 28 * DAY, d0), histDays = Object.keys(hist), histRec = histDays.reduce((a, k) => a + dayTotal(hist[k]), 0);
+    const ids = [...new Set([...Object.keys(todayMap), ...histDays.flatMap(k => Object.keys(hist[k]))])];
+    const base = sample(histDays.length, histRec / (28 * 1440));
+    const categories = ids.map(id => {
+      const tot = histDays.reduce((a, k) => a + (hist[k][id] || 0), 0), avg = histDays.length ? tot / histDays.length : null;
+      return { id, name: name(id), todayMin: Math.round(todayMap[id] || 0), avg28Min: avg == null ? null : Math.round(avg), diffMin: avg == null ? null : Math.round((todayMap[id] || 0) - avg) };
+    }).sort((a, b) => b.todayMin - a.todayMin || (b.avg28Min || 0) - (a.avg28Min || 0));
+    // 수면: 앞 4주(그 날 제외), 평일(월~금) vs 주말(토·일). 자정에서 자른 하루 단위 (시간 탭과 같음)
+    const sl = { wd: [], we: [] }, cnt = { wd: 0, we: 0 };
+    for (let i = 1; i <= 28; i++) {
+      const ds = d0 - i * DAY, k = kstDayKey(ds), g = kstDow(ds) >= 5 ? 'we' : 'wd';
+      cnt[g]++;
+      if (hist[k] && dayTotal(hist[k]) > 0) sl[g].push(hist[k].sleep || 0);
+    }
+    const sAvg = g => Object.assign({ hours: sl[g].length ? r1(mean(sl[g]) / 60) : null }, sample(sl[g].length, sl[g].length / cnt[g]));
+    const weekday = sAvg('wd'), weekend = sAvg('we');
+    // 기록률: 오늘(지금까지), 이번 주(월요일 시작, 지금까지)
+    const todayRec = dayTotal(todayMap), todayElapsed = (todayEnd - d0) / MIN;
+    // (시간 탭 covSoFar 와 같게: 기록은 구간 전체, 나누는 시간은 지금까지)
+    const ws = d0 - kstDow(d0) * DAY, wEnd = Math.min(ws + 7 * DAY, Math.max(now, ws)), wk = byDay(segs, ws, ws + 7 * DAY);
+    const weekRec = Object.keys(wk).reduce((a, k) => a + dayTotal(wk[k]), 0), weekElapsed = (wEnd - ws) / MIN;
+    return {
+      day, categories, baseline: base,
+      sleep: { weekday, weekend, diffHours: weekday.hours != null && weekend.hours != null ? r1(weekend.hours - weekday.hours) : null },
+      coverage: { today: todayElapsed > 0 ? Math.round(todayRec / todayElapsed * 1000) / 10 : null, week: weekElapsed > 0 ? Math.round(weekRec / weekElapsed * 1000) / 10 : null, unit: '%' },
+    };
+  }
+
+  // ================= 목표 =================
+  function goals(store, now, weekStart) {
+    const g = obj(store.insight_goals), settings = obj(store.hr_settings);
+    const pick = (k, d) => (num(g[k]) > 0 ? num(g[k]) : d);
+    const yMax = pick('youtube_max_min_per_day', GOAL_DEFAULTS.youtube_max_min_per_day), sMin = pick('sleep_min_hours', GOAL_DEFAULTS.sleep_min_hours);
+    const z2Goal = pick('zone2_weekly_min', num(settings.goal) > 0 ? num(settings.goal) : 150);
+    // 유튜브·수면 = 어제까지 최근 7일 중 기록이 있는 날의 하루 평균 (오늘은 아직 안 끝나서 제외)
+    const today0 = kstDayStart(now), segs = resolve(timeEntries(store, now), now), days = byDay(segs, today0 - 7 * DAY, today0);
+    const rec = Object.keys(days).filter(k => dayTotal(days[k]) > 0), cov = sample(rec.length, rec.length / 7);
+    const avgOf = id => (rec.length ? rec.reduce((a, k) => a + (days[k][id] || 0), 0) / rec.length : null);
+    const yt = avgOf('youtube'), sl = avgOf('sleep'), z2 = exercise(store, now, weekStart).zone2.min;
+    const st = (v, goal, kind) => (v == null ? null : kind === 'max' ? (v > goal ? 'over' : 'ok') : (v < goal ? 'under' : 'ok'));
+    return {
+      youtube: Object.assign({ value: yt == null ? null : Math.round(yt), goal: yMax, pct: pct(yt, yMax), status: st(yt, yMax, 'max'), unit: '분/일 (최근 7일 평균)' }, cov),
+      sleep: Object.assign({ value: r1(sl == null ? null : sl / 60), goal: sMin, pct: pct(sl == null ? null : sl / 60, sMin), status: st(sl == null ? null : sl / 60, sMin, 'min'), unit: '시간/일 (최근 7일 평균)' }, cov),
+      zone2: { value: z2, goal: z2Goal, pct: pct(z2, z2Goal), status: st(z2, z2Goal, 'min'), unit: '분 (이번 주 합계)', n: null, coverage: null, insufficient: false },
+    };
+  }
+
+  const api = { parseStore, reading, mapData, searchBooks, exercise, timeuse, goals, localWeekStart, kstDayKey, BOOK_CATS, DEFAULT_TARGETS, GOAL_DEFAULTS, DEFAULT_CAT_NAMES, _resolve: resolve, _byDay: byDay, _timeEntries: timeEntries };
+  if (typeof module === 'object' && module.exports) module.exports = api; else root.HRMetrics = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// 독서 지도 그리기 (hr-app 과 artifact/insights.html 이 같은 파일을 쓴다). 데이터는 밖에서 받는다 (HRMetrics.mapData 결과).
+// 저장소에 손대지 않는다. 행성 5개 = 분야, 크기 = 완독 권수, 바깥 고리 = 평생 목표 진행률.
+// 점 = 책 (밝기 = 별점, 반짝임 = 최근 30일 완독, 주황 점 = 다시 분류할 후보), 마름모 = 감상·메모, 선 = 승인된 연결.
+// 터치: 두 손가락 확대, 한 손가락 이동, 탭 = 선택. PC: 휠 확대, 끌어서 이동, 클릭 = 선택.
+// 화면에 안 보이면(다른 탭, 페이지 숨김) 애니메이션을 멈춘다.
+(function (root) {
+  'use strict';
+  const CATS = ['문학', '역사', '철학', '과학', '기타'];
+  const CAT_COLOR = { '문학': '#f87171', '역사': '#a78bfa', '철학': '#2dd4bf', '과학': '#a3e635', '기타': '#facc15' };
+  const ORBIT = 230, BOOK_R = 4;
+
+  function create(canvas, opts) {
+    opts = opts || {};
+    const ctx = canvas.getContext('2d');
+    const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+    const starN = Math.min(coarse ? 150 : 300, opts.stars != null ? opts.stars : (coarse ? 120 : 260));
+    const stars = Array.from({ length: starN }, (_, i) => ({ x: rand(i * 3 + 1), y: rand(i * 3 + 2), r: 0.4 + rand(i * 3 + 3) * 1.1, p: rand(i * 7) * 6.28 }));
+    const S = { data: null, planets: [], dots: [], byId: {}, z: 1, px: 0, py: 0, w: 0, h: 0, dpr: 1, sel: null, running: false, raf: 0, frames: 0, fitted: false, ptr: new Map(), drag: null, pinch: null };
+
+    function rand(n) { const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); }   // 고정 난수 (그릴 때마다 같은 자리)
+
+    // ---------- 배치 ----------
+    function layout() {
+      S.planets = []; S.dots = []; S.byId = {};
+      if (!S.data) return;
+      CATS.forEach((c, i) => {
+        const a = -Math.PI / 2 + i * 2 * Math.PI / CATS.length, f = (S.data.fields || []).find(x => x.cat === c) || { completed: 0, count: 0, target: 0, pct: 0 };
+        const r = 20 + 5 * Math.sqrt(f.completed || 0);
+        const p = { cat: c, x: Math.cos(a) * ORBIT, y: Math.sin(a) * ORBIT, r, f, color: (opts.catColors && opts.catColors[c]) || CAT_COLOR[c] };
+        S.planets.push(p);
+        const books = (S.data.books || []).filter(b => b.category === c).sort((a, b) => ((a.finishedAt || a.startedAt || '') < (b.finishedAt || b.startedAt || '') ? -1 : 1));
+        let ring = 0, inRing = 0, cap = 0, rad = 0;
+        books.forEach((b, j) => {
+          if (inRing >= cap) { rad = r + 16 + ring * 13; cap = Math.max(6, Math.floor(2 * Math.PI * rad / 13)); inRing = 0; ring++; }
+          const ang = inRing / cap * 2 * Math.PI + ring * 0.37;
+          const d = { b, x: p.x + Math.cos(ang) * rad, y: p.y + Math.sin(ang) * rad, p, notes: (b.review ? 1 : 0) + (b.notes ? b.notes.length : 0), tw: rand(j + i * 97) * 6.28 };
+          S.dots.push(d); S.byId[b.id] = d; inRing++;
+        });
+      });
+    }
+    function extent() { let m = ORBIT; S.dots.forEach(d => { m = Math.max(m, Math.abs(d.x) + 10, Math.abs(d.y) + 10); }); S.planets.forEach(p => { m = Math.max(m, Math.abs(p.x) + p.r + 30, Math.abs(p.y) + p.r + 30); }); return m; }
+    function fit() { if (!S.w) return; S.z = Math.min(S.w, S.h) / 2 / extent() * 0.95; S.px = 0; S.py = 0; S.fitted = true; }
+
+    // ---------- 좌표 ----------
+    const toScreen = (x, y) => [S.w / 2 + S.px + x * S.z, S.h / 2 + S.py + y * S.z];
+    const toWorld = (sx, sy) => [(sx - S.w / 2 - S.px) / S.z, (sy - S.h / 2 - S.py) / S.z];
+    function zoomAt(sx, sy, k) {
+      const nz = Math.max(0.2, Math.min(12, S.z * k)), [wx, wy] = toWorld(sx, sy);
+      S.z = nz; S.px = sx - S.w / 2 - wx * nz; S.py = sy - S.h / 2 - wy * nz; kick();
+    }
+    function resize() {
+      const w = canvas.clientWidth, h = canvas.clientHeight, dpr = Math.min(2, root.devicePixelRatio || 1);
+      if (w === S.w && h === S.h && dpr === S.dpr) return;
+      S.w = w; S.h = h; S.dpr = dpr; canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      if (!S.fitted) fit();
+    }
+
+    // ---------- 그리기 ----------
+    function draw(t) {
+      const c = ctx; c.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
+      c.fillStyle = opts.bg || '#0b0f17'; c.fillRect(0, 0, S.w, S.h);
+      stars.forEach(s => { c.globalAlpha = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(t / 900 + s.p)); c.fillStyle = '#cbd5e1'; c.fillRect(((s.x * S.w + S.px * 0.08) % S.w + S.w) % S.w, ((s.y * S.h + S.py * 0.08) % S.h + S.h) % S.h, s.r, s.r); });
+      c.globalAlpha = 1;
+      if (!S.data) return;
+      c.save(); c.translate(S.w / 2 + S.px, S.h / 2 + S.py); c.scale(S.z, S.z);
+      const px = 1 / S.z;   // 화면 1픽셀의 세계 크기
+      // 연결선
+      (S.data.links || []).forEach(l => {
+        const a = S.byId[l.a], b = S.byId[l.b]; if (!a || !b) return;
+        const on = S.sel && (S.sel === l.a || S.sel === l.b);
+        c.strokeStyle = on ? 'rgba(125,211,252,.9)' : 'rgba(125,211,252,.35)'; c.lineWidth = (on ? 2 : 1) * px;
+        c.beginPath(); c.moveTo(a.x, a.y); c.quadraticCurveTo((a.x + b.x) / 2 * 0.6, (a.y + b.y) / 2 * 0.6, b.x, b.y); c.stroke();
+      });
+      // 행성 + 목표 고리
+      S.planets.forEach(p => {
+        const g = c.createRadialGradient(p.x - p.r * 0.3, p.y - p.r * 0.3, p.r * 0.1, p.x, p.y, p.r);
+        g.addColorStop(0, p.color); g.addColorStop(1, shade(p.color));
+        c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, p.r, 0, 6.2832); c.fill();
+        const rr = p.r + 7; c.lineWidth = 3 * Math.min(1, px * 1.5) + 1; c.strokeStyle = 'rgba(148,163,184,.25)';
+        c.beginPath(); c.arc(p.x, p.y, rr, 0, 6.2832); c.stroke();
+        const frac = Math.max(0, Math.min(1, (p.f.pct || 0) / 100));
+        if (frac > 0) { c.strokeStyle = p.color; c.beginPath(); c.arc(p.x, p.y, rr, -Math.PI / 2, -Math.PI / 2 + frac * 6.2832); c.stroke(); }
+      });
+      // 책 점
+      S.dots.forEach(d => {
+        const b = d.b, done = b.status === 'done';
+        if (done) {
+          c.globalAlpha = b.rating ? 0.3 + 0.14 * b.rating : 0.45; c.fillStyle = '#f8fafc';
+          c.beginPath(); c.arc(d.x, d.y, BOOK_R, 0, 6.2832); c.fill();
+        } else {
+          c.globalAlpha = b.status === 'reading' ? 0.95 : 0.35; c.strokeStyle = b.status === 'reading' ? d.p.color : '#64748b'; c.lineWidth = 1.5;
+          c.beginPath(); c.arc(d.x, d.y, BOOK_R - 0.5, 0, 6.2832); c.stroke();
+        }
+        c.globalAlpha = 1;
+        if (b.recent) {   // 반짝임
+          const k = 0.5 + 0.5 * Math.sin(t / 260 + d.tw), L = BOOK_R + 3 + 3 * k;
+          c.strokeStyle = 'rgba(253,224,71,' + (0.35 + 0.6 * k) + ')'; c.lineWidth = 1.2;
+          c.beginPath(); c.moveTo(d.x - L, d.y); c.lineTo(d.x + L, d.y); c.moveTo(d.x, d.y - L); c.lineTo(d.x, d.y + L); c.stroke();
+        }
+        if (b.candidate) { c.fillStyle = '#fb923c'; c.beginPath(); c.arc(d.x + BOOK_R, d.y - BOOK_R, 1.8, 0, 6.2832); c.fill(); }
+        for (let i = 0; i < Math.min(3, d.notes); i++) {   // 마름모 = 감상·메모 (최대 3개)
+          const a = 0.6 + i * 0.7, mx = d.x + Math.cos(a) * (BOOK_R + 4), my = d.y + Math.sin(a) * (BOOK_R + 4), s = 1.6;
+          c.fillStyle = '#7dd3fc'; c.beginPath(); c.moveTo(mx, my - s); c.lineTo(mx + s, my); c.lineTo(mx, my + s); c.lineTo(mx - s, my); c.closePath(); c.fill();
+        }
+        if (S.sel === b.id) { c.strokeStyle = '#38bdf8'; c.lineWidth = 2 * px; c.beginPath(); c.arc(d.x, d.y, BOOK_R + 6 + 2 * Math.sin(t / 200), 0, 6.2832); c.stroke(); }
+      });
+      c.restore();
+      labels();
+    }
+    function shade(hex) { const n = parseInt(hex.slice(1), 16), f = v => Math.round(v * 0.35); return 'rgb(' + f(n >> 16 & 255) + ',' + f(n >> 8 & 255) + ',' + f(n & 255) + ')'; }
+    // 글자는 화면 좌표로. 겹치면 건너뛴다 (먼저 놓인 것 우선: 행성 → 선택한 책 → 별점 높은 책)
+    function labels() {
+      const c = ctx, placed = [];
+      const tryPut = (txt, sx, sy, font, color) => {
+        c.font = font; const w = c.measureText(txt).width + 6, h = 15, r = [sx - w / 2, sy - h / 2, w, h];
+        if (r[0] < 0 || r[1] < 0 || r[0] + w > S.w || r[1] + h > S.h) return;
+        if (placed.some(q => r[0] < q[0] + q[2] && q[0] < r[0] + r[2] && r[1] < q[1] + q[3] && q[1] < r[1] + r[3])) return;
+        placed.push(r); c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, sx, sy);
+      };
+      S.planets.forEach(p => {
+        const [sx, sy] = toScreen(p.x, p.y), off = (p.r + 7) * S.z + 12;
+        tryPut(p.cat, sx, sy - off - 8, '600 13px system-ui, sans-serif', '#e2e8f0');
+        tryPut('완독 ' + (p.f.completed || 0) + '/' + (p.f.target || 0) + ' · ' + (p.f.pct || 0) + '%', sx, sy - off + 7, '11px system-ui, sans-serif', '#94a3b8');
+      });
+      if (S.z < 1.4 && !S.sel) return;
+      const order = S.dots.slice().sort((a, b) => (b.b.id === S.sel) - (a.b.id === S.sel) || (b.b.rating || 0) - (a.b.rating || 0));
+      order.forEach(d => {
+        if (S.z < 1.4 && d.b.id !== S.sel) return;
+        const [sx, sy] = toScreen(d.x, d.y), t = d.b.title.length > 14 ? d.b.title.slice(0, 13) + '…' : d.b.title;
+        tryPut(t, sx, sy + BOOK_R * S.z + 10, '11px system-ui, sans-serif', d.b.id === S.sel ? '#7dd3fc' : '#cbd5e1');
+      });
+    }
+
+    // ---------- 반복 (보일 때만) ----------
+    function visible() { return !(typeof document !== 'undefined' && document.hidden) && canvas.isConnected && canvas.offsetParent !== null && canvas.clientWidth > 0; }
+    function frame(t) {
+      S.raf = 0;
+      if (!S.running) return;
+      if (!visible()) { S.running = false; return; }   // 숨겨지면 스스로 멈춤. 다시 보일 때 start() 로 깨운다
+      resize(); draw(t); S.frames++;
+      S.raf = requestAnimationFrame(frame);
+    }
+    function start() { if (S.running || !visible()) return; S.running = true; S.raf = requestAnimationFrame(frame); }
+    function stop() { S.running = false; if (S.raf) cancelAnimationFrame(S.raf); S.raf = 0; }
+    function kick() { if (!S.running) start(); }
+    const onVis = () => { if (document.hidden) stop(); else start(); };
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis);
+
+    // ---------- 입력 ----------
+    function hit(sx, sy) {
+      let best = null, bd = 18 * 18;
+      S.dots.forEach(d => { const [x, y] = toScreen(d.x, d.y), dd = (x - sx) ** 2 + (y - sy) ** 2; if (dd < bd) { bd = dd; best = d; } });
+      return best;
+    }
+    const pos = e => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    canvas.style.touchAction = 'none';
+    canvas.addEventListener('pointerdown', e => {
+      canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+      S.ptr.set(e.pointerId, pos(e));
+      if (S.ptr.size === 1) { const [x, y] = pos(e); S.drag = { x, y, px: S.px, py: S.py, moved: false }; }
+      if (S.ptr.size === 2) { const [a, b] = [...S.ptr.values()]; S.pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: S.z }; if (S.drag) S.drag.moved = true; }
+      kick();
+    });
+    canvas.addEventListener('pointermove', e => {
+      if (!S.ptr.has(e.pointerId)) return;
+      S.ptr.set(e.pointerId, pos(e));
+      if (S.ptr.size === 2 && S.pinch) {
+        const [a, b] = [...S.ptr.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        if (S.pinch.d > 0) zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (S.pinch.z * d / S.pinch.d) / S.z);
+      } else if (S.ptr.size === 1 && S.drag) {
+        const [x, y] = pos(e), dx = x - S.drag.x, dy = y - S.drag.y;
+        if (Math.abs(dx) + Math.abs(dy) > 6) S.drag.moved = true;
+        if (S.drag.moved) { S.px = S.drag.px + dx; S.py = S.drag.py + dy; kick(); }
+      }
+    });
+    const up = e => {
+      if (!S.ptr.has(e.pointerId)) return;
+      const tap = S.ptr.size === 1 && S.drag && !S.drag.moved && e.type === 'pointerup';
+      S.ptr.delete(e.pointerId);
+      if (S.ptr.size < 2) S.pinch = null;
+      if (S.ptr.size === 1) { const [x, y] = [...S.ptr.values()][0]; S.drag = { x, y, px: S.px, py: S.py, moved: true }; }
+      if (tap) { const [x, y] = pos(e), d = hit(x, y); select(d ? d.b.id : null, false); }
+      if (!S.ptr.size) S.drag = null;
+    };
+    canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
+    canvas.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = pos(e); zoomAt(x, y, Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+
+    function select(id, center) {
+      S.sel = id && S.byId[id] ? id : null;
+      if (S.sel && center) { const d = S.byId[S.sel]; S.z = Math.max(S.z, 2.2); S.px = -d.x * S.z; S.py = -d.y * S.z - S.h * 0.25; }   // 아래 시트에 가리지 않게 위쪽에
+      kick();
+      if (opts.onSelect) opts.onSelect(S.sel ? S.byId[S.sel].b : null);
+    }
+
+    return {
+      setData(d) { S.data = d; layout(); if (S.sel && !S.byId[S.sel]) S.sel = null; S.fitted = false; resize(); fit(); kick(); },
+      start, stop, select, fit() { fit(); kick(); },
+      get stats() { return { frames: S.frames, running: S.running, stars: stars.length, books: S.dots.length }; },
+      destroy() { stop(); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); },
+    };
+  }
+
+  const api = { create, CATS, CAT_COLOR };
+  if (typeof module === 'object' && module.exports) module.exports = api; else root.BookMap = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// ============ 채워 넣을 값 (claude.ai 에 올리기 전에 직접 채우기) ============
+// Google Drive 커넥터의 표시 이름과 도구 이름, 인자 이름. 이 페이지는 읽기만 하고 Drive 에 절대 쓰지 않는다.
+const DRIVE_SERVER = '';            // TODO: 예) 'Google Drive'
+const SEARCH_TOOL = '';             // TODO: 파일 찾는 도구 이름
+const SEARCH_QUERY_ARG = '';        // TODO: 그 도구의 검색어 인자 이름
+const SEARCH_QUERY = "title = 'hr-app-sync.json'";   // TODO: 커넥터 검색 문법에 맞게
+const READ_TOOL = '';               // TODO: 파일 내용 읽는 도구 이름
+const READ_ID_ARG = '';             // TODO: 그 도구의 파일 ID 인자 이름
+const SYNC_FILE_NAME = 'hr-app-sync.json';
+// =========================================================================
+
+const M = window.HRMetrics, $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let STORE = null, MAP = null, sample = null, turns = [], ctl = null, tab = 'map';
+
+// ---------- 기록 불러오기 ----------
+// 동기화 파일 { rev, data: { 키: 문자열 } } 과 백업 파일 { app: 'hr-monitor', data: { 키: 값 } } 둘 다 받는다
+function storeFrom(json) {
+  if (!json || typeof json !== 'object' || !json.data || typeof json.data !== 'object' || Array.isArray(json.data)) throw new Error('hr-app 기록 파일 모양이 아니에요 (data 항목 없음)');
+  const r = M.parseStore(json.data);
+  if (!r.store.book_list && !r.store.hr_sessions && !Object.keys(r.store).some(k => /^time_log_/.test(k))) throw new Error('책·운동·시간 기록이 하나도 없어요');
+  return { store: r.store, bad: r.bad, when: json.updatedAt || json.exportedAt || '' };
+}
+function findFileId(p) {   // 검색 결과 어디에 있든 이름이 맞는 항목의 id 를 찾는다
+  let hit = null;
+  (function walk(v) {
+    if (hit || !v || typeof v !== 'object') return;
+    if (Array.isArray(v)) { v.forEach(walk); return; }
+    const nm = v.title || v.name;
+    if (typeof v.id === 'string' && typeof nm === 'string' && nm === SYNC_FILE_NAME) { hit = v.id; return; }
+    Object.values(v).forEach(walk);
+  })(p);
+  return hit;
+}
+function jsonFromPayload(p) {   // 읽기 결과에서 { rev, data } 객체를 꺼낸다 (문자열이면 JSON 으로)
+  if (p && typeof p === 'object' && p.data && typeof p.data === 'object') return p;
+  if (typeof p === 'string') { try { return JSON.parse(p); } catch (e) { const i = p.indexOf('{'), j = p.lastIndexOf('}'); if (i >= 0 && j > i) return JSON.parse(p.slice(i, j + 1)); } }
+  if (p && typeof p === 'object') for (const v of Object.values(p)) { if (typeof v === 'string' && v.includes('"data"')) { try { return jsonFromPayload(v); } catch (e) {} } }
+  throw new Error('파일 내용을 JSON 으로 읽지 못했어요');
+}
+const MCP_WHY = {
+  needs_reauth: 'Drive 연결이 만료됐어요 — claude.ai 설정 → 커넥터에서 다시 연결하세요',
+  server_not_connected: 'Drive 커넥터가 연결돼 있지 않아요 — claude.ai 설정 → 커넥터에서 추가하세요',
+  selection_required: '같은 이름의 Drive 커넥터가 여러 개예요 — 하나를 고른 뒤 다시 여세요',
+  not_in_manifest: '이 페이지가 Drive 를 쓰도록 허용되지 않았어요',
+  approval_required: 'Drive 읽기 허락이 필요해요 — 다시 열고 허락하세요',
+  blocked_by_policy: '조직 정책으로 Drive 를 쓸 수 없어요',
+  server_unavailable: 'Drive 서버가 응답하지 않아요 — 잠시 뒤 다시 여세요',
+  tool_error: 'Drive 도구가 오류를 냈어요',
+};
+async function loadFromDrive() {
+  if (!DRIVE_SERVER || !SEARCH_TOOL || !SEARCH_QUERY_ARG || !READ_TOOL || !READ_ID_ARG) throw { why: 'Drive 설정값(맨 위 상수)이 아직 비어 있어요' };
+  const mcp = await claude.use('mcp');
+  if (!mcp) throw { why: '이 화면에서는 커넥터를 쓸 수 없어요' };
+  try {
+    const s = await mcp.callTool(DRIVE_SERVER, SEARCH_TOOL, { [SEARCH_QUERY_ARG]: SEARCH_QUERY });
+    const id = findFileId(s.payload);
+    if (!id) throw { why: 'Drive 에서 ' + SYNC_FILE_NAME + ' 을 찾지 못했어요' };
+    const r = await mcp.callTool(DRIVE_SERVER, READ_TOOL, { [READ_ID_ARG]: id });
+    return storeFrom(jsonFromPayload(r.payload !== undefined ? r.payload : (r.content || []).map(c => c.text || '').join('')));
+  } catch (e) {
+    if (e && e.why) throw e;
+    if (e && e.code) throw { why: (MCP_WHY[e.code] || 'Drive 읽기 실패') + ' (' + e.code + ')' };
+    throw { why: String(e && e.message || e) };
+  }
+}
+function showLoadBox(why) { $('loadBox').classList.remove('hidden'); $('loadWhy').textContent = why; $('src').textContent = 'Drive 에서 기록을 읽지 못했어요.'; }
+$('file').onchange = () => {
+  const f = $('file').files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try { const r = storeFrom(JSON.parse(rd.result)); setStore(r, '파일: ' + f.name); $('loadBox').classList.add('hidden'); }
+    catch (e) { $('loadWhy').textContent = '이 파일을 읽지 못했어요: ' + (e.message || e); }
+  };
+  rd.onerror = () => { $('loadWhy').textContent = '파일을 열 수 없어요'; };
+  rd.readAsText(f);
+};
+function setStore(r, label) {
+  STORE = r.store;
+  $('src').textContent = label + (r.when ? ' · 기록 시각 ' + String(r.when).replace('T', ' ').slice(0, 16) : '') + (r.bad.length ? ' · 읽지 못한 항목: ' + r.bad.join(', ') : '');
+  renderAll();
+}
+
+// ---------- 화면 ----------
+const WS = () => (STORE && STORE.hr_settings && STORE.hr_settings.weekStart) || 'mon';
+const today = () => M.kstDayKey(Date.now());
+const tag = st => st ? `<span class="tag ${st}">${{ ok: '목표 안', over: '넘음', under: '부족' }[st]}</span>` : '';
+const low = x => x && x.insufficient ? '<span class="tag low">기록 부족</span>' : '';
+const fmt = (v, u) => v == null ? '—' : v + (u || '');
+function renderAll() { if (!STORE) return; renderMap(); renderEx(); renderTime(); }
+function renderMap() {
+  const d = M.mapData(STORE, Date.now());
+  $('fields').innerHTML = d.fields.map(f => `<div>${esc(f.cat)}<b>${f.completed}/${f.target}</b>${f.count}권${f.candidates ? `<br><span style="color:#fb923c">후보 ${f.candidates}</span>` : ''}</div>`).join('');
+  if (MAP) MAP.destroy();
+  MAP = BookMap.create($('cv'), { onSelect: b => sheet(b, d) });
+  MAP.setData(d);
+  if (tab !== 'map') MAP.stop();
+  search();
+}
+function sheet(b, d) {
+  const el = $('sheet');
+  if (!b) { el.className = ''; el.innerHTML = ''; return; }
+  const t = id => (d.books.find(x => x.id === id) || {}).title || id;
+  el.className = 'sheet';
+  el.innerHTML = `<button class="x" id="sx" aria-label="닫기">✕</button><h3>${esc(b.title)}</h3>` +
+    `<div class="sub">${esc(b.author)}${b.author ? ' · ' : ''}${esc(b.category)} · ${b.status === 'done' ? '완독 ' + esc(b.finishedAt || '') : b.status === 'reading' ? '읽는 중' : '중단'}${b.rating ? ' · ' + '★'.repeat(b.rating) : ''}${b.candidate ? ' · <span style="color:#fb923c">다시 분류할 후보</span>' : ''}</div>` +
+    (b.review ? `<div class="note">“${esc(b.review)}”</div>` : '') +
+    b.notes.map(n => `<div class="note"><small>${esc(n.day)}</small>${esc(n.note)}</div>`).join('') +
+    (b.linked.length ? '<div class="sub" style="margin-top:8px">연결된 책</div>' + b.linked.map(l => `<div class="note">↔ ${esc(t(l.id))} <small>${esc(l.reason)}</small></div>`).join('') : '');
+  $('sx').onclick = () => MAP && MAP.select(null);
+}
+function search() {
+  const q = $('q').value; if (!STORE || !q.trim()) { $('res').innerHTML = ''; return; }
+  const r = M.searchBooks(STORE, q, 30);
+  $('res').innerHTML = r.length ? r.map(b => `<div class="res" data-id="${esc(b.id)}">${esc(b.title)} <small>${esc(b.category)} · ${b.matched.join('·')}</small></div>`).join('') : '<div class="sub" style="padding:10px 4px">찾는 책이 없어요</div>';
+  $('res').querySelectorAll('.res').forEach(el => el.onclick = () => { MAP && MAP.select(el.dataset.id, true); scrollTo({ top: 0, behavior: 'smooth' }); });
+}
+$('q').oninput = search;
+function renderEx() {
+  const e = M.exercise(STORE, Date.now(), WS()), g = M.goals(STORE, Date.now(), WS()), m = e.measures;
+  const mrow = (lab, x, u) => `<div class="row"><span>${lab}</span><b>${fmt(x.mean7, u)} <span class="sub">(${x.n7}회)</span> vs ${fmt(x.mean30, u)} <span class="sub">(${x.n30}회)</span>${x.diff != null ? ` · ${x.diff > 0 ? '+' : ''}${x.diff}` : ''}${low(x)}</b></div>`;
+  $('t-ex').innerHTML =
+    `<div class="card"><h2>이번 주 Zone 2</h2><div class="big">${e.zone2.min}분 <span class="sub">/ 목표 ${g.zone2.goal}분</span>${tag(g.zone2.status)}</div><div class="bar"><i style="width:${Math.min(100, g.zone2.pct || 0)}%"></i></div></div>` +
+    `<div class="card"><h2>운동 횟수</h2><div class="row"><span>이번 주</span><b>${e.sessions.thisWeek}회</b></div><div class="row"><span>그 전 4주 (주 평균)</span><b>${e.sessions.prev4Weeks}회 (${e.sessions.prev4WeeksAvg}회)</b></div><div class="row"><span>마지막 운동 후</span><b>${e.daysSinceLast == null ? '기록 없음' : e.daysSinceLast + '일'}</b></div></div>` +
+    `<div class="card"><h2>안정시 심박·HRV — 최근 7일 vs 30일 평균</h2><div class="sub">전체 측정</div>${mrow('안정시 심박', m.all.rhr, ' bpm')}${mrow('HRV', m.all.hrv, ' ms')}<div class="sub" style="margin-top:8px">아침(10시 전) 측정만 — 같은 조건 비교</div>${mrow('안정시 심박', m.morning.rhr, ' bpm')}${mrow('HRV', m.morning.hrv, ' ms')}</div>`;
+}
+function renderTime() {
+  const t = M.timeuse(STORE, today(), Date.now()), g = M.goals(STORE, Date.now(), WS());
+  const rows = t.categories.filter(c => c.todayMin > 0 || (c.avg28Min || 0) >= 10).slice(0, 12)
+    .map(c => `<div class="row"><span>${esc(c.name)}</span><b>${c.todayMin}분 <span class="sub">/ 평소 ${fmt(c.avg28Min, '분')}</span></b></div>`).join('');
+  $('t-time').innerHTML =
+    `<div class="card"><h2>오늘 (${esc(t.day)}) — 분류별, 평소(앞 28일 하루 평균)와 비교 ${low(t.baseline)}</h2>${rows || '<div class="sub">오늘 기록이 없어요</div>'}<div class="sub" style="margin-top:6px">기록률: 오늘 ${fmt(t.coverage.today, '%')} · 이번 주 ${fmt(t.coverage.week, '%')} · 비교 기준 ${t.baseline.n}일</div></div>` +
+    `<div class="card"><h2>수면 — 지난 4주</h2><div class="row"><span>평일</span><b>${fmt(t.sleep.weekday.hours, '시간')} <span class="sub">(${t.sleep.weekday.n}일)</span>${low(t.sleep.weekday)}</b></div><div class="row"><span>주말</span><b>${fmt(t.sleep.weekend.hours, '시간')} <span class="sub">(${t.sleep.weekend.n}일)</span>${low(t.sleep.weekend)}</b></div><div class="row"><span>차이 (주말 − 평일)</span><b>${fmt(t.sleep.diffHours, '시간')}</b></div></div>` +
+    `<div class="card"><h2>목표 기준 (최근 7일 평균)</h2><div class="row"><span>유튜브 (하루 최대 ${g.youtube.goal}분)</span><b>${fmt(g.youtube.value, '분')}${tag(g.youtube.status)}${low(g.youtube)}</b></div><div class="row"><span>수면 (최소 ${g.sleep.goal}시간)</span><b>${fmt(g.sleep.value, '시간')}${tag(g.sleep.status)}${low(g.sleep)}</b></div></div>`;
+}
+$('tabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  tab = b.dataset.t;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('sel', x === b));
+  ['map', 'ex', 'time', 'ai'].forEach(t => $('t-' + t).classList.toggle('hidden', t !== tab));
+  if (MAP) { if (tab === 'map') MAP.start(); else MAP.stop(); }
+};
+
+// ---------- AI (claude.ai 의 sample) ----------
+const RULES = `너는 한 사람의 독서·운동·시간 기록을 해석해 주는 도우미다. 한국어로 짧게(5문장 안팎) 답한다.
+규칙:
+1. 숫자는 도구(get_reading, get_exercise, get_timeuse, search_books)가 돌려준 값만 쓴다. 직접 계산하거나 추정한 숫자를 만들지 않는다.
+2. 도구 결과에 insufficient: true 가 있는 지표는 "기록이 부족해 판단 보류"라고만 말하고 해석하지 않는다.
+3. 운동·심박·HRV 는 컨디션 관리 관점에서만 말한다. 진단하지 않는다. 통증·어지럼·가슴 답답함 같은 증상 이야기가 나오면 의사와 상담하라고 권한다.
+4. 기록에 없는 책을 추천할 때는 각 책 앞에 "[확인 안 됨]"을 붙인다 (제목·저자가 실제와 다를 수 있음).
+5. 읽은 책끼리 연결을 제안할 때는 "제안:"으로 시작하고, 저장되지 않는 제안일 뿐이라고 밝힌다.
+6. 필요한 도구만 부른다.`;
+function aiTools() {
+  return [
+    { name: 'get_reading', description: '독서 지표: 분야별 권수·완독·평생 목표 대비 %, 최근 12개월 월별 완독 수, 최근 완독 5권. 숫자만 돌려준다.', execute: () => M.reading(STORE, Date.now()) },
+    { name: 'get_exercise', description: '운동 지표: 이번 주 Zone 2 분과 목표, 운동 횟수, 마지막 운동 후 일수, 안정시 심박·HRV 7일 vs 30일 평균(전체·아침), 각 표본 수와 insufficient.', execute: () => ({ exercise: M.exercise(STORE, Date.now(), WS()), goals: M.goals(STORE, Date.now(), WS()) }) },
+    { name: 'get_timeuse', description: '시간 사용 지표: 지정한 날(기본 오늘, YYYY-MM-DD, 한국 시간)의 분류별 분과 앞 28일 평균, 평일·주말 수면, 기록률, 유튜브·수면 목표 상태.', inputSchema: { type: 'object', properties: { day: { type: 'string', description: 'YYYY-MM-DD' } } },
+      execute: i => { const d = /^\d{4}-\d{2}-\d{2}$/.test(String(i && i.day || '')) ? String(i.day) : today(); const r = M.timeuse(STORE, d, Date.now()); if (r.error) throw new Error('날짜 형식이 틀렸어요'); const g = M.goals(STORE, Date.now(), WS()); return { timeuse: r, goals: { youtube: g.youtube, sleep: g.sleep } }; } },
+    { name: 'search_books', description: '내 책 검색: 제목·저자·감상·메모에 검색어가 들어간 책의 제목·분야·별점·완독일·감상·날짜별 메모. 검색어를 비우면 전체 책의 제목·분야·별점만.', inputSchema: { type: 'object', properties: { query: { type: 'string' } } },
+      execute: i => {
+        const q = String(i && i.query || '').trim();
+        if (!q) return M.mapData(STORE, Date.now()).books.slice(0, 300).map(b => ({ title: b.title, author: b.author, category: b.category, status: b.status, rating: b.rating }));
+        return M.searchBooks(STORE, q, 15).map(b => ({ title: b.title, author: b.author, category: b.category, rating: b.rating, finishedAt: b.finishedAt, review: b.review, notes: b.notes.slice(-10).map(n => ({ day: n.day, note: n.note })) }));
+      } },
+  ];
+}
+const AI_ERR = { rate_limited: '요청이 많아요. 잠시 뒤 다시 물어보세요.', session_expired: 'claude.ai 에 다시 로그인해 주세요.', refused: '이 질문에는 답하지 못했어요. 질문을 바꿔 보세요.', empty_completion: '답이 비어 있어요. 질문을 바꿔 보세요.', prompt_too_large: '대화가 너무 길어요. 페이지를 새로 열어 주세요.', upstream_error: '연결이 끊겼어요. 다시 물어보세요.' };
+function bubble(cls, text) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.textContent = text; $('chat').appendChild(d); return d; }
+async function ask(q) {
+  q = String(q || '').trim(); if (!q || !sample || !STORE || ctl) return;
+  bubble('me', q); $('askIn').value = '';
+  turns.push({ role: 'user', content: q });
+  const out = bubble('ai', '생각하는 중…');
+  ctl = new AbortController(); $('stopBtn').classList.remove('hidden'); $('askBtn').disabled = true;
+  try {
+    const { text, truncated } = await sample([{ role: 'user', content: RULES + '\n\n오늘(한국 시간): ' + today() }, ...turns.slice(-8)], { signal: ctl.signal, tools: aiTools(), onText: ({ text }) => { out.textContent = text; } });
+    out.textContent = text + (truncated ? '\n(답이 중간에 잘렸어요)' : '');
+    turns.push({ role: 'assistant', content: text });
+  } catch (e) {
+    turns.pop();
+    if (e && (e.code === 'not_granted' || e.code === 'sampling_disabled' || e.code === 'capability_disabled' || e.code === 'not_declared' || e.code === 'tools_unavailable')) { out.remove(); hideAI(); }
+    else if (e && e.code === 'cancelled') out.textContent = (e.text || '') + '\n(멈춤)';
+    else { out.className = 'msg err'; out.textContent = (e && e.text ? e.text + '\n' : '') + (AI_ERR[e && e.code] || '답을 받지 못했어요 (' + (e && e.code) + ')'); }
+  } finally { ctl = null; $('stopBtn').classList.add('hidden'); $('askBtn').disabled = false; }
+}
+function hideAI() { $('aiTab').classList.add('hidden'); if (tab === 'ai') $('tabs').querySelector('[data-t=map]').click(); }
+$('askBtn').onclick = () => ask($('askIn').value);
+$('askIn').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask($('askIn').value); } };
+$('stopBtn').onclick = () => ctl && ctl.abort();
+$('presets').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.fill) { const t = $('askIn'); t.value = b.dataset.p; t.focus(); const i = t.value.indexOf('○○'); t.setSelectionRange(i, i + 2); return; }
+  ask(b.dataset.p);
+};
+
+// ---------- 시작 ----------
+hideAI();   // sample 이 확인되기 전까지 숨김
+(async () => {
+  const hasClaude = typeof window.claude === 'object' && window.claude && typeof window.claude.use === 'function';
+  if (hasClaude) claude.use('sample').then(s => { if (typeof s === 'function') { sample = s; $('aiTab').classList.remove('hidden'); } }).catch(() => {});
+  if (!hasClaude) { showLoadBox('claude.ai 밖에서 열려 Drive 를 쓸 수 없어요.'); return; }
+  try { setStore(await loadFromDrive(), 'Google Drive: ' + SYNC_FILE_NAME); }
+  catch (e) { showLoadBox((e && e.why) || 'Drive 에서 읽지 못했어요'); }
+})();
+</script>
+</body>
+</html>

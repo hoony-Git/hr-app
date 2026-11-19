@@ -573,7 +573,26 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     .tl-print-title { display: block; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
     .tl-rhy i, .tl-bar .b i, .tl-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
+  /* 독서 > 지도 */
+  .bm-wrap { position: relative; border-radius: var(--radius-card); overflow: hidden; background: #0b0f17; }
+  .bm-canvas { display: block; width: 100%; height: 400px; }
+  .bm-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); margin: 8px 2px 12px; }
+  .bm-fields { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
+  .bm-f { background: var(--surface); border-radius: 10px; padding: 8px 4px; text-align: center; font-size: 11px; color: var(--muted); }
+  .bm-f b { display: block; font-size: 13px; color: var(--text); }
+  .bm-f .bar { height: 4px; border-radius: 2px; background: var(--surface2); margin-top: 5px; overflow: hidden; }
+  .bm-f .bar i { display: block; height: 100%; }
+  .bm-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 70%; overflow-y: auto; background: var(--surface); border-radius: 16px 16px 0 0; padding: 14px 16px 16px; box-shadow: 0 -6px 20px rgba(0,0,0,.4); }
+  .bm-sheet h3 { font-size: 15px; margin-right: 30px; }
+  .bm-sheet .x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 8px; background: var(--surface2); color: var(--text); }
+  .bm-sheet .m { font-size: 12px; color: var(--muted); margin: 3px 0 8px; }
+  .bm-sheet .n { font-size: 13px; margin: 6px 0; line-height: 1.5; }
+  .bm-sheet .n small { color: var(--muted); margin-right: 6px; }
+  .bm-res { font-size: 13px; padding: 9px 4px; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .bm-res small { color: var(--muted); }
 </style>
+<script src="metrics.js"></script>
+<script src="book-map.js"></script>
 </head>
 <body>
 
@@ -623,6 +642,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <button data-b="week">주간</button>
     <button data-b="month">월간</button>
     <button data-b="shelf">서재</button>
+    <button data-b="map">지도</button>
   </div>
   <div class="today-body" id="bookBody"></div>
 </div>
@@ -1564,7 +1584,7 @@ function exportCSV(i) {
 // 새 저장 키를 만들면 반드시 여기에 추가 (backup_pre_v2·hr_active_session 은 임시본이라 제외)
 const BACKUP_KEYS = ['schema_version', 'hr_settings', 'hr_sessions', 'hr_measures', 'habit_defs', 'habit_logs', 'habit_notes', 'habit_skips',
   'xp_meta', 'shop_items', 'shop_purchases', 'shop_tokens', 'rest_days', 'sick_days', 'book_list', 'book_logs', 'book_targets',
-  'time_categories', 'time_current'];
+  'time_categories', 'time_current', 'insight_goals', 'book_links'];
 const BACKUP_EXEMPT_KEYS = ['backup_pre_v2', 'hr_active_session'];
 // 시간 기록은 달마다 키가 하나씩 생긴다 (time_log_2026_11 …). 고정 목록에 못 담으니 이름 모양으로 알아본다.
 const DATA_KEY_PATTERN = /^time_log_\d{4}_\d{2}$/;
@@ -1674,6 +1694,7 @@ const KEY_SHAPE = {
   hr_settings: 'object', habit_logs: 'object', habit_notes: 'object', habit_skips: 'object', xp_meta: 'object',
   rest_days: 'object', sick_days: 'object', book_logs: 'object', book_targets: 'object',
   time_categories: 'array', time_current: 'object',
+  insight_goals: 'object', book_links: 'array',
 };
 function shapeOk(k, v) {
   const t = KEY_SHAPE[k] || (DATA_KEY_PATTERN.test(k) ? 'array' : undefined);   // time_log_YYYY_MM = 기록 배열
@@ -3652,6 +3673,7 @@ function kdcOfBook(j) {   // 서버가 kdc 를 주면 그대로, 옛 서버/옛 
   const a = j && typeof j.addCode === 'string' ? j.addCode.trim() : '';
   return /^\d{5}$/.test(a) ? a.slice(-3) : null;
 }
+function kdc3(k) { const s = typeof k === 'string' ? k.trim() : ''; return /^\d{3}$/.test(s) ? s : null; }   // 새 책에 저장하는 KDC: 3자리 숫자 또는 null
 function catFromGoogle(cats) {   // Google Books categories 는 문구 전체가 정확히 일치할 때만 (Political Science 가 과학으로 가면 안 됨)
   const m = { 'fiction': '문학', 'poetry': '문학', 'drama': '문학', 'literary collections': '문학', 'history': '역사', 'philosophy': '철학', 'science': '과학' };
   for (const c of Array.isArray(cats) ? cats : []) { const k = typeof c === 'string' ? m[c.trim().toLowerCase()] : null; if (k) return { cat: k, name: c.trim() }; }
@@ -3684,7 +3706,7 @@ const bstr = v => (typeof v === 'string' ? v.trim().slice(0, 200) : '');
 // 조회 순서: 내 Apps Script → (설정돼 있으면) Lambda 프록시 → Google Books(키 없는 무료 조회라 일일 한도로 막힐 수 있음). 못 찾으면 null
 async function fetchBookInfo(isbn) {
   const fromProxy = j => { const pages = parseInt(j.pages);
-    return { isbn, title: bstr(j.title), author: bstr(j.author), publisher: bstr(j.publisher), coverUrl: safeUrl(j.coverUrl), category: '기타', catAuto: kdcAuto(kdcOfBook(j)), startPage: 1, endPage: pages > 0 ? pages : '' }; };
+    return { isbn, title: bstr(j.title), author: bstr(j.author), publisher: bstr(j.publisher), coverUrl: safeUrl(j.coverUrl), category: '기타', catAuto: kdcAuto(kdcOfBook(j)), kdc: kdc3(kdcOfBook(j)), startPage: 1, endPage: pages > 0 ? pages : '' }; };
   const kdcAuto = kdc => { const c = catFromKdc(kdc); return c ? { cat: c, hint: '분야 자동 선택: ' + c + ' (KDC ' + kdc[0] + 'xx)' } : null; };
   // 도서관 정보는 있는데 분류(KDC)가 없을 때만 Google Books 의 분야 문구를 한 번 더 본다 (못 읽으면 선택을 그대로 둔다)
   const withGoogleCat = async info => {
@@ -3709,7 +3731,7 @@ async function fetchBookInfo(isbn) {
   const v = g && Array.isArray(g.items) && g.items[0] && g.items[0].volumeInfo;
   if (v && typeof v.title === 'string' && v.title.trim()) {
     const pages = parseInt(v.pageCount), img = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
-    return { isbn, title: bstr(v.title), author: Array.isArray(v.authors) ? bstr(v.authors.join(', ')) : '', publisher: bstr(v.publisher),
+    return { isbn, kdc: null, title: bstr(v.title), author: Array.isArray(v.authors) ? bstr(v.authors.join(', ')) : '', publisher: bstr(v.publisher),
       coverUrl: safeUrl(String(img || '').replace(/^http:/, 'https:')), category: '기타', startPage: 1, endPage: pages > 0 ? pages : '',
       catAuto: (m => m && { cat: m.cat, hint: '분야 자동 선택: ' + m.cat + ' (Google Books: ' + m.name + ')' })(catFromGoogle(v.categories)) };
   }
@@ -3732,6 +3754,7 @@ async function fillFromIsbn(isbn) {
   const setIfEmpty = (id, v) => { const el = document.getElementById(id); if (v !== '' && v != null && !String(el.value).trim()) el.value = v; };
   setIfEmpty('bkTitle', info.title); setIfEmpty('bkAuthor', info.author); setIfEmpty('bkPub', info.publisher); setIfEmpty('bkEnd', info.endPage);
   if (info.coverUrl && !BE.coverUrl) BE.coverUrl = info.coverUrl;
+  if (!BE.id && 'kdc' in info) BE.kdc = kdc3(info.kdc);   // 새 책만. 기존 책 기록은 건드리지 않는다
   if (applyAutoCat(BE, info)) refreshBookModal();
   toast('채웠어요 — 내용을 확인하세요');
 }
@@ -3779,6 +3802,7 @@ function openBookModal(id, pre) {
   const b = id ? getBooks().find(x => x.id === id) : null;
   const src = b || pre || {};
   BE = { id: id || null, cat: src.category || '기타', catManual: false, catHint: '', daily10: !!src.daily10, status: b ? b.status : 'reading', rating: b && b.rating ? b.rating : 0, coverUrl: safeUrl(src.coverUrl) };
+  if (!b && pre && 'kdc' in pre) BE.kdc = kdc3(pre.kdc);   // ISBN 조회로 연 새 책만 kdc 를 갖는다
   document.getElementById('bkTitleH').textContent = id ? '책 수정' : '책 추가';
   document.getElementById('bkSave').textContent = id ? '저장' : '추가';
   applyAutoCat(BE, pre);
@@ -3826,7 +3850,7 @@ document.getElementById('bkSave').onclick = () => {
     }
     if (b.status === 'done') { b.rating = BE.rating || null; b.review = document.getElementById('bkReview').value.trim().slice(0, 200); }
   } else {
-    books.push(Object.assign({ id: 'b' + Date.now(), status: 'reading', rating: null, review: '', startedAt: dayKey(new Date()), finishedAt: null }, fields));
+    books.push(Object.assign({ id: 'b' + Date.now(), status: 'reading', rating: null, review: '', startedAt: dayKey(new Date()), finishedAt: null }, fields, 'kdc' in BE ? { kdc: BE.kdc } : {}));
   }
   saveBooks(books);
   document.getElementById('bookModal').classList.remove('show');
@@ -3945,6 +3969,8 @@ function renderBooks() {
   if (bookY === undefined) { const n = new Date(); bookY = n.getFullYear(); bookM = n.getMonth(); }
   document.querySelectorAll('#bookSeg button').forEach(b => b.classList.toggle('sel', b.dataset.b === bookView));
   const body = document.getElementById('bookBody');
+  bookMapClose();
+  if (bookView === 'map') { renderBookMap(body); return; }
   if (bookView === 'today') body.innerHTML = renderBookToday();
   else if (bookView === 'week') body.innerHTML = renderBookWeek();
   else if (bookView === 'month') body.innerHTML = renderBookMonth();
@@ -4105,6 +4131,47 @@ function bookShift(n) {
   renderBooks();
 }
 document.querySelectorAll('#bookSeg button').forEach(b => b.onclick = () => { bookView = b.dataset.b; renderBooks(); });
+
+// ---------- 지도 (그리기는 book-map.js, 숫자는 metrics.js) ----------
+let bookMap = null, bookMapQ = '';
+function bookMapStore() { const s = {}; ['book_list', 'book_logs', 'book_targets', 'book_links'].forEach(k => { s[k] = readJSON(k, null); }); return s; }
+function bookMapClose() { if (bookMap) { bookMap.destroy(); bookMap = null; } }
+function renderBookMap(body) {
+  if (!window.HRMetrics || !window.BookMap) { body.innerHTML = '<div class="rt-empty">지도 파일(metrics.js·book-map.js)을 불러오지 못했어요</div>'; return; }
+  const st = bookMapStore(), data = HRMetrics.mapData(st, Date.now());
+  const fields = data.fields.map(f => `<div class="bm-f">${esc(f.cat)}<b>${f.completed}/${f.target}</b>${f.count}권${f.candidates ? `<br><span style="color:#fb923c">후보 ${f.candidates}</span>` : ''}<div class="bar"><i style="width:${Math.min(100, f.pct || 0)}%;background:${BookMap.CAT_COLOR[f.cat]}"></i></div></div>`).join('');
+  body.innerHTML = `<div class="bm-fields">${fields}</div>` +
+    `<div class="bm-wrap"><canvas class="bm-canvas" id="bmCanvas" aria-label="독서 지도"></canvas><div id="bmSheet"></div></div>` +
+    `<div class="bm-legend"><span>● 밝을수록 별점 높음</span><span>○ 읽는 중</span><span style="color:#fde047">✦ 최근 30일 완독</span><span style="color:#7dd3fc">◆ 감상·메모</span><span style="color:#fb923c">● 다시 분류할 후보 (ISBN 있는데 기타)</span></div>` +
+    `<input class="text-input" id="bmQ" placeholder="제목·감상·메모 검색" value="${esc(bookMapQ)}" style="width:100%;">` +
+    `<div id="bmRes"></div>`;
+  bookMap = BookMap.create(document.getElementById('bmCanvas'), { onSelect: b => bookMapSheet(b, data) });
+  bookMap.setData(data);
+  const q = document.getElementById('bmQ');
+  q.oninput = () => { bookMapQ = q.value; bookMapSearch(st); };
+  bookMapSearch(st);
+}
+function bookMapSearch(st) {
+  const el = document.getElementById('bmRes'); if (!el) return;
+  if (!bookMapQ.trim()) { el.innerHTML = ''; return; }
+  const r = HRMetrics.searchBooks(st, bookMapQ, 30);
+  el.innerHTML = r.length ? r.map(b => `<div class="bm-res" data-id="${esc(b.id)}">${esc(b.title)} <small>${esc(b.category)} · ${b.matched.join('·')}</small></div>`).join('') : '<div class="rt-empty">찾는 책이 없어요</div>';
+  el.querySelectorAll('.bm-res').forEach(d => d.onclick = () => { if (bookMap) bookMap.select(d.dataset.id, true); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+}
+function bookMapSheet(b, data) {
+  const el = document.getElementById('bmSheet'); if (!el) return;
+  if (!b) { el.className = ''; el.innerHTML = ''; return; }
+  const title = id => { const x = data.books.find(y => y.id === id); return x ? x.title : id; };
+  const stat = b.status === 'done' ? '완독 ' + (b.finishedAt || '') : b.status === 'reading' ? '읽는 중' : '중단';
+  el.className = 'bm-sheet';
+  el.innerHTML = `<button class="x" id="bmX" aria-label="닫기">✕</button><h3>${esc(b.title)}</h3>` +
+    `<div class="m">${esc(b.author)}${b.author ? ' · ' : ''}${esc(b.category)} · ${esc(stat)}${b.rating ? ' · ' + '★'.repeat(b.rating) : ''}${b.candidate ? ' · <span style="color:#fb923c">다시 분류할 후보</span>' : ''}</div>` +
+    (b.review ? `<div class="n">“${esc(b.review)}”</div>` : '') +
+    b.notes.map(n => `<div class="n"><small>${esc(n.day)}</small>${esc(n.note)}</div>`).join('') +
+    (b.linked.length ? `<div class="m" style="margin-top:10px">연결된 책</div>` + b.linked.map(l => `<div class="n">↔ ${esc(title(l.id))}${l.reason ? ' <small>' + esc(l.reason) + '</small>' : ''}</div>`).join('') : '') +
+    (!b.review && !b.notes.length ? '<div class="m">감상·메모가 아직 없어요</div>' : '');
+  document.getElementById('bmX').onclick = () => bookMap && bookMap.select(null);
+}
 
 /* TL-CORE-BEGIN */
 // ====================== 시간 기록: 계산 부분 (화면·저장소와 무관한 순수 함수) ======================
@@ -4772,6 +4839,7 @@ function switchTab(name) {
     document.querySelector(`.tabbar button[data-tab="${t}"]`).classList.toggle('on', t === name);
   });
   curTab = name; updateHeader(name);
+  if (name !== 'books') bookMapClose();   // 지도 애니메이션은 독서 탭에서만
   document.getElementById('fabAdd').classList.toggle('hidden', name !== 'today' && name !== 'books');
   if (name === 'today') renderToday();
   if (name === 'books') renderBooks();
@@ -4845,6 +4913,15 @@ function setLight() {
   settings.lightGreen = g / 100; settings.lightYellow = y / 100; saveSettingsObj(); refreshAllViews(); toast('저장됨');
 }
 function setDailyPages(v) { const n = parseInt(v); if (!(n >= 1 && n <= 500)) { toast('1~500쪽 사이로 입력하세요'); renderSettings(); return; } settings.dailyPages = n; saveSettingsObj(); renderBooks(); renderSettings(); }
+// 목표 기준 (insight_goals). zone2_weekly_min 이 없으면 hr_settings.goal 을 쓴다 (metrics.js goals())
+function insightGoals() { const g = readJSON('insight_goals', {}), o = g && typeof g === 'object' && !Array.isArray(g) ? g : {};
+  return { youtube_max_min_per_day: Number(o.youtube_max_min_per_day) > 0 ? Number(o.youtube_max_min_per_day) : 60, sleep_min_hours: Number(o.sleep_min_hours) > 0 ? Number(o.sleep_min_hours) : 7, zone2_weekly_min: Number(o.zone2_weekly_min) > 0 ? Number(o.zone2_weekly_min) : null }; }
+function setInsightGoal(k, v, lo, hi) {
+  const g = readJSON('insight_goals', {}), o = g && typeof g === 'object' && !Array.isArray(g) ? g : {};
+  if (String(v).trim() === '' && k === 'zone2_weekly_min') delete o[k];
+  else { const n = Number(v); if (!(n >= lo && n <= hi)) { toast(lo + '~' + hi + ' 사이 숫자를 입력하세요'); renderSettings(); return; } o[k] = n; }
+  localStorage.setItem('insight_goals', JSON.stringify(o)); toast('저장됨');
+}
 function setTarget(c, v) { const n = parseInt(v); if (!(n >= 0)) { toast('0 이상의 숫자를 입력하세요'); renderSettings(); return; } const t = readJSON('book_targets', {}); t[c] = n; localStorage.setItem('book_targets', JSON.stringify(t)); renderBooks(); }
 function setXpCap(v) { const n = parseInt(v); if (!(n >= 10)) { toast('하루 XP 상한은 10 이상이에요'); renderSettings(); return; } const m = xpMeta(); m.cap = n; saveXpMeta(m); renderLevelScreen(); toast('저장됨'); }
 function saveHrSettings() {
@@ -5013,6 +5090,12 @@ function renderSettings() {
   h += secHtml('book', '📚 독서',
     BOOK_CATS.map(c => `<div class="settings-row"><div><label>${c} 평생 목표 (권)</label></div><input type="number" min="0" value="${tg[c]}" onchange="setTarget('${c}',this.value)"></div>`).join('') +
     `<div class="settings-row"><div><label>하루 기준 쪽수</label><div class="hint">이 쪽수 이상 읽으면 초록 · 10XP (기본 10)</div></div><input type="number" min="1" max="500" value="${readThreshold()}" onchange="setDailyPages(this.value)"></div>`);
+  const ig = insightGoals();
+  h += secHtml('goals', '🎯 목표 기준',
+    `<div class="sub" style="font-size:12px;color:var(--muted);margin-bottom:6px;">통계·AI 조언이 비교하는 기준입니다.</div>` +
+    `<div class="settings-row"><div><label>유튜브 하루 최대 (분)</label><div class="hint">기본 60</div></div><input type="number" min="1" max="1440" value="${ig.youtube_max_min_per_day}" onchange="setInsightGoal('youtube_max_min_per_day',this.value,1,1440)"></div>` +
+    `<div class="settings-row"><div><label>수면 최소 (시간)</label><div class="hint">기본 7</div></div><input type="number" min="1" max="14" step="0.5" value="${ig.sleep_min_hours}" onchange="setInsightGoal('sleep_min_hours',this.value,1,14)"></div>` +
+    `<div class="settings-row"><div><label>주간 Zone 2 (분)</label><div class="hint">비워 두면 심박 설정의 목표(${settings.goal || 150}분)</div></div><input type="number" min="30" max="600" placeholder="${settings.goal || 150}" value="${ig.zone2_weekly_min || ''}" onchange="setInsightGoal('zone2_weekly_min',this.value,30,600)"></div>`);
   h += secHtml('reward', '🏆 레벨·보상',
     `<div class="field"><label>칭호 편집</label>` + xpTitles().map((t, i) => `<div class="shop-row"><span style="font-size:12px;color:var(--muted)">Lv.</span><input type="number" min="1" value="${t.level}" style="width:60px;" onchange="setTitle(${i},'level',this.value)"><input type="text" class="text-input" maxlength="12" value="${esc(t.name)}" style="flex:1;min-width:0;" onchange="setTitle(${i},'name',this.value)"><button class="shop-x" onclick="delTitle(${i})" aria-label="삭제">✕</button></div>`).join('') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addTitle()">＋ 칭호 추가</button></div>` +
