@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>내 기록 인사이트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #111214; --surface: #1b1c1f; --surface2: #25272b; --border: #2e3035;
+    --text: #ececee; --muted: #8b8e95; --accent: #22c55e; --warn: #f59e0b; --bad: #ef4444; --info: #7dd3fc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+  .wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 40px; }
+  h1 { font-size: 18px; margin: 4px 0 10px; }
+  .src { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; }
+  .tabs button { flex: none; padding: 9px 12px; border: 0; border-radius: 12px 12px 0 0; background: transparent; color: var(--muted); font: 600 13px system-ui, sans-serif; cursor: pointer; }
+  .tabs button.sel { background: var(--surface); color: var(--text); }
+  .card { background: var(--surface); border-radius: 16px; padding: 14px; margin-bottom: 10px; }
+  .card h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sub { font-size: 12px; color: var(--muted); }
+  .row { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .row:last-child { border-bottom: 0; }
+  .row b { font-variant-numeric: tabular-nums; }
+  .bar { height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; margin-top: 6px; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--surface2); color: var(--muted); margin-left: 4px; }
+  .tag.ok { color: var(--accent); } .tag.over, .tag.under { color: var(--warn); } .tag.low { color: var(--muted); }
+  .fields { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
+  .fields div { background: var(--surface); border-radius: 10px; padding: 8px 2px; text-align: center; font-size: 11px; color: var(--muted); }
+  .fields b { display: block; font-size: 13px; color: var(--text); }
+  .mapwrap { position: relative; border-radius: 16px; overflow: hidden; background: #0b0f17; }
+  canvas { display: block; width: 100%; height: 420px; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 70%; overflow-y: auto; background: var(--surface); border-radius: 16px 16px 0 0; padding: 14px 16px; box-shadow: 0 -6px 20px rgba(0,0,0,.45); }
+  .sheet h3 { font-size: 15px; margin-right: 32px; }
+  .sheet .x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border: 0; border-radius: 8px; background: var(--surface2); color: var(--text); }
+  .note { font-size: 13px; margin: 6px 0; } .note small { color: var(--muted); margin-right: 6px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); margin: 8px 2px; }
+  input[type=text], textarea { width: 100%; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font: inherit; }
+  .res { padding: 9px 4px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13px; } .res small { color: var(--muted); }
+  .btn { border: 0; border-radius: 10px; padding: 10px 14px; background: var(--accent); color: #04210f; font: 600 14px system-ui, sans-serif; cursor: pointer; }
+  .btn.ghost { background: var(--surface2); color: var(--text); font-weight: 500; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .presets .btn { font-size: 13px; padding: 8px 10px; }
+  .chat { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .msg { padding: 10px 12px; border-radius: 12px; white-space: pre-wrap; font-size: 14px; }
+  .msg.me { align-self: flex-end; background: #14532d; max-width: 85%; }
+  .msg.ai { background: var(--surface); }
+  .msg.err { background: #3b1414; color: #fecaca; }
+  .ask { display: flex; gap: 6px; } .ask textarea { min-height: 44px; resize: vertical; }
+  .warn { background: #2a2414; color: #fde68a; border-radius: 12px; padding: 10px 12px; font-size: 13px; margin-bottom: 10px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>내 기록 인사이트</h1>
+  <div class="src" id="src">기록을 불러오는 중…</div>
+  <div id="loadBox" class="card hidden">
+    <h2>기록 파일 직접 열기</h2>
+    <div class="sub" id="loadWhy" style="margin-bottom:8px"></div>
+    <input type="file" id="file" accept=".json,application/json">
+    <div class="sub" style="margin-top:6px">hr-app 내정보 → 백업 내보내기 파일, 또는 Drive 의 hr-app-sync.json. 파일은 이 화면 안에서만 읽어요.</div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button data-t="map" class="sel">독서 지도</button>
+    <button data-t="ex">운동</button>
+    <button data-t="time">시간</button>
+    <button data-t="ai" id="aiTab">AI에게 묻기</button>
+  </div>
+  <section id="t-map">
+    <div class="fields" id="fields"></div>
+    <div class="mapwrap"><canvas id="cv" aria-label="독서 지도"></canvas><div id="sheet"></div></div>
+    <div class="legend"><span>● 밝을수록 별점 높음</span><span>○ 읽는 중</span><span style="color:#fde047">✦ 최근 30일 완독</span><span style="color:#7dd3fc">◆ 감상·메모</span><span style="color:#fb923c">● 다시 분류할 후보</span></div>
+    <input type="text" id="q" placeholder="제목·감상·메모 검색">
+    <div id="res"></div>
+  </section>
+  <section id="t-ex" class="hidden"></section>
+  <section id="t-time" class="hidden"></section>
+  <section id="t-ai" class="hidden">
+    <div class="sub" style="margin-bottom:8px">AI 는 아래 화면에 나온 계산 결과와 책 제목·감상·메모만 봅니다. 운동 조언은 컨디션 관리용이며, 증상이 있으면 의사와 상담하세요.</div>
+    <div class="presets" id="presets">
+      <button class="btn ghost" data-p="이번 주 운동 어때?">이번 주 운동 어때?</button>
+      <button class="btn ghost" data-p="오늘 시간 어떻게 썼어?">오늘 시간 어떻게 썼어?</button>
+      <button class="btn ghost" data-p="내가 읽은 책 중 ○○ 관련은?" data-fill="1">내가 읽은 책 중 ○○ 관련은?</button>
+      <button class="btn ghost" data-p="다음에 읽을 책 추천">다음에 읽을 책 추천</button>
+    </div>
+    <div class="chat" id="chat"></div>
+    <div class="ask"><textarea id="askIn" placeholder="질문을 입력하세요"></textarea><button class="btn" id="askBtn">묻기</button></div>
+    <button class="btn ghost hidden" id="stopBtn" style="margin-top:6px">멈추기</button>
+  </section>
+</div>
+
+<script>
+/*@@METRICS@@*/
+</script>
+<script>
+/*@@BOOKMAP@@*/
+</script>
+<script>
+// ============ Drive 설정 (claude.ai Google Drive 커넥터) ============
+// 이 페이지는 읽기만 하고 Drive 에 절대 쓰지 않는다. 게시 때 mcp 권한은 search_files·download_file_content 두 도구만.
+const DRIVE_SERVER = 'Google Drive';
+const SEARCH_TOOL = 'search_files';
+const SEARCH_QUERY_ARG = 'query';
+const SEARCH_QUERY = "title = 'hr-app-sync.json' and trashed = false";
+const SEARCH_EXTRA = { excludeContentSnippets: true, pageSize: 5 };
+// read_file_content 는 요약된 글 형태라 손실·잘림이 있을 수 있어, 원본 바이트(base64)를 주는 download_file_content 를 쓴다
+const READ_TOOL = 'download_file_content';
+const READ_ID_ARG = 'fileId';
+const SYNC_FILE_NAME = 'hr-app-sync.json';
+// ==================================================================
+
+const M = window.HRMetrics, $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let STORE = null, MAP = null, sample = null, turns = [], ctl = null, tab = 'map';
+
+// ---------- 기록 불러오기 ----------
+// 동기화 파일 { rev, data: { 키: 문자열 } } 과 백업 파일 { app: 'hr-monitor', data: { 키: 값 } } 둘 다 받는다
+function storeFrom(json) {
+  if (!json || typeof json !== 'object' || !json.data || typeof json.data !== 'object' || Array.isArray(json.data)) throw new Error('hr-app 기록 파일 모양이 아니에요 (data 항목 없음)');
+  const r = M.parseStore(json.data);
+  if (!r.store.book_list && !r.store.hr_sessions && !Object.keys(r.store).some(k => /^time_log_/.test(k))) throw new Error('책·운동·시간 기록이 하나도 없어요');
+  return { store: r.store, bad: r.bad, synced: json.updatedAt != null ? json.updatedAt : null, exported: json.exportedAt || null };
+}
+// 결과 모양을 아직 실제로 본 적이 없어 넓게 받는다. 오류 안내에는 값이 아니라 키 이름·글자 종류만 보여 준다.
+const keysOf = p => (Array.isArray(p) ? '배열 ' + p.length + '개' : p && typeof p === 'object' ? '키: ' + (Object.keys(p).join(', ') || '(없음)') : typeof p);
+function asObj(p) { if (typeof p === 'string') { try { return JSON.parse(p); } catch (e) {} } return p; }
+// 검색 결과: payload.files[] / payload.items[] / payload[] 에서 id 가 있는 항목. 여럿이면 가장 최근에 수정된 것
+function pickFileId(payload) {
+  const p = asObj(payload);
+  const list = (p && Array.isArray(p.files) && p.files) || (p && Array.isArray(p.items) && p.items) || (Array.isArray(p) && p) || [];
+  const ok = list.filter(f => f && typeof f.id === 'string' && f.id);
+  if (!ok.length) return { id: null, why: '검색 결과에서 파일 id 를 찾지 못했어요 (결과 ' + keysOf(p) + ')' };
+  const t = f => { const v = f.modifiedTime || f.modified_time || f.modifiedDate || f.modified || f.updatedTime; const n = Date.parse(v); return isFinite(n) ? n : -Infinity; };
+  ok.sort((a, b) => t(b) - t(a));
+  return { id: ok[0].id, count: ok.length };
+}
+// 다운로드 결과에서 base64 문자열 찾기: content / data / base64 / 처음 나오는 긴 문자열
+function findB64(payload, result) {
+  const p = asObj(payload);
+  if (typeof p === 'string') return p;
+  if (p && typeof p === 'object') {
+    for (const k of ['content', 'data', 'base64']) if (typeof p[k] === 'string' && p[k]) return p[k];
+    const long = Object.values(p).find(v => typeof v === 'string' && v.length >= 64);
+    if (long) return long;
+  }
+  for (const c of (result && result.content) || []) {   // payload 가 없을 때: 내용 블록의 blob/text
+    const s = (c && c.resource && (c.resource.blob || c.resource.text)) || (c && (c.blob || c.data || c.text));
+    if (typeof s === 'string' && s) return s;
+  }
+  return null;
+}
+function charClasses(s) {   // 내용 대신 글자 종류만: 영문 a, 숫자 9, 공백 _, JSON 기호는 그대로, 그 밖의 기호 ., 비ASCII #
+  return Array.from(String(s).slice(0, 80)).map(c => /[A-Za-z]/.test(c) ? 'a' : /[0-9]/.test(c) ? '9' : /\s/.test(c) ? '_' : /[{}\[\]":,]/.test(c) ? c : c.charCodeAt(0) < 128 ? '.' : '#').join('');
+}
+function decodeSyncFile(s) {
+  let text;
+  const t = s.trim();
+  if (t[0] === '{') text = t;   // 이미 JSON 글자로 온 경우
+  else {
+    let bin;
+    try { bin = atob(t.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/')); }
+    catch (e) { throw { why: '파일 내용이 base64 가 아니에요 (앞 80자 글자 종류: ' + charClasses(t) + ')' }; }
+    text = new TextDecoder('utf-8').decode(Uint8Array.from(bin, c => c.charCodeAt(0))).replace(/^﻿/, '');
+  }
+  try { return JSON.parse(text); }
+  catch (e) { throw { why: '파일 내용을 JSON 으로 읽지 못했어요 (앞 80자 글자 종류: ' + charClasses(text) + ')' }; }
+}
+const MCP_WHY = {
+  needs_reauth: 'Drive 연결이 만료됐어요 — claude.ai 설정 → 커넥터에서 다시 연결하세요',
+  server_not_connected: 'Drive 커넥터가 연결돼 있지 않아요 — claude.ai 설정 → 커넥터에서 추가하세요',
+  selection_required: '같은 이름의 Drive 커넥터가 여러 개예요 — 하나를 고른 뒤 다시 여세요',
+  not_in_manifest: '이 페이지가 Drive 를 쓰도록 허용되지 않았어요',
+  approval_required: 'Drive 읽기 허락이 필요해요 — 다시 열고 허락하세요',
+  blocked_by_policy: '조직 정책으로 Drive 를 쓸 수 없어요',
+  server_unavailable: 'Drive 서버가 응답하지 않아요 — 잠시 뒤 다시 여세요',
+  tool_error: 'Drive 도구가 오류를 냈어요',
+};
+async function loadFromDrive() {
+  if (!DRIVE_SERVER || !SEARCH_TOOL || !SEARCH_QUERY_ARG || !READ_TOOL || !READ_ID_ARG) throw { why: 'Drive 설정값(맨 위 상수)이 아직 비어 있어요' };
+  const mcp = await claude.use('mcp');
+  if (!mcp) throw { why: '이 화면에서는 커넥터를 쓸 수 없어요' };
+  try {
+    const s = await mcp.callTool(DRIVE_SERVER, SEARCH_TOOL, Object.assign({ [SEARCH_QUERY_ARG]: SEARCH_QUERY }, SEARCH_EXTRA));
+    const f = pickFileId(s.payload);
+    if (!f.id) throw { why: f.why };
+    const r = await mcp.callTool(DRIVE_SERVER, READ_TOOL, { [READ_ID_ARG]: f.id });
+    const b64 = findB64(r.payload, r);
+    if (!b64) throw { why: '다운로드 결과에서 파일 내용을 찾지 못했어요 (결과 ' + keysOf(asObj(r.payload)) + ')' };
+    try { return storeFrom(decodeSyncFile(b64)); }
+    catch (e) { throw e && e.why ? e : { why: String(e && e.message || e) }; }
+  } catch (e) {
+    if (e && e.why) throw e;
+    if (e && e.code) throw { why: (MCP_WHY[e.code] || 'Drive 읽기 실패') + ' (' + e.code + ')' };
+    throw { why: String(e && e.message || e) };
+  }
+}
+function showLoadBox(why) { $('loadBox').classList.remove('hidden'); $('loadWhy').textContent = why; $('src').textContent = 'Drive 에서 기록을 읽지 못했어요.'; }
+$('file').onchange = () => {
+  const f = $('file').files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try { const r = storeFrom(JSON.parse(rd.result)); setStore(r, '파일: ' + f.name); $('loadBox').classList.add('hidden'); }
+    catch (e) { $('loadWhy').textContent = '이 파일을 읽지 못했어요: ' + (e.message || e); }
+  };
+  rd.onerror = () => { $('loadWhy').textContent = '파일을 열 수 없어요'; };
+  rd.readAsText(f);
+};
+function setStore(r, label) {
+  STORE = r.store;
+  const when = v => { const d = new Date(typeof v === 'number' || /^\d+$/.test(String(v)) ? Number(v) : v); return isFinite(d) ? d.toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }) : String(v).slice(0, 30); };
+  $('src').textContent = label + (r.synced != null ? ' · 마지막 동기화: ' + when(r.synced) : r.exported ? ' · 내보낸 시각: ' + when(r.exported) : '') + (r.bad.length ? ' · 읽지 못한 항목: ' + r.bad.join(', ') : '');
+  renderAll();
+}
+
+// ---------- 화면 ----------
+const WS = () => (STORE && STORE.hr_settings && STORE.hr_settings.weekStart) || 'mon';
+const today = () => M.kstDayKey(Date.now());
+const tag = st => st ? `<span class="tag ${st}">${{ ok: '목표 안', over: '넘음', under: '부족' }[st]}</span>` : '';
+const low = x => x && x.insufficient ? '<span class="tag low">기록 부족</span>' : '';
+const fmt = (v, u) => v == null ? '—' : v + (u || '');
+function renderAll() { if (!STORE) return; renderMap(); renderEx(); renderTime(); }
+function renderMap() {
+  const d = M.mapData(STORE, Date.now());
+  $('fields').innerHTML = d.fields.map(f => `<div>${esc(f.cat)}<b>${f.completed}/${f.target}</b>${f.count}권${f.candidates ? `<br><span style="color:#fb923c">후보 ${f.candidates}</span>` : ''}</div>`).join('');
+  if (MAP) MAP.destroy();
+  MAP = BookMap.create($('cv'), { onSelect: b => sheet(b, d) });
+  MAP.setData(d);
+  if (tab !== 'map') MAP.stop();
+  search();
+}
+function sheet(b, d) {
+  const el = $('sheet');
+  if (!b) { el.className = ''; el.innerHTML = ''; return; }
+  const t = id => (d.books.find(x => x.id === id) || {}).title || id;
+  el.className = 'sheet';
+  el.innerHTML = `<button class="x" id="sx" aria-label="닫기">✕</button><h3>${esc(b.title)}</h3>` +
+    `<div class="sub">${esc(b.author)}${b.author ? ' · ' : ''}${esc(b.category)} · ${b.status === 'done' ? '완독 ' + esc(b.finishedAt || '') : b.status === 'reading' ? '읽는 중' : '중단'}${b.rating ? ' · ' + '★'.repeat(b.rating) : ''}${b.candidate ? ' · <span style="color:#fb923c">다시 분류할 후보</span>' : ''}</div>` +
+    (b.review ? `<div class="note">“${esc(b.review)}”</div>` : '') +
+    b.notes.map(n => `<div class="note"><small>${esc(n.day)}</small>${esc(n.note)}</div>`).join('') +
+    (b.linked.length ? '<div class="sub" style="margin-top:8px">연결된 책</div>' + b.linked.map(l => `<div class="note">↔ ${esc(t(l.id))} <small>${esc(l.reason)}</small></div>`).join('') : '');
+  $('sx').onclick = () => MAP && MAP.select(null);
+}
+function search() {
+  const q = $('q').value; if (!STORE || !q.trim()) { $('res').innerHTML = ''; return; }
+  const r = M.searchBooks(STORE, q, 30);
+  $('res').innerHTML = r.length ? r.map(b => `<div class="res" data-id="${esc(b.id)}">${esc(b.title)} <small>${esc(b.category)} · ${b.matched.join('·')}</small></div>`).join('') : '<div class="sub" style="padding:10px 4px">찾는 책이 없어요</div>';
+  $('res').querySelectorAll('.res').forEach(el => el.onclick = () => { MAP && MAP.select(el.dataset.id, true); scrollTo({ top: 0, behavior: 'smooth' }); });
+}
+$('q').oninput = search;
+function renderEx() {
+  const e = M.exercise(STORE, Date.now(), WS()), g = M.goals(STORE, Date.now(), WS()), m = e.measures;
+  const mrow = (lab, x, u) => `<div class="row"><span>${lab}</span><b>${fmt(x.mean7, u)} <span class="sub">(${x.n7}회)</span> vs ${fmt(x.mean30, u)} <span class="sub">(${x.n30}회)</span>${x.diff != null ? ` · ${x.diff > 0 ? '+' : ''}${x.diff}` : ''}${low(x)}</b></div>`;
+  $('t-ex').innerHTML =
+    `<div class="card"><h2>이번 주 Zone 2</h2><div class="big">${e.zone2.min}분 <span class="sub">/ 목표 ${g.zone2.goal}분</span>${tag(g.zone2.status)}</div><div class="bar"><i style="width:${Math.min(100, g.zone2.pct || 0)}%"></i></div></div>` +
+    `<div class="card"><h2>운동 횟수</h2><div class="row"><span>이번 주</span><b>${e.sessions.thisWeek}회</b></div><div class="row"><span>그 전 4주 (주 평균)</span><b>${e.sessions.prev4Weeks}회 (${e.sessions.prev4WeeksAvg}회)</b></div><div class="row"><span>마지막 운동 후</span><b>${e.daysSinceLast == null ? '기록 없음' : e.daysSinceLast + '일'}</b></div></div>` +
+    `<div class="card"><h2>안정시 심박·HRV — 최근 7일 vs 30일 평균</h2><div class="sub">전체 측정</div>${mrow('안정시 심박', m.all.rhr, ' bpm')}${mrow('HRV', m.all.hrv, ' ms')}<div class="sub" style="margin-top:8px">아침(10시 전) 측정만 — 같은 조건 비교</div>${mrow('안정시 심박', m.morning.rhr, ' bpm')}${mrow('HRV', m.morning.hrv, ' ms')}</div>`;
+}
+function renderTime() {
+  const t = M.timeuse(STORE, today(), Date.now()), g = M.goals(STORE, Date.now(), WS());
+  const rows = t.categories.filter(c => c.todayMin > 0 || (c.avg28Min || 0) >= 10).slice(0, 12)
+    .map(c => `<div class="row"><span>${esc(c.name)}</span><b>${c.todayMin}분 <span class="sub">/ 평소 ${fmt(c.avg28Min, '분')}</span></b></div>`).join('');
+  $('t-time').innerHTML =
+    `<div class="card"><h2>오늘 (${esc(t.day)}) — 분류별, 평소(앞 28일 하루 평균)와 비교 ${low(t.baseline)}</h2>${rows || '<div class="sub">오늘 기록이 없어요</div>'}<div class="sub" style="margin-top:6px">기록률: 오늘 ${fmt(t.coverage.today, '%')} · 이번 주 ${fmt(t.coverage.week, '%')} · 비교 기준 ${t.baseline.n}일</div></div>` +
+    `<div class="card"><h2>수면 — 지난 4주</h2><div class="row"><span>평일</span><b>${fmt(t.sleep.weekday.hours, '시간')} <span class="sub">(${t.sleep.weekday.n}일)</span>${low(t.sleep.weekday)}</b></div><div class="row"><span>주말</span><b>${fmt(t.sleep.weekend.hours, '시간')} <span class="sub">(${t.sleep.weekend.n}일)</span>${low(t.sleep.weekend)}</b></div><div class="row"><span>차이 (주말 − 평일)</span><b>${fmt(t.sleep.diffHours, '시간')}</b></div></div>` +
+    `<div class="card"><h2>목표 기준 (최근 7일 평균)</h2><div class="row"><span>유튜브 (하루 최대 ${g.youtube.goal}분)</span><b>${fmt(g.youtube.value, '분')}${tag(g.youtube.status)}${low(g.youtube)}</b></div><div class="row"><span>수면 (최소 ${g.sleep.goal}시간)</span><b>${fmt(g.sleep.value, '시간')}${tag(g.sleep.status)}${low(g.sleep)}</b></div></div>`;
+}
+$('tabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  tab = b.dataset.t;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('sel', x === b));
+  ['map', 'ex', 'time', 'ai'].forEach(t => $('t-' + t).classList.toggle('hidden', t !== tab));
+  if (MAP) { if (tab === 'map') MAP.start(); else MAP.stop(); }
+};
+
+// ---------- AI (claude.ai 의 sample) ----------
+const RULES = `너는 한 사람의 독서·운동·시간 기록을 해석해 주는 도우미다. 한국어로 짧게(5문장 안팎) 답한다.
+규칙:
+1. 숫자는 도구(get_reading, get_exercise, get_timeuse, search_books)가 돌려준 값만 쓴다. 직접 계산하거나 추정한 숫자를 만들지 않는다.
+2. 도구 결과에 insufficient: true 가 있는 지표는 "기록이 부족해 판단 보류"라고만 말하고 해석하지 않는다.
+3. 운동·심박·HRV 는 컨디션 관리 관점에서만 말한다. 진단하지 않는다. 통증·어지럼·가슴 답답함 같은 증상 이야기가 나오면 의사와 상담하라고 권한다.
+4. 기록에 없는 책을 추천할 때는 각 책 앞에 "[확인 안 됨]"을 붙인다 (제목·저자가 실제와 다를 수 있음).
+5. 읽은 책끼리 연결을 제안할 때는 "제안:"으로 시작하고, 저장되지 않는 제안일 뿐이라고 밝힌다.
+6. 필요한 도구만 부른다.`;
+function aiTools() {
+  return [
+    { name: 'get_reading', description: '독서 지표: 분야별 권수·완독·평생 목표 대비 %, 최근 12개월 월별 완독 수, 최근 완독 5권. 숫자만 돌려준다.', execute: () => M.reading(STORE, Date.now()) },
+    { name: 'get_exercise', description: '운동 지표: 이번 주 Zone 2 분과 목표, 운동 횟수, 마지막 운동 후 일수, 안정시 심박·HRV 7일 vs 30일 평균(전체·아침), 각 표본 수와 insufficient.', execute: () => ({ exercise: M.exercise(STORE, Date.now(), WS()), goals: M.goals(STORE, Date.now(), WS()) }) },
+    { name: 'get_timeuse', description: '시간 사용 지표: 지정한 날(기본 오늘, YYYY-MM-DD, 한국 시간)의 분류별 분과 앞 28일 평균, 평일·주말 수면, 기록률, 유튜브·수면 목표 상태.', inputSchema: { type: 'object', properties: { day: { type: 'string', description: 'YYYY-MM-DD' } } },
+      execute: i => { const d = /^\d{4}-\d{2}-\d{2}$/.test(String(i && i.day || '')) ? String(i.day) : today(); const r = M.timeuse(STORE, d, Date.now()); if (r.error) throw new Error('날짜 형식이 틀렸어요'); const g = M.goals(STORE, Date.now(), WS()); return { timeuse: r, goals: { youtube: g.youtube, sleep: g.sleep } }; } },
+    { name: 'search_books', description: '내 책 검색: 제목·저자·감상·메모에 검색어가 들어간 책의 제목·분야·별점·완독일·감상·날짜별 메모. 검색어를 비우면 전체 책의 제목·분야·별점만.', inputSchema: { type: 'object', properties: { query: { type: 'string' } } },
+      execute: i => {
+        const q = String(i && i.query || '').trim();
+        if (!q) return M.mapData(STORE, Date.now()).books.slice(0, 300).map(b => ({ title: b.title, author: b.author, category: b.category, status: b.status, rating: b.rating }));
+        return M.searchBooks(STORE, q, 15).map(b => ({ title: b.title, author: b.author, category: b.category, rating: b.rating, finishedAt: b.finishedAt, review: b.review, notes: b.notes.slice(-10).map(n => ({ day: n.day, note: n.note })) }));
+      } },
+  ];
+}
+const AI_ERR = { rate_limited: '요청이 많아요. 잠시 뒤 다시 물어보세요.', session_expired: 'claude.ai 에 다시 로그인해 주세요.', refused: '이 질문에는 답하지 못했어요. 질문을 바꿔 보세요.', empty_completion: '답이 비어 있어요. 질문을 바꿔 보세요.', prompt_too_large: '대화가 너무 길어요. 페이지를 새로 열어 주세요.', upstream_error: '연결이 끊겼어요. 다시 물어보세요.' };
+function bubble(cls, text) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.textContent = text; $('chat').appendChild(d); return d; }
+async function ask(q) {
+  q = String(q || '').trim(); if (!q || !sample || !STORE || ctl) return;
+  bubble('me', q); $('askIn').value = '';
+  turns.push({ role: 'user', content: q });
+  const out = bubble('ai', '생각하는 중…');
+  ctl = new AbortController(); $('stopBtn').classList.remove('hidden'); $('askBtn').disabled = true;
+  try {
+    // 최근 8개만, 맨 앞이 AI 답이면 빼고, 규칙·오늘 날짜는 첫 사용자 질문 앞에 붙인다 (규칙만 따로 보내지 않음)
+    const hist = turns.slice(-8);
+    if (hist.length && hist[0].role === 'assistant') hist.shift();
+    hist[0] = { role: 'user', content: RULES + '\n\n오늘(한국 시간): ' + today() + '\n\n' + hist[0].content };
+    const { text, truncated } = await sample(hist, { signal: ctl.signal, tools: aiTools(), onText: ({ text }) => { out.textContent = text; } });
+    out.textContent = text + (truncated ? '\n(답이 중간에 잘렸어요)' : '');
+    turns.push({ role: 'assistant', content: text });
+  } catch (e) {
+    turns.pop();
+    if (e && (e.code === 'not_granted' || e.code === 'sampling_disabled' || e.code === 'capability_disabled' || e.code === 'not_declared' || e.code === 'tools_unavailable')) { out.remove(); hideAI(); }
+    else if (e && e.code === 'cancelled') out.textContent = (e.text || '') + '\n(멈춤)';
+    else { out.className = 'msg err'; out.textContent = (e && e.text ? e.text + '\n' : '') + (AI_ERR[e && e.code] || '답을 받지 못했어요 (' + (e && e.code) + ')'); }
+  } finally { ctl = null; $('stopBtn').classList.add('hidden'); $('askBtn').disabled = false; }
+}
+function hideAI() { $('aiTab').classList.add('hidden'); if (tab === 'ai') $('tabs').querySelector('[data-t=map]').click(); }
+$('askBtn').onclick = () => ask($('askIn').value);
+$('askIn').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask($('askIn').value); } };
+$('stopBtn').onclick = () => ctl && ctl.abort();
+$('presets').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.fill) { const t = $('askIn'); t.value = b.dataset.p; t.focus(); const i = t.value.indexOf('○○'); t.setSelectionRange(i, i + 2); return; }
+  ask(b.dataset.p);
+};
+
+// ---------- 시작 ----------
+hideAI();   // sample 이 확인되기 전까지 숨김
+(async () => {
+  const hasClaude = typeof window.claude === 'object' && window.claude && typeof window.claude.use === 'function';
+  if (hasClaude) claude.use('sample').then(s => { if (typeof s === 'function') { sample = s; $('aiTab').classList.remove('hidden'); } }).catch(() => {});
+  if (!hasClaude) { showLoadBox('claude.ai 밖에서 열려 Drive 를 쓸 수 없어요.'); return; }
+  try { setStore(await loadFromDrive(), 'Google Drive: ' + SYNC_FILE_NAME); }
+  catch (e) { showLoadBox((e && e.why) || 'Drive 에서 읽지 못했어요'); }
+})();
+</script>
+</body>
+</html>
