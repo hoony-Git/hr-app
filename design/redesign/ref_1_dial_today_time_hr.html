@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>REF 1 — 오늘 / 시간 / 심박 (다이얼)</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+body{margin:0;padding:24px;background:#0b0d1a;color:#9AA0C3;font-family:'IBM Plex Sans KR',sans-serif}
+.ph{background:#161B33;color:#E8EAF6;border-radius:26px;padding:16px 16px 0;display:flex;flex-direction:column;min-height:520px;font-size:13px}
+.mu{color:#9AA0C3}
+.it{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #262D52}
+.bt{border-radius:999px;padding:5px 12px;font-size:12px;background:#262D52;color:#E8EAF6}
+.nv{margin-top:auto;display:flex;justify-content:space-around;padding:12px 0 14px;color:#6F769C}
+.nv i{font-size:21px}
+.lb{font-size:13px;font-weight:500;margin:0 0 8px;color:#E8EAF6}
+.cp{font-size:12px;color:#9AA0C3;margin-top:8px;line-height:1.5}
+</style></head><body>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,320px));gap:18px">
+
+<div><p class="lb">오늘</p><div class="ph">
+<div style="display:flex;justify-content:space-between;align-items:center"><span class="mu">토요일, 11월 21일</span><span style="width:30px;height:30px;border-radius:50%;border:1.5px solid #C08BFF;display:flex;align-items:center;justify-content:center;font-size:11px;color:#C08BFF">12</span></div>
+<svg id="d1" viewBox="0 0 200 200" style="width:100%;max-width:200px;margin:8px auto 0;display:block"></svg>
+<div style="display:flex;justify-content:center;gap:9px;margin:4px 0 14px" id="wk"></div>
+<div class="mu" style="font-size:12px;margin-bottom:2px">남은 것</div>
+<div class="it"><span style="flex:1">독서 <span class="mu">12 / 30쪽</span></span><span class="bt">+10쪽</span></div>
+<div class="it"><span style="flex:1">명상 <span class="mu">0 / 10분</span></span><span class="bt" style="background:#FFC857;color:#3A2A00"><i class="ti ti-player-play"></i> 시작</span></div>
+<div class="it"><span style="flex:1">Zone 2 운동</span><span class="bt">체크</span></div>
+<div class="mu" style="font-size:12px;padding-top:6px">끝낸 2개 보기</div>
+<div class="nv"><i class="ti ti-sun" style="color:#E8EAF6"></i><i class="ti ti-clock"></i><i class="ti ti-book"></i><i class="ti ti-heart"></i></div>
+</div><p class="cp">바깥 고리 = 오늘 15분 칸 96개(시간 기록 색). 안쪽 원 색 = 오늘 신호등. 아래에는 남은 습관만, 끝낸 것은 접힘. 오른쪽 위 원(레벨) = 내정보 진입.</p></div>
+
+<div><p class="lb">시간</p><div class="ph">
+<div class="mu">지금 기록 중</div>
+<svg id="d2" viewBox="0 0 200 200" style="width:100%;max-width:200px;margin:8px auto 10px;display:block"></svg>
+<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px" id="cats"></div>
+<div class="it"><span style="width:8px;height:8px;border-radius:50%;background:#7C9CFF"></span><span style="flex:1">업무</span><span class="mu">4시간 10분</span></div>
+<div class="it"><span style="width:8px;height:8px;border-radius:50%;background:#4FD1C5"></span><span style="flex:1">이동 <span class="mu">자동</span></span><span class="mu">2시간 40분</span></div>
+<div class="nv"><i class="ti ti-sun"></i><i class="ti ti-clock" style="color:#E8EAF6"></i><i class="ti ti-book"></i><i class="ti ti-heart"></i></div>
+</div><p class="cp">같은 다이얼, 지금 하는 일이 현재 시각 위치까지 채워짐(흰 점 = 지금). 색 원 탭 = 분류 전환. 자동 기록은 점선.</p></div>
+
+<div><p class="lb">심박</p><div class="ph">
+<div style="display:flex;justify-content:space-between" class="mu"><span><i class="ti ti-bluetooth" style="color:#5EE3A1"></i> 연결됨</span><span>32분 15초</span></div>
+<svg id="d3" viewBox="0 0 200 200" style="width:100%;max-width:200px;margin:8px auto 6px;display:block"></svg>
+<div style="margin:4px 0 6px;display:flex;justify-content:space-between"><span class="mu">이번 주 Zone 2</span><span>85 <span class="mu">/ 150분</span></span></div>
+<div style="height:4px;background:#262D52;border-radius:2px;overflow:hidden;margin-bottom:6px"><div style="width:57%;height:100%;background:#5EE3A1"></div></div>
+<div class="mu" style="font-size:12px;margin-bottom:16px">오늘 운동으로 18분 채웠어요</div>
+<div style="display:flex;gap:10px"><span style="flex:1;text-align:center;padding:12px;border-radius:999px;border:1px solid #3A4270">일시정지</span><span style="flex:1;text-align:center;padding:12px;border-radius:999px;background:#FF6B6B;color:#3D0A0A">끝내기</span></div>
+<div class="nv"><i class="ti ti-sun"></i><i class="ti ti-clock"></i><i class="ti ti-book"></i><i class="ti ti-heart" style="color:#E8EAF6"></i></div>
+</div><p class="cp">다이얼이 270도 존 게이지(Z0~Z5)가 됨. 점 = 현재 심박, 현재 존만 밝고 두꺼움.</p></div>
+
+</div>
+<script>
+var NS='http://www.w3.org/2000/svg';
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+function pt(r,a){a=(a-90)*Math.PI/180;return [100+r*Math.cos(a),100+r*Math.sin(a)]}
+function arc(r,a0,a1){var s=pt(r,a0),e=pt(r,a1);return 'M'+s[0]+' '+s[1]+' A'+r+' '+r+' 0 '+(a1-a0>180?1:0)+' 1 '+e[0]+' '+e[1]}
+function txt(p,x,y,s,c,w,t){var e=el('text',{x:x,y:y,'text-anchor':'middle',fill:c,'font-size':s,'font-weight':w||400,'font-family':'IBM Plex Sans KR,sans-serif'},p);e.textContent=t}
+var C={w:'#7C9CFF',s:'#C08BFF',m:'#4FD1C5',r:'#FFC857',x:'#5EE3A1'};
+function cat(i){var h=i/4;if(h>=7&&h<8.5)return 'm';if(h>=8.5&&h<12.5)return 'w';if(h>=13&&h<14.5)return 'w';if(h>=12.5&&h<13)return 'r';if(h>=14.5&&h<15)return 'w';return null}
+function ring(svg,r,now){for(var i=0;i<96;i++){var a0=i*3.75+0.5,a1=(i+1)*3.75-0.5,c=cat(i);var col=c?C[c]:(i<now?'#2A3158':'#1F2645');var p=el('path',{d:arc(r,a0,a1),stroke:col,'stroke-width':12,fill:'none'},svg);if(c=='m'){p.setAttribute('stroke-dasharray','2 2')}}
+[0,6,12,18].forEach(function(h){var q=pt(r-17,h*15);txt(svg,q[0],q[1]+4,9,'#6F769C',400,h)})}
+var d1=document.getElementById('d1');ring(d1,90,60);
+el('circle',{cx:100,cy:100,r:56,fill:'#FFC857'},d1);
+txt(d1,100,98,26,'#3A2A00',500,'3/6');txt(d1,100,117,10,'#5C4500',400,'하나 더면 초록');
+var wk=document.getElementById('wk'),wc=['#5EE3A1','#5EE3A1','#FF6B6B','#5EE3A1','#FFC857','#FFC857',null],wd=['월','화','수','목','금','토','일'];
+wc.forEach(function(c,i){var d=document.createElement('div');d.style.cssText='text-align:center;font-size:10px;color:#6F769C';var b=document.createElement('div');b.style.cssText='width:12px;height:12px;border-radius:50%;margin:0 auto 3px;'+(c?'background:'+c:'border:1.5px dashed #3A4270')+(i==5?';outline:1.5px solid #E8EAF6;outline-offset:2px':'');d.appendChild(b);d.appendChild(document.createTextNode(wd[i]));wk.appendChild(d)});
+var d2=document.getElementById('d2');ring(d2,90,60);
+var e=pt(90,60*3.75);el('circle',{cx:e[0],cy:e[1],r:6,fill:'#E8EAF6'},d2);
+txt(d2,100,92,12,'#7C9CFF',500,'업무');txt(d2,100,118,28,'#E8EAF6',500,'1:24:10');
+var cats=document.getElementById('cats');[['업무','#7C9CFF',1],['공부','#C08BFF'],['운동','#5EE3A1'],['이동','#4FD1C5'],['휴식','#FFC857']].forEach(function(c){var s=document.createElement('div');s.style.cssText='text-align:center;font-size:11px;color:#9AA0C3';var b=document.createElement('div');b.style.cssText='width:34px;height:34px;border-radius:50%;margin:0 auto 3px;background:'+(c[2]?c[1]:'transparent')+';border:2px solid '+c[1];s.appendChild(b);s.appendChild(document.createTextNode(c[0]));cats.appendChild(s)});
+var d3=document.getElementById('d3');var zc=['#6F769C','#7C9CFF','#5EE3A1','#FFC857','#FF9F5A','#FF6B6B'],st=-135,sp=270/6;
+zc.forEach(function(c,i){el('path',{d:arc(86,st+i*sp+1.5,st+(i+1)*sp-1.5),stroke:c,'stroke-width':i==2?14:8,'stroke-linecap':'round',fill:'none',opacity:i==2?1:0.35},d3)});
+var na=st+2*sp+sp*0.55,q=pt(86,na);el('circle',{cx:q[0],cy:q[1],r:8,fill:'#161B33',stroke:'#E8EAF6','stroke-width':3},d3);
+txt(d3,100,104,44,'#E8EAF6',500,'132');txt(d3,100,124,11,'#9AA0C3',400,'bpm');txt(d3,100,160,13,'#5EE3A1',500,'Zone 2');
+</script></body></html>
