@@ -680,6 +680,109 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   /* 동작 버튼은 알약, 시트는 26px */
   .btn-primary, .btn-go, .btn-stop, .btn-hrv, .btn-wide { border-radius: var(--radius-pill); }
   .modal { border-radius: var(--radius-sheet) var(--radius-sheet) 0 0; }
+
+  /* ===================== Night Dial M2 — 시간 · 심박 ===================== */
+  #timeSeg, #hrSeg { display: flex; gap: 18px; padding: 0 2px; margin: 0 0 var(--sp-3); background: transparent; border-radius: 0; }
+  #timeSeg button, #hrSeg button { flex: none; padding: var(--sp-2) 0 5px; border-radius: 0; background: transparent; color: var(--faint); font-size: var(--fs-md); font-weight: 400; border-bottom: 2px solid transparent; }
+  #timeSeg button.sel, #hrSeg button.sel { background: transparent; color: var(--text); border-bottom-color: var(--text); }
+  /* 시간 › 지금 */
+  .tl-now-h { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-base); color: var(--muted); margin: var(--sp-1) 0 0; }
+  .tl-now-h small { font-size: var(--fs-sm); }
+  .tl-now-dial svg.dial, .tl-md svg.dial, .hr-gauge svg.dial, .hrv-dial svg.dial { width: 100%; display: block; }
+  .tl-now-dial svg.dial { max-width: 236px; margin: var(--sp-1) auto var(--sp-4); }
+  .tl-circles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-1); margin: 0 0 var(--sp-6); }
+  .tl-cc { flex-direction: column; gap: 5px; padding: 0; background: transparent; border-radius: 0; font-size: var(--fs-xs); font-weight: 400; color: var(--muted); min-width: 0; }
+  .tl-cc .o { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--c); background: transparent; }
+  .tl-cc.on .o { background: var(--c); }
+  .tl-cc.on { color: var(--text); }
+  .tl-cc .n { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tl-now-act { margin: 0 0 var(--sp-5); }
+  .tl-now-act .text-input { width: 100%; }
+  .tl-pills { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin: var(--sp-4) 0 0; }
+  .tl-pill { flex: none; padding: 9px var(--sp-6); border-radius: var(--radius-pill); background: var(--surface2); color: var(--text); font-size: var(--fs-base); font-weight: 500; gap: 5px; }
+  .tl-pill.on { background: var(--text); color: var(--bg); }
+  .tl-pill.stop { background: var(--tl-red); color: var(--on-red); }
+  .tl-sec { font-size: var(--fs-sm); color: var(--muted); margin: var(--sp-6) 0 2px; }
+  .tl-sec small { color: var(--faint); margin-left: var(--sp-2); }
+  .tl-tot { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4) 0; border-top: 1px solid var(--border); font-size: var(--fs-md); }
+  .tl-tot .n { flex: 1; min-width: 0; }
+  .tl-tot .v { color: var(--muted); }
+  .tl-tot.empty { color: var(--muted); }
+  .tl-auto { font-size: var(--fs-xs); color: var(--muted); margin-left: var(--sp-1); }
+  .tl-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+  .tl-more { border-top: 1px solid var(--border); margin-top: var(--sp-2); }
+  .tl-more > summary { list-style: none; cursor: pointer; padding: var(--sp-4) 0; font-size: var(--fs-sm); color: var(--muted); display: flex; align-items: center; gap: var(--sp-2); }
+  .tl-more > summary::-webkit-details-marker { display: none; }
+  .tl-more[open] > summary .ti { transform: rotate(90deg); }
+  #tab-time .tl-row { border-bottom: 0; border-top: 1px solid var(--border); }
+  .tl-quiet { width: 100%; justify-content: flex-start; padding: var(--sp-5) 0; background: transparent; color: var(--muted); font-size: var(--fs-sm); font-weight: 400; border-radius: 0; border-top: 1px solid var(--border); gap: var(--sp-2); }
+  /* 시간 › 주간 */
+  .tl-wnav { display: flex; align-items: center; justify-content: space-between; margin: 0 0 var(--sp-3); }
+  .tl-wnav button { flex: none; width: 34px; height: 34px; padding: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 18px; }
+  .tl-wnav .t { font-size: var(--fs-md); color: var(--muted); }
+  .tl-wnav .t small { color: var(--faint); margin-left: var(--sp-1); }
+  .tl-minis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-3); margin: 0 0 var(--sp-2); }
+  .tl-md { flex-direction: column; gap: var(--sp-1); padding: var(--sp-1); background: transparent; border-radius: 50% 50% var(--radius-md) var(--radius-md); font-size: var(--fs-xs); font-weight: 400; color: var(--muted); }
+  .tl-md svg.dial { max-width: 70px; border-radius: 50%; }
+  .tl-md.sel svg.dial { outline: 1.5px solid var(--text); outline-offset: 3px; }
+  .tl-md.today span { color: var(--text); }
+  #tab-time .tl-gridwrap { max-height: 300px; border: 0; border-top: 1px solid var(--border); border-radius: 0; background: transparent; margin-top: var(--sp-3); }
+  .tl-day { display: grid; grid-template-columns: 26px repeat(4, minmax(0, 1fr)); gap: 2px; padding: var(--sp-2) 0; }
+  .tl-day .tl-hl { height: 22px; line-height: 22px; }
+  .tl-day .tc { height: 22px; border: 0; border-radius: 3px; background: var(--empty-past); }
+  .tl-wbar { display: grid; grid-template-columns: minmax(60px, 92px) 1fr 36px minmax(58px, auto); gap: var(--sp-3); align-items: center; padding: var(--sp-3) 0; font-size: var(--fs-base); cursor: pointer; border-radius: var(--radius-sm); }
+  .tl-wbar .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tl-wbar .b { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .tl-wbar .b i { display: block; height: 100%; border-radius: 3px; }
+  .tl-wbar b { font-weight: 500; text-align: right; }
+  .tl-wbar small { color: var(--muted); font-size: var(--fs-xs); text-align: right; }
+  .tl-wbar.hl { background: var(--surface2); }
+  .tl-insight { font-size: var(--fs-base); color: var(--text); line-height: 1.6; margin: var(--sp-5) 0 var(--sp-2); }
+  .tl-blk { padding: var(--sp-4) 0; border-top: 1px solid var(--border); }
+  /* 시간 › 월간 (내용 그대로, 모양만): 카드 → 머리선 구역 */
+  #tab-time .card { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: var(--sp-6) 0; margin: 0; }
+  #tab-time .stat-nav button { background: transparent; color: var(--muted); border-radius: 50%; }
+  #tab-time .tl-sm { border-radius: var(--radius-pill); }
+  #tab-time .tl-tbl th, #tab-time .tl-tbl td { border-color: var(--border); }
+  /* 심박 › 운동 */
+  .hr-line { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-base); color: var(--muted); margin: var(--sp-1) 0 0; }
+  .hr-line .ti { color: var(--faint); margin-right: 3px; }
+  .hr-line .ti.on { color: var(--tl-green); }
+  .hr-gauge { position: relative; max-width: 252px; margin: var(--sp-2) auto -40px; }   /* 270° 고리 아래 빈 곳만큼 당김 */
+  #workoutControls button:disabled { display: none; }   /* 운동 중엔 일시정지·끝내기, 아니면 시작만 */
+  .hr-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; padding-top: 6px; }
+  #tab-workout .bpm-num { font-size: 56px; font-weight: 500; letter-spacing: -1px; }
+  #tab-workout .bpm-unit { font-size: var(--fs-sm); color: var(--muted); font-weight: 400; margin-top: 2px; }
+  #tab-workout .zone-label { margin-top: var(--sp-4); padding: 0; background: transparent !important; font-size: var(--fs-md); font-weight: 500; }
+  #tab-workout .pct { text-align: center; font-size: var(--fs-sm); margin: 0 0 var(--sp-4); }
+  .hr-z2 { margin: var(--sp-2) 0 var(--sp-6); }
+  .hr-z2-h { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-base); margin-bottom: var(--sp-2); }
+  .hr-z2-h .l { color: var(--muted); }
+  .hr-z2-h .weekly-val { font-size: var(--fs-md); color: var(--text); font-weight: 500; display: inline; }
+  .hr-z2-h .weekly-goal { display: inline; color: var(--muted); font-size: var(--fs-md); }
+  .hr-z2 .progress-bg { height: 4px; background: var(--surface2); border-radius: 2px; margin: 0 0 var(--sp-2); }
+  .hr-z2 .progress-fill { background: var(--tl-green); border-radius: 2px; }
+  .hr-z2 .t { font-size: var(--fs-sm); color: var(--muted); }
+  #tab-workout .controls { gap: var(--sp-4); }
+  #tab-workout .controls button { padding: 13px; border-radius: var(--radius-pill); font-size: var(--fs-lg); font-weight: 500; }
+  #pauseBtn { background: transparent; border: 1px solid var(--border-strong); color: var(--text); }
+  #stopBtn { background: var(--tl-red); color: var(--on-red); }
+  #startBtn { background: var(--tl-green); color: var(--on-green); }
+  #connectBtn { background: var(--text); color: var(--bg); }
+  .hr-sec { font-size: var(--fs-sm); color: var(--muted); margin: var(--sp-8) 0 2px; }
+  #tab-hr .card { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: var(--sp-6) 0; margin: 0; }
+  #tab-hr .stat { background: transparent; border-radius: 0; padding: var(--sp-2) 0; }
+  #tab-hr .stat .l { text-transform: none; letter-spacing: 0; }
+  #tab-hr .cal-nav button { background: transparent; color: var(--muted); border-radius: 50%; }
+  #tab-hr .hist-item, #tab-hr .history-item { border-radius: 0; }
+  /* 심박 › 측정 */
+  .hrv-dial { max-width: 236px; margin: var(--sp-2) auto var(--sp-4); }
+  #tab-measure .measure-guide { font-size: var(--fs-base); color: var(--muted); line-height: 1.6; background: transparent; padding: 0; }
+  #tab-measure #countdown { display: none; }   /* 남은 시간은 다이얼 가운데에 */
+  #tab-measure .dual > .card { background: transparent !important; border-top: 0; padding: var(--sp-3) 0; text-align: center; }
+  #tab-measure .big-metric { font-weight: 500; }
+  #measureBtn { border-radius: var(--radius-pill); background: var(--hrv); color: var(--on-hrv); padding: 13px; }
+  #measureBtn.btn-stop { background: var(--tl-red); color: var(--on-red); }
 </style>
 <script src="metrics.js"></script>
 <script src="book-map.js"></script>
@@ -771,9 +874,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
 <!-- ===================== 시간 ===================== -->
 <div id="tab-time" hidden>
   <div class="folder-tabs sm" id="timeSeg" role="tablist">
-    <button data-p="rec" class="sel" role="tab" aria-selected="true">기록</button>
+    <button data-p="rec" class="sel" role="tab" aria-selected="true">지금</button>
     <button data-p="week" role="tab" aria-selected="false">주간</button>
-    <button data-p="month" role="tab" aria-selected="false">월간 보고</button>
+    <button data-p="month" role="tab" aria-selected="false">월간</button>
   </div>
   <div id="timeBody"></div>
 </div>
@@ -799,25 +902,34 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
 
 <!-- ===================== 운동 탭 ===================== -->
 <div id="tab-workout" hidden>
-  <div class="card hero">
-    <div class="bpm-num" id="bpm">--</div>
-    <div class="bpm-unit">BPM</div>
-    <div class="zone-label" id="zoneLabel" style="background:var(--z0);color:var(--on-zone);">대기</div>
-    <div class="pct" id="pct">최대심박 대비 --%</div>
-    <div class="ladder" id="ladder"></div>
+  <div class="hr-line"><span><i class="ti ti-bluetooth" id="hrConnIcon" aria-hidden="true"></i><span id="hrConnText">미연결</span></span><span id="hrElapsed"></span></div>
+  <div class="hero hr-gauge">
+    <div id="hrDial"></div>
+    <div class="hr-center">
+      <div class="bpm-num" id="bpm">--</div>
+      <div class="bpm-unit">bpm</div>
+      <div class="zone-label" id="zoneLabel" style="color:var(--muted);">대기</div>
+    </div>
+  </div>
+  <div class="pct" id="pct">최대심박 대비 --%</div>
+  <div class="ladder hidden" id="ladder"></div>
+  <div class="hr-z2">
+    <div class="hr-z2-h"><span class="l">이번 주 Zone 2</span><span><span class="weekly-val" id="weeklyVal">0</span> <span class="weekly-goal" id="weeklyGoal">/ 150분</span></span></div>
+    <div class="progress-bg"><div class="progress-fill" id="weeklyProgress" style="width:0%"></div></div>
+    <div class="t" id="hrTodayZ2"></div>
   </div>
 
   <div class="controls" id="connectRow">
-    <button class="btn-primary btn-wide" id="connectBtn"><span id="connectLabel">⚡ 심박계 연결</span></button>
+    <button class="btn-primary btn-wide" id="connectBtn"><i class="ti ti-bluetooth" aria-hidden="true"></i><span id="connectLabel">심박계 연결</span></button>
   </div>
 
   <div class="controls hidden" id="workoutControls">
-    <button class="btn-go" id="startBtn">▶ 시작</button>
-    <button id="pauseBtn" disabled>⏸ 정지</button>
-    <button class="btn-stop" id="stopBtn" disabled>⏹ 종료</button>
+    <button class="btn-go" id="startBtn"><i class="ti ti-player-play" aria-hidden="true"></i> 시작</button>
+    <button id="pauseBtn" disabled>일시정지</button>
+    <button class="btn-stop" id="stopBtn" disabled>끝내기</button>
   </div>
 
-
+  <div class="hr-sec">이번 운동</div>
   <div class="card">
     <div class="chart-wrap">
       <canvas id="chart"></canvas>
@@ -832,7 +944,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
       <div class="stat"><div class="v" id="sMax">--</div><div class="l">최대</div></div>
       <div class="stat"><div class="v" style="color:var(--z2)" id="sZ2">0:00</div><div class="l">Zone 2</div></div>
     </div>
-    <div class="kcal-row">🔥 <b id="sKcal">0</b> kcal 소모</div>
+    <div class="kcal-row"><b id="sKcal">0</b> kcal 소모</div>
   </div>
 
   <div class="card">
@@ -841,6 +953,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   </div>
 
   <!-- 아래: 심박 캘린더 · 주간 Zone 2 · 운동 기록 (구 기록 탭에서 이동) -->
+  <div class="hr-sec">달력</div>
   <div class="card">
     <div class="cal-nav">
       <button id="calPrev">‹</button>
@@ -851,13 +964,8 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <div class="cal-legend"><span>🔥 1시간+</span><span>💪 30분+</span><span>💤 30분 미만</span></div>
     <div class="cal-month-stat" id="calMonthStat"></div>
   </div>
+  <div class="hr-sec">이번 주 Zone 2 누적</div>
   <div class="card">
-    <div class="sec-title" style="margin:0 0 14px;">이번 주 Zone 2 누적</div>
-    <div class="weekly-head">
-      <div class="weekly-val" id="weeklyVal">0분</div>
-      <div class="weekly-goal" id="weeklyGoal">/ 목표 150분</div>
-    </div>
-    <div class="progress-bg"><div class="progress-fill" id="weeklyProgress" style="width:0%"></div></div>
     <div class="week-bars" id="weekBars"></div>
     <div class="zr-title">구간별 누적 (이번 주)</div>
     <div id="zoneRows"></div>
@@ -869,8 +977,8 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
 <!-- ===================== 측정 탭 (안정시 + HRV) ===================== -->
 <div id="tab-measure" hidden>
   <div class="card">
-    <div class="measure-guide">🛌 아침 기상 직후, 누운 상태에서 측정하세요.<br>2분간 안정시 심박과 HRV(심박변이도)를 기록합니다.</div>
-
+    <div class="measure-guide"><i class="ti ti-bed" aria-hidden="true"></i> 아침 기상 직후, 누운 상태에서 측정하세요.<br>2분간 안정시 심박과 HRV(심박변이도)를 기록합니다.</div>
+    <div class="hrv-dial" id="hrvDial"></div>
     <div class="rr-status rr-wait" id="rrStatus">측정 대기 중</div>
     <div class="countdown hidden" id="countdown"></div>
 
@@ -890,6 +998,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <button class="btn-hrv btn-wide" id="measureBtn" disabled>심박계 연결 후 측정 가능</button>
   </div>
 
+  <div class="hr-sec">추세</div>
   <div class="card">
     <div class="chart-wrap">
       <canvas id="hrvChart"></canvas>
@@ -1322,12 +1431,12 @@ function updateBPM(bpm, rr) {
   // 운동 탭 UI
   const z = zoneOf(bpm);
   document.getElementById('bpm').textContent = bpm;
-  document.getElementById('bpm').style.color = ZONE_COLORS[z];
+  document.getElementById('bpm').style.color = 'var(--text)';
   const lbl = document.getElementById('zoneLabel');
-  lbl.textContent = ZONE_NAMES[z]; lbl.style.background = ZONE_COLORS[z];
-  lbl.style.color = z === 0 ? 'var(--on-zone)' : 'var(--on-go)';
+  lbl.textContent = ZONE_NAMES[z]; lbl.style.background = 'transparent';
+  lbl.style.color = z === 0 ? 'var(--muted)' : ZONE_COLORS[z];
   document.getElementById('pct').textContent = '최대심박 대비 ' + pctOfMax(bpm) + '%';
-  updateLadder(z);
+  updateLadder(z); renderHrGauge(bpm);
 
   // 측정 탭 실시간 표시
   document.getElementById('mBpm').textContent = bpm;
@@ -1382,7 +1491,7 @@ function onTick() {
 }
 function pauseWorkout() {
   S.paused = !S.paused;
-  document.getElementById('pauseBtn').textContent = S.paused ? '▶ 재개' : '⏸ 정지';
+  document.getElementById('pauseBtn').textContent = S.paused ? '재개' : '일시정지';
 }
 function stopWorkout() {
   if (S.elapsed < 5) { toast('기록이 너무 짧습니다'); return; }
@@ -1392,7 +1501,7 @@ function stopWorkout() {
   S.active = false; S.paused = false;
   document.getElementById('startBtn').disabled = false;
   document.getElementById('pauseBtn').disabled = true;
-  document.getElementById('pauseBtn').textContent = '⏸ 정지';
+  document.getElementById('pauseBtn').textContent = '일시정지';
   document.getElementById('stopBtn').disabled = true;
   updateConnUI();  // 연결 끊긴 채 종료했다면 연결 UI 갱신
   toast('운동 기록 저장됨');
@@ -1425,6 +1534,45 @@ function recoverActiveSession() {
   setTimeout(() => toast('⚠ 중단된 운동 ' + fmtTime(saved.elapsed) + ' 자동 복구됨'), 600);
 }
 
+// ====================== 심박 화면 그리기 (Night Dial M2) — 화면 표시만. 연결·기록 흐름은 위 함수들 그대로 ======================
+// 존 게이지: Dial 270° 모드. 점 위치 = 지금 존 안에서의 위치 (존 경계는 zoneThresholds)
+function hrZonePos(bpm) {
+  const t = zoneThresholds(), mx = maxHR(), z = zoneOf(bpm);
+  const lo = [Math.min(40, t[0] - 1), t[0], t[1], t[2], t[3], t[4]][z], hi = [t[0], t[1], t[2], t[3], t[4], Math.max(mx, t[4] + 1)][z];
+  return { z, pos: (z + Math.max(0, Math.min(1, (bpm - lo) / (hi - lo || 1)))) / 6 };
+}
+function renderHrGauge(bpm) {
+  const el = document.getElementById('hrDial'); if (!el) return;
+  const live = bpm > 0, zp = live ? hrZonePos(bpm) : null;
+  el.innerHTML = Dial.svg({ zone: { colors: ZONE_COLORS, active: zp ? zp.z : -1, pos: zp ? zp.pos : null }, label: live ? '심박 ' + bpm + ', ' + ZONE_NAMES[zp.z] : '심박 대기' });
+}
+// 연결 줄 + 경과 (머리글 대신 화면 안에)
+function renderHrLine() {
+  const t = document.getElementById('hrConnText'), e = document.getElementById('hrElapsed'), i = document.getElementById('hrConnIcon');
+  if (!t) return;
+  t.textContent = S.connected ? '연결됨' + (S.device && S.device.name ? ' · ' + S.device.name : '') : (S.active ? '연결 끊김 · 기록 중' : '미연결');
+  i.classList.toggle('on', !!S.connected);
+  e.textContent = S.active ? fmtHMS(S.elapsed) : '';
+}
+function fmtHMS(sec) { const m = Math.floor(sec / 60), s = sec % 60; return m >= 60 ? Math.floor(m / 60) + '시간 ' + (m % 60) + '분' : m + '분 ' + s + '초'; }
+// 오늘 Zone 2 분 = 오늘 저장된 운동 + 지금 진행 중인 운동
+function renderHrTodayZ2() {
+  const el = document.getElementById('hrTodayZ2'); if (!el) return;
+  const t0 = todayStart().getTime();
+  let sec = getSessions().filter(s => s && s.date >= t0).reduce((a, s) => a + ((s.zoneSec && s.zoneSec[2]) || 0), 0);
+  if (S.active) sec += S.zoneSec[2] || 0;
+  const m = Math.round(sec / 60);
+  el.textContent = m > 0 ? '오늘 운동으로 ' + m + '분 채웠어요' : '오늘은 아직 Zone 2 기록이 없어요';
+}
+// 측정: 남은 시간을 다이얼 고리로 (칸 96개가 시간만큼 채워짐)
+function renderHrvDial() {
+  const el = document.getElementById('hrvDial'); if (!el) return;
+  const run = S.measuring, left = run ? S.measCountdown : MEASURE_DURATION, n = Math.round((MEASURE_DURATION - left) / MEASURE_DURATION * 96);
+  const cells = Array.from({ length: 96 }, (_, i) => i < n ? { color: 'var(--hrv)' } : null);
+  el.innerHTML = Dial.svg({ cells, now: 0, labels: false, label: run ? '측정 남은 시간 ' + fmtTime(left) : '측정 대기',
+    center: { lines: [{ t: fmtTime(left), y: 106, size: 30, fill: 'var(--text)', w: 500 }, { t: run ? '남은 시간' : (MEASURE_DURATION / 60) + '분 측정', y: 126, size: 10, fill: 'var(--muted)' }] } });
+}
+
 // ====================== 측정 세션 (안정시 + HRV) ======================
 function toggleMeasure() {
   if (S.measuring) { finishMeasure(); return; }
@@ -1437,6 +1585,7 @@ function toggleMeasure() {
   requestWakeLock();
   S.measTick = setInterval(measTickFn, 1000);
   setRRStatus('wait', 'RR 데이터 확인 중…');
+  renderHrvDial();
 }
 function measTickFn() {
   S.measCountdown--;
@@ -1447,14 +1596,16 @@ function measTickFn() {
     if (!S.hasRR) setRRStatus('fail', '⚠ 이 기기는 RR 데이터를 송출하지 않습니다 — HRV 측정 불가 (안정시 심박만 기록)');
     else setRRStatus('ok', '✓ RR 데이터 수신 중 — HRV 측정 가능');
   }
+  renderHrvDial();
   if (S.measCountdown <= 0) finishMeasure();
 }
 function finishMeasure() {
   clearInterval(S.measTick); S.measTick = null; releaseWakeLock();
   S.measuring = false;
-  document.getElementById('measureBtn').textContent = '🛌 측정 시작 (2분)';
+  document.getElementById('measureBtn').textContent = '측정 시작 (2분)';
   document.getElementById('measureBtn').classList.remove('btn-stop');
   document.getElementById('countdown').classList.add('hidden');
+  renderHrvDial();
 
   const rhr = S.measBPM.length ? Math.round(Math.min(...S.measBPM)) : null; // 안정시 = 측정 중 최저
   const hrv = S.hasRR ? rmssd(S.measRR) : null;
@@ -1543,7 +1694,7 @@ function renderHrvChart() {
     if (x.hrv == null) return;
     const px = m.length === 1 ? w/2 : i / (m.length - 1) * w, py = yOf(x.hrv);
     if (!st) { ctx.moveTo(px, py); st = true; } else ctx.lineTo(px, py);
-    ctx.fillStyle = '#a855f7'; ctx.beginPath(); ctx.arc(px, py, 3, 0, 7); ctx.fill();
+    ctx.fillStyle = cssVar('--hrv'); ctx.beginPath(); ctx.arc(px, py, 3, 0, 7); ctx.fill();
     ctx.beginPath(); st = false;
   });
   // 선 다시 그리기
@@ -1553,7 +1704,7 @@ function renderHrvChart() {
     const px = m.length === 1 ? w/2 : i / (m.length - 1) * w, py = yOf(x.hrv);
     if (!st) { ctx.moveTo(px, py); st = true; } else ctx.lineTo(px, py);
   });
-  ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.strokeStyle = cssVar('--hrv'); ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
 }
 
 // ====================== 통계 렌더 ======================
@@ -1566,6 +1717,7 @@ function renderStats() {
   }
   document.getElementById('sZ2').textContent = fmtTime(S.zoneSec[2]);
   document.getElementById('sKcal').textContent = Math.round(S.kcal);
+  renderHrLine(); renderHrTodayZ2();
 }
 function renderZoneTime() {
   const wrap = document.getElementById('ztime');
@@ -1604,8 +1756,9 @@ function renderWeekly() {
     }
   });
   const totalMin = Math.round(totalSec / 60), goal = settings.goal || 150;
-  document.getElementById('weeklyVal').textContent = totalMin + '분';
-  document.getElementById('weeklyGoal').textContent = '/ 목표 ' + goal + '분';
+  document.getElementById('weeklyVal').textContent = totalMin;
+  document.getElementById('weeklyGoal').textContent = '/ ' + goal + '분';
+  renderHrTodayZ2();
   document.getElementById('weeklyProgress').style.width = Math.min(100, totalMin/goal*100) + '%';
   const zMax = Math.max(zoneTot[1], zoneTot[2], zoneTot[3], zoneTot[4], zoneTot[5], 1);
   document.getElementById('zoneRows').innerHTML = [1, 2, 3, 4, 5].map(z => {
@@ -2192,9 +2345,10 @@ function updateConnUI() {
   document.getElementById('workoutControls').classList.toggle('hidden', !S.connected && !S.active);
   const mb = document.getElementById('measureBtn');
   mb.disabled = !S.connected;
-  if (S.connected) mb.textContent = '🛌 측정 시작 (2분)';
+  if (S.connected) mb.textContent = '측정 시작 (2분)';
   else mb.textContent = '심박계 연결 후 측정 가능';
-  if (!S.connected && S.device) document.getElementById('connectLabel').textContent = '⚡ 재연결';
+  if (!S.connected && S.device) document.getElementById('connectLabel').textContent = '재연결';
+  renderHrLine();
 }
 let toastT;
 function toast(msg, ms) {
@@ -2822,14 +2976,15 @@ function sheetPick(n) { document.getElementById('sheetModal').classList.remove('
 //   now: 0..96                            이 칸 앞의 빈 칸 = 지난 칸 색, 뒤 = 앞으로 올 칸 색 (기본 96 = 다 지남)
 //   labels: true                          0·6·12·18시 글자
 //   nowFrac: 0..1                         하루 중 지금 위치에 흰 점 (없으면 안 그림)
-//   center: { fill, r, lines: [{ t, y, size, fill, w }] }   가운데 원과 글자
+//   center: { fill, r, lines: [{ t, y, size, fill, w, id }] }   가운데 원과 글자 (id = 실시간으로 글자만 바꿀 때)
+//   cells[i].dim = true                   그 칸만 흐리게 (분류 강조)
 //   zone: { colors: [6], active: 0..5, pos: 0..1 }          270° 존 게이지 모드 (cells 대신)
 //   label: '화면 낭독용 설명' }
 const Dial = (() => {
   const C = 100, f = n => Math.round(n * 100) / 100;
   const pt = (r, a) => { const t = (a - 90) * Math.PI / 180; return [C + r * Math.cos(t), C + r * Math.sin(t)]; };
   const arc = (r, a0, a1) => { const p = pt(r, a0), q = pt(r, a1); return 'M' + f(p[0]) + ' ' + f(p[1]) + ' A' + r + ' ' + r + ' 0 ' + (a1 - a0 > 180 ? 1 : 0) + ' 1 ' + f(q[0]) + ' ' + f(q[1]); };
-  const text = (x, y, size, fill, w, t) => '<text x="' + f(x) + '" y="' + f(y) + '" text-anchor="middle" style="fill:' + fill + '" font-size="' + size + '" font-weight="' + (w || 400) + '">' + esc(t) + '</text>';
+  const text = (x, y, size, fill, w, t, id) => '<text' + (id ? ' id="' + esc(id) + '"' : '') + ' x="' + f(x) + '" y="' + f(y) + '" text-anchor="middle" style="fill:' + fill + '" font-size="' + size + '" font-weight="' + (w || 400) + '">' + esc(t) + '</text>';
   function svg(o) {
     let s = '<svg class="dial" viewBox="0 0 200 200" role="img" aria-label="' + esc(o.label || '') + '">';
     if (o.zone) {
@@ -2840,7 +2995,7 @@ const Dial = (() => {
       const cells = o.cells || [], now = o.now == null ? 96 : o.now, r = o.r || 90, sw = o.stroke || 12;
       for (let i = 0; i < 96; i++) {
         const c = cells[i], col = c ? c.color : (i < now ? 'var(--empty-past)' : 'var(--empty-future)');
-        s += '<path d="' + arc(r, i * 3.75 + 0.5, (i + 1) * 3.75 - 0.5) + '" style="stroke:' + col + '" stroke-width="' + sw + '" fill="none"' + (c && c.dashed ? ' stroke-dasharray="2 2"' : '') + '/>';
+        s += '<path d="' + arc(r, i * 3.75 + 0.5, (i + 1) * 3.75 - 0.5) + '" style="stroke:' + col + '" stroke-width="' + sw + '" fill="none"' + (c && c.dashed ? ' stroke-dasharray="2 2"' : '') + (c && c.dim ? ' opacity="0.22"' : '') + '/>';
       }
       if (o.labels !== false) [0, 6, 12, 18].forEach(h => { const q = pt(r - 17, h * 15); s += '<g aria-hidden="true">' + text(q[0], q[1] + 3.5, 9, 'var(--faint)', 400, String(h)) + '</g>'; });
       if (o.nowFrac != null && o.nowFrac >= 0 && o.nowFrac <= 1) { const q = pt(r, o.nowFrac * 360); s += '<circle cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r="6" style="fill:var(--text)"/>'; }
@@ -2848,19 +3003,22 @@ const Dial = (() => {
     if (o.center) {
       const c = o.center;
       if (c.fill) s += '<circle cx="100" cy="100" r="' + (c.r || 56) + '" style="fill:' + c.fill + '"/>';
-      (c.lines || []).forEach(l => { s += text(100, l.y, l.size, l.fill, l.w, l.t); });
+      (c.lines || []).forEach(l => { s += text(100, l.y, l.size, l.fill, l.w, l.t, l.id); });
     }
     return s + '</svg>';
   }
   return { svg };
 })();
 // 그날(한국 시간 0시~24시) 15분 칸 96개 = 시간 기록에서 가장 오래 차지한 분류 색 (시간 탭 주간 격자와 같은 계산)
+function tlDayCells(ds, now, cats) {   // ds = 한국 시간 그날 0시
+  const row = tlGrid(tlResolve(tlEntriesFor(ds, ds + TL_DAY, now), now), ds)[0];
+  const cells = row.map(c => c ? { color: tlColor(tlCatInfo(cats, c.catId).color), dashed: c.source !== 'manual' } : null);
+  return { cells, now: now >= ds + TL_DAY ? 96 : now <= ds ? 0 : Math.floor((now - ds) / 900000) };
+}
 function dayDialData(d, now) {
   const ds = tlFromKst(dayKey(d), '00:00');
   if (!isFinite(ds)) return { cells: [], now: 96 };
-  const cats = tlCats(), row = tlGrid(tlResolve(tlEntriesFor(ds, ds + TL_DAY, now), now), ds)[0];
-  const cells = row.map(c => c ? { color: tlColor(tlCatInfo(cats, c.catId).color), dashed: c.source !== 'manual' } : null);
-  return { cells, now: now >= ds + TL_DAY ? 96 : now <= ds ? 0 : Math.floor((now - ds) / 900000) };
+  return tlDayCells(ds, now, tlCats());
 }
 // 다이얼 가운데: dayLight 와 같은 판정 + "끝낸/전체" + 초록까지 몇 개 더
 const KNUM = ['', '하나', '둘', '셋', '넷', '다섯'];
@@ -4742,70 +4900,127 @@ function tlTickStart() {
     if (curTab !== 'time' || TLS.pane !== 'rec') { tlTickStop(); return; }
     const el = document.getElementById('tlElapsed'), cur = tlCur();
     if (el && cur) el.textContent = tlFmtDur(Date.now() - cur.start);
+    const dw = document.getElementById('tlNowDial');   // 1분마다 다이얼 칸도 지금까지 채운다 (메모 칸은 그대로 둔다)
+    if (dw && Date.now() - (TLS._dialAt || 0) >= 60000) { dw.innerHTML = tlNowDialSvg(tlCats(), cur, Date.now()); TLS._dialAt = Date.now(); }
   }, 1000);
 }
 
-// ---------- 기록 화면 ----------
+// ---------- 지금 화면 (다이얼이 지금까지 채워짐 + 흰 점, 가운데 = 하는 일 + 경과) ----------
+function tlNowDialSvg(cats, cur, now) {
+  const ds = tlDayStart(now), dd = tlDayCells(ds, now, cats);
+  let center;
+  if (cur) {
+    const ci = tlCatInfo(cats, cur.catId);
+    center = { lines: [{ t: ci.name, y: 90, size: 12, fill: tlColor(ci.color), w: 500 }, { t: tlFmtDur(now - cur.start), y: 117, size: 26, fill: 'var(--text)', w: 500, id: 'tlElapsed' }] };
+  } else center = { lines: [{ t: '쉬는 중', y: 98, size: 15, fill: 'var(--muted)', w: 500 }, { t: '아래에서 지금 하는 일을 누르세요', y: 116, size: 8.5, fill: 'var(--muted)' }] };
+  return Dial.svg({ cells: dd.cells, now: dd.now, nowFrac: (now - ds) / TL_DAY, center, label: '오늘 시간 기록, 지금 ' + (cur ? tlCatInfo(cats, cur.catId).name : '기록 중 아님') });
+}
 function tlRenderRec(body) {
   const cats = tlCats(), cur = tlCur(), now = Date.now();
   let h = '';
   if (cur) {
     const ci = tlCatInfo(cats, cur.catId), el = now - cur.start;
-    h += `<div class="card tl-cur" style="border-color:${tlColor(ci.color)}"><div class="tl-cur-top"><span class="tl-big">${esc(ci.emoji)}</span><div class="tl-cur-name">${esc(ci.name)}<small>${esc(tlMD(cur.start))} ${esc(tlHM(cur.start))}부터</small></div><div class="tl-elapsed" id="tlElapsed">${tlFmtDur(el)}</div></div>`
-      + (el > 12 * 3600000 ? '<div class="tl-warn">⚠ 12시간 넘게 이어지고 있어요. 정지하거나 시작 시각을 고쳐야 기록이 맞아요</div>' : '')
-      + (cur.start > now + 60000 ? '<div class="tl-warn">⚠ 시작 시각이 지금보다 미래예요 (다른 기기 시계가 어긋났을 수 있어요)</div>' : '')
-      + `<input class="text-input" id="tlNote" maxlength="80" placeholder="한 줄 메모 (선택)" value="${esc(cur.note || '')}" style="width:100%;margin-top:10px">`
-      + `<div class="tl-actions"><button class="tl-sm" data-act="curstart">시작 시각 수정</button><button class="tl-sm stop" data-act="stop">■ 정지</button></div></div>`;
-  } else h += '<div class="card tl-cur idle">기록 중인 활동이 없어요<br><small>아래에서 지금 하는 일을 누르면 시작돼요</small></div>';
-  h += '<div class="tl-btns">' + cats.filter(c => !c.archived).map(c => `<button class="tl-cb${cur && cur.catId === c.id ? ' on' : ''}" data-act="switch" data-cat="${esc(c.id)}" style="--c:${tlColor(c.color)}"><span class="e">${esc(c.emoji)}</span>${esc(c.name)}</button>`).join('') + '</div>';
-  h += '<div class="tl-actions" style="margin:10px 0 4px"><button class="tl-sm" data-act="catmgr">⚙ 분류 관리</button></div>';
-  // 오늘 타임라인
-  const ds = tlDayStart(now), list = tlEntriesFor(ds, ds + TL_DAY, now).filter(e => e.start < ds + TL_DAY && (e.end == null ? now : e.end) > ds).sort((a, b) => b.start - a.start);
-  h += '<div class="sec-title" style="margin:18px 2px 10px">오늘 기록</div><div class="card" style="padding:6px 12px">';
-  h += list.length ? list.map(e => {
-    const ci = tlCatInfo(cats, e.catId), auto = e.source !== 'manual', run = e.end == null, end = run ? now : e.end;
-    return `<div class="tl-row${auto ? ' auto' : ''}" data-act="${run ? 'noop' : auto ? 'autoinfo' : 'edit'}" data-id="${esc(e.id)}"><i class="tl-bar-c" style="background:${tlColor(ci.color)}"></i><div class="tl-row-t"><b>${esc(ci.emoji)} ${esc(ci.name)}</b>${auto ? ' <span class="tl-tag">자동</span>' : ''}${run ? ' <span class="tl-tag on">진행 중</span>' : ''}<small>${esc(tlHM(Math.max(e.start, ds)))}~${run ? '지금' : esc(tlHM(end))}${e.start < ds ? ' (어제부터)' : ''} · ${esc(tlFmtMin((Math.min(end, ds + TL_DAY) - Math.max(e.start, ds)) / TL_MIN))}${e.note ? ' · ' + esc(e.note) : ''}</small></div></div>`;
-  }).join('') : '<div class="empty-hist">아직 기록이 없어요</div>';
-  h += '</div>';
+    h += `<div class="tl-now-h"><span>지금 기록 중</span><small>${esc(tlMD(cur.start))} ${esc(tlHM(cur.start))}부터</small></div>`;
+    h += `<div class="tl-now-dial" id="tlNowDial">${tlNowDialSvg(cats, cur, now)}</div>`;
+    h += (el > 12 * 3600000 ? '<div class="tl-warn">⚠ 12시간 넘게 이어지고 있어요. 정지하거나 시작 시각을 고쳐야 기록이 맞아요</div>' : '')
+      + (cur.start > now + 60000 ? '<div class="tl-warn">⚠ 시작 시각이 지금보다 미래예요 (다른 기기 시계가 어긋났을 수 있어요)</div>' : '');
+  } else {
+    h += '<div class="tl-now-h"><span>기록 중인 활동이 없어요</span></div>';
+    h += `<div class="tl-now-dial" id="tlNowDial">${tlNowDialSvg(cats, null, now)}</div>`;
+  }
+  // 분류 원: 누르면 전환(tlSwitch), 지금 하는 일은 꽉 찬 원
+  h += '<div class="tl-circles">' + cats.filter(c => !c.archived).map(c => { const on = cur && cur.catId === c.id;
+    return `<button class="tl-cc${on ? ' on' : ''}" data-act="switch" data-cat="${esc(c.id)}" style="--c:${tlColor(c.color)}" aria-pressed="${!!on}" aria-label="${esc(c.name)}${on ? ' 기록 중' : ' 시작'}"><span class="o" aria-hidden="true"></span><span class="n">${esc(c.name)}</span></button>`; }).join('') + '</div>';
+  if (cur) h += `<div class="tl-now-act"><input class="text-input" id="tlNote" maxlength="80" placeholder="한 줄 메모 (선택)" value="${esc(cur.note || '')}" aria-label="지금 활동 메모">`
+    + `<div class="tl-pills"><button class="tl-pill" data-act="curstart">시작 시각 수정</button><button class="tl-pill stop" data-act="stop"><i class="ti ti-player-stop" aria-hidden="true"></i> 정지</button></div></div>`;
+  // 오늘 합계 (분류별)
+  const ds = tlDayStart(now), entries = tlEntriesFor(ds, ds + TL_DAY, now), segs = tlResolve(entries, now), st = tlStats(segs, ds, ds + TL_DAY, cats, now);
+  const autoCats = new Set(tlClip(segs, ds, ds + TL_DAY).filter(p => p.source !== 'manual').map(p => p.catId));
+  const rank = tlRank(st.byCat, cats, st.rec);
+  h += '<div class="tl-sec">오늘 합계</div>';
+  h += rank.length ? rank.map(r => `<div class="tl-tot"><i class="tl-dot" style="background:${tlColor(r.info.color)}"></i><span class="n">${esc(r.info.name)}${autoCats.has(r.id) ? ' <span class="tl-auto">자동</span>' : ''}</span><span class="v">${esc(tlFmtMin(r.min).trim())}</span></div>`).join('')
+    : '<div class="tl-tot empty">아직 기록이 없어요</div>';
+  // 오늘 기록 (하나씩 편집) — 접어 둔다
+  const list = entries.filter(e => e.start < ds + TL_DAY && (e.end == null ? now : e.end) > ds).sort((a, b) => b.start - a.start);
+  if (list.length) {
+    h += `<details class="tl-more"${TLS.recOpen ? ' open' : ''} ontoggle="TLS.recOpen=this.open"><summary><i class="ti ti-chevron-right" aria-hidden="true"></i>오늘 기록 ${list.length}개 보기 · 눌러서 고치기</summary>`;
+    h += list.map(e => {
+      const ci = tlCatInfo(cats, e.catId), auto = e.source !== 'manual', run = e.end == null, end = run ? now : e.end;
+      return `<div class="tl-row${auto ? ' auto' : ''}" data-act="${run ? 'noop' : auto ? 'autoinfo' : 'edit'}" data-id="${esc(e.id)}" role="button" tabindex="0"><i class="tl-bar-c" style="background:${tlColor(ci.color)}"></i><div class="tl-row-t"><b>${esc(ci.name)}</b>${auto ? ' <span class="tl-tag">자동</span>' : ''}${run ? ' <span class="tl-tag on">진행 중</span>' : ''}<small>${esc(tlHM(Math.max(e.start, ds)))}~${run ? '지금' : esc(tlHM(end))}${e.start < ds ? ' (어제부터)' : ''} · ${esc(tlFmtMin((Math.min(end, ds + TL_DAY) - Math.max(e.start, ds)) / TL_MIN))}${e.note ? ' · ' + esc(e.note) : ''}</small></div></div>`;
+    }).join('') + '</details>';
+  }
+  h += '<button class="tl-quiet" data-act="catmgr"><i class="ti ti-adjustments" aria-hidden="true"></i> 분류 관리</button>';
   body.innerHTML = h;
+  TLS._dialAt = now;
 }
 
-// ---------- 주간 ----------
+// ---------- 주간 (작은 다이얼 7개 → 누르면 그날 15분 격자) ----------
+function tlDeltaText(d) {   // 지난주 대비 (10분 단위로 반올림)
+  const m = Math.round(d / 10) * 10;
+  if (!m) return '같음';
+  return (m > 0 ? '+' : '−') + tlFmtMin(Math.abs(m)).trim();
+}
 function tlRenderWeek(body) {
   const cats = tlCats(), now = Date.now();
   if (!TLS.wStart) TLS.wStart = tlWeekStart(now);
   const ws = TLS.wStart, we = ws + 7 * TL_DAY, entries = tlEntriesFor(ws, we, now), segs = tlResolve(entries, now), grid = tlGrid(segs, ws), st = tlStats(segs, ws, we, cats, now);
+  if (TLS.wDay == null) TLS.wDay = Math.max(0, Math.min(6, Math.floor((tlDayStart(now) - ws) / TL_DAY)));
+  const D = TLS.wDay;
   const old = document.getElementById('tlGridWrap'); if (old) TLS.gridScroll = old.scrollTop;
-  let h = `<div class="stat-nav"><button data-act="wprev">‹</button><div class="cal-title">${esc(tlMD(ws))} ~ ${esc(tlMD(we - 1))}${ws === tlWeekStart(now) ? ' (이번 주)' : ''}</div><button data-act="wnext">›</button></div>`;
-  const hlBtn = TLS.hl ? (() => { const ci = tlCatInfo(cats, TLS.hl); return `<button class="tl-sm on" data-act="hlclear">${esc(ci.emoji)} ${esc(ci.name)} 강조 중 — 해제</button>`; })() : '';
+  const p0 = tlParts(ws), p1 = tlParts(we - 1);
+  let h = `<div class="tl-wnav"><button data-act="wprev" aria-label="지난주"><i class="ti ti-chevron-left" aria-hidden="true"></i></button><div class="t">${p0.m}월 ${p0.d}일 ~ ${p1.m === p0.m ? '' : p1.m + '월 '}${p1.d}일${ws === tlWeekStart(now) ? ' <small>이번 주</small>' : ''}</div><button data-act="wnext" aria-label="다음주"><i class="ti ti-chevron-right" aria-hidden="true"></i></button></div>`;
+  // 작은 다이얼 7개
+  h += '<div class="tl-minis">';
+  for (let d = 0; d < 7; d++) {
+    const ds = ws + d * TL_DAY, nowIdx = now >= ds + TL_DAY ? 96 : now <= ds ? 0 : Math.floor((now - ds) / 900000);
+    const cells = grid[d].map(c => c ? { color: tlColor(tlCatInfo(cats, c.catId).color), dashed: c.source !== 'manual', dim: !!TLS.hl && c.catId !== TLS.hl } : null);
+    h += `<button class="tl-md${d === D ? ' sel' : ''}${ds === tlDayStart(now) ? ' today' : ''}" data-act="wday" data-d="${d}" aria-pressed="${d === D}" aria-label="${TL_DOW[d]}요일 ${tlParts(ds).d}일 격자 열기">${Dial.svg({ cells, now: nowIdx, labels: false, stroke: 14, r: 88, label: '' })}<span>${TL_DOW[d]}</span></button>`;
+  }
+  h += '</div>';
+  // 고른 날의 15분 격자 (편집: tlCellTap / 채우기 / 강조 그대로)
+  const dsD = ws + D * TL_DAY;
+  h += `<div class="tl-sec">${TL_DOW[D]}요일 ${esc(tlMD(dsD))} · 15분 격자</div>`;
+  const hlBtn = TLS.hl ? (() => { const ci = tlCatInfo(cats, TLS.hl); return `<button class="tl-pill on" data-act="hlclear">${esc(ci.name)} 강조 중 · 해제</button>`; })() : '';
   if (TLS.fillA != null) {
     const [fs] = tlCellRange(TLS.fillA);
-    h += `<div class="tl-actions" style="margin:0 0 8px"><button class="tl-sm on" data-act="fillcancel">✓ ${esc(TL_DOW[Math.floor(TLS.fillA / 96)])} ${esc(tlHM(fs))}부터 — 끝 칸을 누르세요 (취소: 여기 누르기)</button>${hlBtn}</div>`;
-  } else h += `<div class="tl-actions" style="margin:0 0 8px"><button class="tl-sm${TLS.fill ? ' on' : ''}" data-act="fill">${TLS.fill ? '✓ 채우기 켜짐 — 시작 칸, 끝 칸을 차례로 누르세요' : '＋ 빈 시간 채우기'}</button>${hlBtn}<small style="margin-left:8px;color:var(--text-dim,#888)">빈 칸을 누르면 바로 시작점이 돼요</small></div>`;
-  h += '<div class="tl-gridwrap" id="tlGridWrap"><div class="tl-grid"><div class="tl-gh"></div>';
-  for (let d = 0; d < 7; d++) { const ds = ws + d * TL_DAY; h += `<div class="tl-gh${ds === tlDayStart(now) ? ' today' : ''}">${TL_DOW[d]}<br><small>${tlParts(ds).d}</small></div>`; }
-  for (let r = 0; r < 96; r++) {
-    h += `<div class="tl-hl">${r % 4 === 0 ? r / 4 : ''}</div>`;
-    for (let d = 0; d < 7; d++) {
-      const c = grid[d][r], i = d * 96 + r;
-      let cls = 'tc' + (r % 4 === 0 ? ' h' : '') + (c && c.source !== 'manual' ? ' auto' : '') + (TLS.fillA === i ? ' st' : '') + (TLS.sel === i ? ' sel' : '') + (TLS.hl ? (c && c.catId === TLS.hl ? ' hl' : ' dim') : '');
+    h += `<div class="tl-pills"><button class="tl-pill on" data-act="fillcancel">${esc(TL_DOW[Math.floor(TLS.fillA / 96)])} ${esc(tlHM(fs))}부터 · 끝 칸을 누르세요 (취소)</button>${hlBtn}</div>`;
+  } else h += `<div class="tl-pills"><button class="tl-pill${TLS.fill ? ' on' : ''}" data-act="fill">${TLS.fill ? '채우기 켜짐 · 시작 칸, 끝 칸을 차례로' : '<i class="ti ti-plus" aria-hidden="true"></i> 빈 시간 채우기'}</button>${hlBtn}</div><div class="tl-note">빈 칸을 누르면 바로 시작점이 돼요</div>`;
+  h += '<div class="tl-gridwrap" id="tlGridWrap"><div class="tl-day">';
+  for (let hr = 0; hr < 24; hr++) {
+    h += `<div class="tl-hl">${hr}</div>`;
+    for (let q = 0; q < 4; q++) {
+      const r = hr * 4 + q, c = grid[D][r], i = D * 96 + r;
+      const cls = 'tc' + (c && c.source !== 'manual' ? ' auto' : '') + (TLS.fillA === i ? ' st' : '') + (TLS.sel === i ? ' sel' : '') + (TLS.hl ? (c && c.catId === TLS.hl ? ' hl' : ' dim') : '');
       h += `<i class="${cls}" data-act="cell" data-i="${i}"${c ? ` style="background:${tlColor(tlCatInfo(cats, c.catId).color)}"` : ''}></i>`;
     }
   }
   h += '</div></div>';
-  const used = [...new Set(grid.flat().filter(Boolean).map(c => c.catId))];
-  h += '<div class="tl-legend">' + used.map(id => { const ci = tlCatInfo(cats, id); return `<span>${tlDot(ci)}${esc(ci.name)}</span>`; }).join('') + (grid.flat().some(c => c && c.source !== 'manual') ? '<span><i class="tl-dot auto"></i>자동(빗금)</span>' : '') + '</div>';
+  const used = [...new Set(grid[D].filter(Boolean).map(c => c.catId))];
+  h += '<div class="tl-legend">' + used.map(id => { const ci = tlCatInfo(cats, id); return `<span>${tlDot(ci)}${esc(ci.name)}</span>`; }).join('') + (grid[D].some(c => c && c.source !== 'manual') ? '<span><i class="tl-dot auto"></i>자동(빗금)</span>' : '') + '</div>';
   h += '<div id="tlCellInfo"></div>';
-  // 주간 요약
-  const rank = tlRank(st.byCat, cats, st.rec), recH = st.rec / 60;
-  h += '<div class="sec-title" style="margin:20px 2px 10px">이번 주 요약</div>';
-  h += `<div class="card"><div class="tl-h">① 분류별 시간 <small>(기록된 시간 기준 %)</small></div>${tlBars(rank, false, true)}<div class="tl-note">분류를 누르면 위 시간표에서 그 시간대만 강조돼요</div></div>`;
-  h += `<div class="card"><div class="tl-h">② 중요도 <small>(수면 제외)</small></div>${tlImpRows(st)}</div>`;
-  h += `<div class="card"><div class="tl-kv"><div><b>${st.focus}</b>개<small>③ 집중 블록 (중요 활동 60분 이상 연속, 수면 제외)</small></div><div><b>${st.switchAvg == null ? '—' : st.switchAvg.toFixed(1)}</b>번<small>④ 하루 평균 전환 횟수 (기록한 ${st.recDays}일 기준)</small></div></div></div>`;
-  h += `<div class="card"><div class="tl-h">⑤ 기록률</div><div class="tl-cov"><b>${tlPct(st.cov)}</b> <span>기록 ${recH.toFixed(1)}시간 / 168시간</span></div>${st.covSoFar != null ? `<div class="tl-note">아직 끝나지 않은 주예요. 지금까지만 보면 ${tlPct(st.covSoFar)}</div>` : ''}<div class="tl-note">${st.cov < 0.6 ? '기록이 적어서 이 주의 숫자는 참고용이에요' : '기록이 충분해서 믿고 봐도 돼요'}</div></div>`;
+  // 분류별 합계 + 지난주 대비
+  const pws = ws - 7 * TL_DAY, pst = tlStats(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now);
+  const rank = tlRank(st.byCat, cats, st.rec), mx = Math.max(1, ...rank.map(r => r.min));
+  h += '<div class="tl-sec">분류별 합계 <small>지난주 대비</small></div>';
+  h += rank.length ? rank.map(r => `<div class="tl-wbar${TLS.hl === r.id ? ' hl' : ''}" data-act="hlcat" data-cat="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(r.info.name)} 강조"><span class="n">${esc(r.info.name)}</span><span class="b"><i style="width:${(r.min / mx * 100).toFixed(1)}%;background:${tlColor(r.info.color)}"></i></span><b>${Math.round(r.min / 60)}h</b><small>${esc(tlDeltaText(r.min - (pst.byCat[r.id] || 0)))}</small></div>`).join('')
+    : '<div class="tl-tot empty">이 주에는 기록이 없어요</div>';
+  // 한 줄: 가장 많이 빈 날
+  let emptySum = 0, nDays = 0, maxE = -1, maxD = -1;
+  for (let d = 0; d < 7; d++) {
+    const ds = ws + d * TL_DAY; if (ds >= now) continue;
+    let e = 0; for (let r = 0; r < 96; r++) if (ds + (r + 1) * 900000 <= now && !grid[d][r]) e += 15;
+    emptySum += e; nDays++; if (e > maxE) { maxE = e; maxD = d; }
+  }
+  if (nDays) h += `<div class="tl-insight">빈 시간 하루 평균 ${esc(tlFmtMin(emptySum / nDays).trim())}. ${maxE > 0 ? TL_DOW[maxD] + '요일이 가장 많이 비었어요.' : '비어 있는 날이 없어요.'}</div>`;
+  // 나머지 주간 요약 (중요도·집중·전환·기록률) — 접어 둔다
+  const recH = st.rec / 60;
+  h += `<details class="tl-more"${TLS.wMore ? ' open' : ''} ontoggle="TLS.wMore=this.open"><summary><i class="ti ti-chevron-right" aria-hidden="true"></i>중요도 · 집중 · 기록률 보기</summary>`;
+  h += `<div class="tl-blk"><div class="tl-h">중요도 <small>(수면 제외)</small></div>${tlImpRows(st)}</div>`;
+  h += `<div class="tl-blk"><div class="tl-kv"><div><b>${st.focus}</b>개<small>집중 블록 (중요 활동 60분 이상 연속, 수면 제외)</small></div><div><b>${st.switchAvg == null ? '—' : st.switchAvg.toFixed(1)}</b>번<small>하루 평균 전환 횟수 (기록한 ${st.recDays}일 기준)</small></div></div></div>`;
+  h += `<div class="tl-blk"><div class="tl-h">기록률</div><div class="tl-cov"><b>${tlPct(st.cov)}</b> <span>기록 ${recH.toFixed(1)}시간 / 168시간</span></div>${st.covSoFar != null ? `<div class="tl-note">아직 끝나지 않은 주예요. 지금까지만 보면 ${tlPct(st.covSoFar)}</div>` : ''}<div class="tl-note">${st.cov < 0.6 ? '기록이 적어서 이 주의 숫자는 참고용이에요' : '기록이 충분해서 믿고 봐도 돼요'}</div></div></details>`;
   body.innerHTML = h;
   const wrap = document.getElementById('tlGridWrap');
-  if (wrap) wrap.scrollTop = TLS.gridScroll >= 0 ? TLS.gridScroll : 7 * 4 * 11;   // 처음엔 오전 7시쯤부터 보이게
+  if (wrap) wrap.scrollTop = TLS.gridScroll >= 0 ? TLS.gridScroll : 7 * 24;   // 처음엔 오전 7시쯤부터 보이게
   if (TLS.sel != null) tlShowCellInfo(TLS.sel, grid, entries, cats);
   TLS._grid = grid; TLS._entries = entries;
 }
@@ -4848,7 +5063,7 @@ function tlRenderMonth(body) {
   const y = TLS.mY, m = TLS.mM, from = tlMonthStart(y, m), to = tlMonthStart(y, m + 1);
   const rep = tlMonthReport(tlEntriesFor(tlMonthStart(y, m - 1), to, now), y, m, cats, now), st = rep.cur;
   let h = `<div class="stat-nav no-print"><button data-act="mprev">‹</button><div class="cal-title">${y}년 ${m}월</div><button data-act="mnext">›</button></div>`;
-  h += `<div class="tl-actions no-print" style="margin:0 0 10px"><button class="tl-sm" data-act="csv">⬇ CSV 내보내기</button><button class="tl-sm" data-act="print">🖨 인쇄 / PDF 저장</button></div>`;
+  h += `<div class="tl-actions no-print" style="margin:0 0 10px"><button class="tl-sm" data-act="csv"><i class="ti ti-download" aria-hidden="true"></i> CSV 내보내기</button><button class="tl-sm" data-act="print"><i class="ti ti-printer" aria-hidden="true"></i> 인쇄 / PDF 저장</button></div>`;
   h += `<div class="tl-print-title">시간 기록 월간 보고 — ${y}년 ${m}월</div><div id="tlReport">`;
   if (!st.rec) { body.innerHTML = h + '<div class="card empty-hist">이 달에는 기록이 없어요</div></div>'; return; }
   const days = (to - from) / TL_DAY;
@@ -5012,6 +5227,7 @@ function tlAct(el) {
     case 'fillcancel': TLS.fillA = null; TLS.fill = false; tlRender(); break;
     case 'fillfrom': TLS.fill = true; TLS.fillA = i; TLS.sel = null; tlRender(); break;
     case 'cell': tlCellTap(i); break;
+    case 'wday': TLS.wDay = Number(el.dataset.d); TLS.sel = null; TLS.gridScroll = -1; tlRender(); break;
     case 'mprev': { const d = new Date(Date.UTC(TLS.mY, TLS.mM - 2, 1)); TLS.mY = d.getUTCFullYear(); TLS.mM = d.getUTCMonth() + 1; tlRender(); break; }
     case 'mnext': { const d = new Date(Date.UTC(TLS.mY, TLS.mM, 1)); TLS.mY = d.getUTCFullYear(); TLS.mM = d.getUTCMonth() + 1; tlRender(); break; }
     case 'csv': tlDownloadCsv(); break;
@@ -5049,7 +5265,7 @@ function updateHeader(name) {
   const titles = { time:'시간', books:'독서', hr:'심박', stats:'통계', me:'내정보' };
   document.querySelector('header').style.display = name === 'today' ? 'none' : '';   // 오늘 탭은 자체 헤더
   document.getElementById('headerTitle').textContent = titles[name] || '';
-  document.getElementById('connStatus').style.display = name === 'hr' ? '' : 'none';
+  document.getElementById('connStatus').style.display = 'none';   // 심박 연결 상태는 화면 안 연결 줄(#hrConnText)에
   document.getElementById('lvBadge').classList.toggle('hidden', name === 'me');
 }
 function switchTab(name) {
@@ -5073,8 +5289,8 @@ function showHrPane(p) {
   document.getElementById('tab-workout').hidden = p !== 'workout';
   document.getElementById('tab-measure').hidden = p !== 'measure';
   document.querySelectorAll('#hrSeg button').forEach(b => { b.classList.toggle('sel', b.dataset.h === p); b.setAttribute('aria-selected', String(b.dataset.h === p)); });
-  if (p === 'workout') { renderWeekly(); renderCalendar(); renderHistory(); }
-  else { renderMeasureHistory(); renderHrvChart(); }
+  if (p === 'workout') { renderWeekly(); renderCalendar(); renderHistory(); renderHrGauge(S.bpm); renderHrLine(); }
+  else { renderMeasureHistory(); renderHrvChart(); renderHrvDial(); }
 }
 document.querySelectorAll('#hrSeg button').forEach(b => b.onclick = () => showHrPane(b.dataset.h));
 function workoutStreak(){
