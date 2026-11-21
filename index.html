@@ -4811,8 +4811,8 @@ function tlStats(segs, from, to, cats, now, excl) {
     covSoFar: (now < to && elapsed > 0) ? rec / elapsed : null,   // 아직 안 끝난 구간: 지금까지만 기준으로 본 기록률
   };
 }
-// 한 줄 요약 두 줄: 전체 / 회사 업무 빼고 (월간·주간이 같이 쓴다)
-function tlSummary(segs, from, to, cats, now) { return { all: tlStats(segs, from, to, cats, now), nowork: tlStats(segs, from, to, cats, now, [TL_WORK]) }; }
+// 한 줄 요약 두 줄: 전체 / 업무·수면 빼고 (월간·주간이 같이 쓴다). nowork = 업무와 수면을 뺀 줄
+function tlSummary(segs, from, to, cats, now) { return { all: tlStats(segs, from, to, cats, now), nowork: tlStats(segs, from, to, cats, now, [TL_WORK, TL_SLEEP]) }; }
 function tlRank(byCat, cats, base) {
   return Object.keys(byCat).filter(k => byCat[k] > 0).map(k => ({ id: k, info: tlCatInfo(cats, k), min: byCat[k], pct: base > 0 ? byCat[k] / base : 0 })).sort((a, b) => b.min - a.min);
 }
@@ -5143,7 +5143,7 @@ function tlRenderWeek(body) {
     const pws = ws - 7 * TL_DAY, psm = tlSummary(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now), pst = psm.all;
     const rank = tlRank(st.byCat, cats, st.rec), mx = Math.max(1, ...rank.map(r => r.min));
     // 이번 주 한 줄 요약 (월간과 같은 tlSummary·tlSumHtml, 기간만 이 주)
-    h += `<div class="card tl-sumw" id="tlWeekSum"><div class="tl-h">한 줄 요약</div>${tlSumHtml(sm, 7, '주예요')}${pst.rec > 0 ? `<div class="tl-note" id="tlWeekNwDelta">회사 업무 빼고 기록한 시간, 지난주 대비 ${esc(tlDeltaText(sm.nowork.rec - psm.nowork.rec))}${sm.nowork.wastePct != null && psm.nowork.wastePct != null ? ' · 낭비 지난주 대비 ' + tlPpText(sm.nowork.wastePct - psm.nowork.wastePct) : ''}</div>` : ''}</div>`;
+    h += `<div class="card tl-sumw" id="tlWeekSum"><div class="tl-h">한 줄 요약</div>${tlSumHtml(sm, 7, '주예요')}${pst.rec > 0 ? `<div class="tl-note" id="tlWeekNwDelta">업무·수면 빼고 기록한 시간, 지난주 대비 ${esc(tlDeltaText(sm.nowork.rec - psm.nowork.rec))}${sm.nowork.wastePct != null && psm.nowork.wastePct != null ? ' · 낭비 지난주 대비 ' + tlPpText(sm.nowork.wastePct - psm.nowork.wastePct) : ''}</div>` : ''}</div>`;
     h += '<div class="tl-sec">이번 주 분류별 합계 <small>지난주 대비</small></div>';
     h += rank.length ? rank.map(r => catBar(r, mx, Math.round(r.min / 60) + 'h', tlDeltaText(r.min - (pst.byCat[r.id] || 0)))).join('')
       : '<div class="tl-tot empty">이 주에는 기록이 없어요. 날짜를 눌러 그날 빈 칸을 채울 수 있어요</div>';
@@ -5247,8 +5247,8 @@ function tlSumHtml(sm, days, still) {
   const waste = (x, cap) => `<div><b>${tlPct(x.wastePct)}</b><small>낭비 (${cap}, ${tlH1(x.wasteMin)}시간)</small></div>`;
   const row = (lab, cells) => `<div class="tl-sumrow"><div class="tl-sumlab">${lab}</div><div class="tl-sum">${cells}</div></div>`;
   let h = row('전체', `<div><span class="tl-num"><b>${tlH1(a.rec)}</b>시간</span><small>기록한 시간</small></div><div><b>${tlPct(a.cov)}</b><small>기록률 (${days}일 × 24시간 기준)</small></div><div><b>${tlPct(a.impPct)}</b><small>중요 비율 (수면 제외)</small></div><div><b>${a.focus}</b>개<small>집중 블록</small></div>${waste(a, '기록한 시간 중')}`);
-  h += row('회사 업무 빼고', `<div><span class="tl-num"><b>${tlH1(n.rec)}</b>시간</span><small>기록한 시간</small></div><div><b>${tlPct(n.cov)}</b><small>기록률 (업무 뺀 시간 기준)</small></div><div><b>${tlPct(n.impPct)}</b><small>중요 비율 (수면·업무 제외)</small></div><div><b>${n.focus}</b>개<small>집중 블록 (업무 제외)</small></div>${waste(n, '업무 뺀 기록 중')}`);
-  if (a.covSoFar != null) h += `<div class="tl-note">아직 끝나지 않은 ${still}. 지금까지만 보면 기록률 ${tlPct(a.covSoFar)} · 회사 업무 빼고 ${tlPct(n.covSoFar)}</div>`;
+  h += row('업무·수면 빼고', `<div><span class="tl-num"><b>${tlH1(n.rec)}</b>시간</span><small>기록한 시간</small></div><div><b>${tlPct(n.cov)}</b><small>기록률 (업무·수면 뺀 시간 기준)</small></div><div><b>${tlPct(n.impPct)}</b><small>중요 비율 (수면·업무 제외)</small></div><div><b>${n.focus}</b>개<small>집중 블록 (업무·수면 제외)</small></div>${waste(n, '업무·수면 뺀 기록 중')}`);
+  if (a.covSoFar != null) h += `<div class="tl-note">아직 끝나지 않은 ${still}. 지금까지만 보면 기록률 ${tlPct(a.covSoFar)} · 업무·수면 빼고 ${tlPct(n.covSoFar)}</div>`;
   return h;
 }
 function tlRenderMonth(body) {
