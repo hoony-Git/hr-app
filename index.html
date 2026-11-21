@@ -645,10 +645,25 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-md svg.dial { max-width: 70px; border-radius: 50%; }
   .tl-md.sel svg.dial { outline: 1.5px solid var(--text); outline-offset: 3px; }
   .tl-md.today span { color: var(--text); }
-  #tab-time .tl-gridwrap { max-height: 300px; border: 0; border-top: 1px solid var(--border); border-radius: 0; background: transparent; margin-top: var(--sp-3); }
+  #tab-time .tl-gridwrap { max-height: none; overflow: visible; border: 0; border-top: 1px solid var(--border); border-radius: 0; background: transparent; margin-top: var(--sp-3); }
   .tl-day { display: grid; grid-template-columns: 26px repeat(4, minmax(0, 1fr)); gap: 2px; padding: var(--sp-2) 0; }
   .tl-day .tl-hl { height: 22px; line-height: 22px; }
   .tl-day .tc { height: 22px; border: 0; border-radius: 3px; background: var(--empty-past); }
+  .tl-day .tc { height: 26px; font-style: normal; overflow: hidden; display: flex; align-items: center; }
+  .tl-day .tc span { font-size: var(--fs-2xs); font-weight: 500; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+  .tl-day .tl-hl { height: 26px; line-height: 26px; }
+  .tl-day .tc.auto { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.45) 0 2px, transparent 2px 6px); }
+  .tl-ch { font-size: var(--fs-2xs); color: var(--muted); text-align: left; padding-left: 2px; font-variant-numeric: tabular-nums; }
+  .tl-night { grid-column: 1 / -1; padding: var(--sp-3); font-size: var(--fs-sm); color: var(--muted); background: transparent; border: 1px dashed var(--border); border-radius: var(--radius-cell); }
+  .tl-dhead { position: sticky; z-index: 6; margin: 0 -2px var(--sp-3); padding: var(--sp-2) 2px var(--sp-3); background: var(--bg); border-bottom: 1px solid var(--border); }
+  .tl-back { padding: var(--sp-2) var(--sp-3) var(--sp-2) 0; background: transparent; color: var(--accent-text); font-size: var(--fs-sm); gap: 2px; }
+  .tl-dnav { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+  .tl-dnav button { flex: none; width: 40px; height: 40px; padding: 0; border-radius: 50%; background: var(--surface); color: var(--text); font-size: 20px; }
+  .tl-dtitle { flex: 1; text-align: center; font-size: 26px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; }
+  .tl-dtitle small { font-size: var(--fs-sm); color: var(--accent-text); margin-left: var(--sp-2); font-weight: 500; }
+  .tl-dtot { text-align: center; margin-top: var(--sp-2); font-size: var(--fs-base); color: var(--muted); }
+  .tl-dtot b { color: var(--text); font-weight: 500; }
+  .tl-md span small { font-size: inherit; color: inherit; }
   .tl-wbar { display: grid; grid-template-columns: minmax(60px, 92px) 1fr 36px minmax(58px, auto); gap: var(--sp-3); align-items: center; padding: var(--sp-3) 0; font-size: var(--fs-base); cursor: pointer; border-radius: var(--radius-sm); }
   .tl-wbar .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tl-wbar .b { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
@@ -4890,7 +4905,7 @@ function tlCsv(segs, from, to, cats) {
 // ====================== 시간 기록: 저장 + 화면 ======================
 // 저장 키: time_categories(분류 목록) / time_current(지금 하는 활동) / time_log_YYYY_MM(달별 기록, 시작 시각이 속한 달에 저장).
 // 심박 운동 기록은 읽기만 한다 (자동 기록은 저장하지 않고 화면에 띄울 때마다 계산 -> 심박 데이터·동기화 용량에 영향 없음).
-const TLS = { pane: 'rec', wStart: 0, mY: 0, mM: 0, fill: false, fillA: null, hl: null, sel: null, tickT: null, gridScroll: -1, editing: null };
+const TLS = { pane: 'rec', wStart: 0, mY: 0, mM: 0, fill: false, fillA: null, hl: null, sel: null, tickT: null, editing: null };
 function tlColor(c) { return /^#[0-9a-fA-F]{6}$/.test(c || '') ? c : '#888888'; }   // 동기화로 들어온 값이 화면 스타일을 깨지 못하게
 
 function tlCats() {
@@ -5069,62 +5084,87 @@ function tlRenderWeek(body) {
   if (!TLS.wStart) TLS.wStart = tlWeekStart(now);
   const ws = TLS.wStart, we = ws + 7 * TL_DAY, entries = tlEntriesFor(ws, we, now), segs = tlResolve(entries, now), grid = tlGrid(segs, ws), st = tlStats(segs, ws, we, cats, now);
   if (TLS.wDay == null) TLS.wDay = Math.max(0, Math.min(6, Math.floor((tlDayStart(now) - ws) / TL_DAY)));
-  const D = TLS.wDay;
-  const old = document.getElementById('tlGridWrap'); if (old) TLS.gridScroll = old.scrollTop;
+  const D = TLS.wDay, dayView = TLS.wView === 'day';
   const p0 = tlParts(ws), p1 = tlParts(we - 1);
-  let h = `<div class="tl-wnav"><button data-act="wprev" aria-label="지난주"><i class="ti ti-chevron-left" aria-hidden="true"></i></button><div class="t">${p0.m}월 ${p0.d}일 ~ ${p1.m === p0.m ? '' : p1.m + '월 '}${p1.d}일${ws === tlWeekStart(now) ? ' <small>이번 주</small>' : ''}</div><button data-act="wnext" aria-label="다음주"><i class="ti ti-chevron-right" aria-hidden="true"></i></button></div>`;
-  // 작은 다이얼 7개
-  h += '<div class="tl-minis">';
-  for (let d = 0; d < 7; d++) {
-    const ds = ws + d * TL_DAY, nowIdx = now >= ds + TL_DAY ? 96 : now <= ds ? 0 : Math.floor((now - ds) / 900000);
-    const cells = grid[d].map(c => c ? { color: tlColor(tlCatInfo(cats, c.catId).color), dashed: c.source !== 'manual', dim: !!TLS.hl && c.catId !== TLS.hl } : null);
-    h += `<button class="tl-md${d === D ? ' sel' : ''}${ds === tlDayStart(now) ? ' today' : ''}" data-act="wday" data-d="${d}" aria-pressed="${d === D}" aria-label="${TL_DOW[d]}요일 ${tlParts(ds).d}일 격자 열기">${Dial.svg({ cells, now: nowIdx, labels: false, stroke: 14, r: 88, label: '' })}<span>${TL_DOW[d]}</span></button>`;
-  }
-  h += '</div>';
-  // 고른 날의 15분 격자 (편집: tlCellTap / 채우기 / 강조 그대로)
-  const dsD = ws + D * TL_DAY;
-  h += `<div class="tl-sec">${TL_DOW[D]}요일 ${esc(tlMD(dsD))} · 15분 격자</div>`;
+  const catBar = (r, mx, hTxt, dTxt) => `<div class="tl-wbar${TLS.hl === r.id ? ' hl' : ''}" data-act="hlcat" data-cat="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(r.info.name)} 강조"><span class="n">${esc(r.info.name)}</span><span class="b"><i style="width:${(r.min / mx * 100).toFixed(1)}%;background:${tlColor(r.info.color)}"></i></span><b>${hTxt}</b><small>${esc(dTxt)}</small></div>`;
   const hlBtn = TLS.hl ? (() => { const ci = tlCatInfo(cats, TLS.hl); return `<button class="tl-pill on" data-act="hlclear">${esc(ci.name)} 강조 중 · 해제</button>`; })() : '';
-  if (TLS.fillA != null) {
-    const [fs] = tlCellRange(TLS.fillA);
-    h += `<div class="tl-pills"><button class="tl-pill on" data-act="fillcancel">${esc(TL_DOW[Math.floor(TLS.fillA / 96)])} ${esc(tlHM(fs))}부터 · 끝 칸을 누르세요 (취소)</button>${hlBtn}</div>`;
-  } else h += `<div class="tl-pills"><button class="tl-pill${TLS.fill ? ' on' : ''}" data-act="fill">${TLS.fill ? '채우기 켜짐 · 시작 칸, 끝 칸을 차례로' : '<i class="ti ti-plus" aria-hidden="true"></i> 빈 시간 채우기'}</button>${hlBtn}</div><div class="tl-note">빈 칸을 누르면 바로 시작점이 돼요</div>`;
-  h += '<div class="tl-gridwrap" id="tlGridWrap"><div class="tl-day">';
-  for (let hr = 0; hr < 24; hr++) {
-    h += `<div class="tl-hl">${hr}</div>`;
-    for (let q = 0; q < 4; q++) {
-      const r = hr * 4 + q, c = grid[D][r], i = D * 96 + r;
-      const cls = 'tc' + (c && c.source !== 'manual' ? ' auto' : '') + (TLS.fillA === i ? ' st' : '') + (TLS.sel === i ? ' sel' : '') + (TLS.hl ? (c && c.catId === TLS.hl ? ' hl' : ' dim') : '');
-      h += `<i class="${cls}" data-act="cell" data-i="${i}"${c ? ` style="background:${tlColor(tlCatInfo(cats, c.catId).color)}"` : ''}></i>`;
+  let h = '';
+  if (!dayView) {
+    h += `<div class="tl-wnav"><button data-act="wprev" aria-label="지난주"><i class="ti ti-chevron-left" aria-hidden="true"></i></button><div class="t">${p0.m}월 ${p0.d}일 ~ ${p1.m === p0.m ? '' : p1.m + '월 '}${p1.d}일${ws === tlWeekStart(now) ? ' <small>이번 주</small>' : ''}</div><button data-act="wnext" aria-label="다음주"><i class="ti ti-chevron-right" aria-hidden="true"></i></button></div>`;
+    // 작은 다이얼 7개 → 누르면 그날 하루 보기
+    h += '<div class="tl-minis">';
+    for (let d = 0; d < 7; d++) {
+      const ds = ws + d * TL_DAY, nowIdx = now >= ds + TL_DAY ? 96 : now <= ds ? 0 : Math.floor((now - ds) / 900000);
+      const cells = grid[d].map(c => c ? { color: tlColor(tlCatInfo(cats, c.catId).color), dashed: c.source !== 'manual', dim: !!TLS.hl && c.catId !== TLS.hl } : null);
+      const dm = st.days[tlDayKey(ds)];
+      h += `<button class="tl-md${ds === tlDayStart(now) ? ' today' : ''}" data-act="wday" data-d="${d}" aria-label="${TL_DOW[d]}요일 ${tlParts(ds).d}일 하루 보기, ${dm ? '기록 ' + esc(tlFmtMin(dm.rec).trim()) : '기록 없음'}">${Dial.svg({ cells, now: nowIdx, labels: false, stroke: 14, r: 88, label: '' })}<span>${TL_DOW[d]} <small>${tlParts(ds).d}</small></span></button>`;
+    }
+    h += '</div><div class="tl-note" style="text-align:center">날짜를 누르면 그날 15분 격자를 열어요</div>';
+    if (hlBtn) h += `<div class="tl-pills">${hlBtn}</div>`;
+    // 이번 주 분류별 합계 + 지난주 대비
+    const pws = ws - 7 * TL_DAY, pst = tlStats(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now);
+    const rank = tlRank(st.byCat, cats, st.rec), mx = Math.max(1, ...rank.map(r => r.min));
+    h += '<div class="tl-sec">이번 주 분류별 합계 <small>지난주 대비</small></div>';
+    h += rank.length ? rank.map(r => catBar(r, mx, Math.round(r.min / 60) + 'h', tlDeltaText(r.min - (pst.byCat[r.id] || 0)))).join('')
+      : '<div class="tl-tot empty">이 주에는 기록이 없어요. 날짜를 눌러 그날 빈 칸을 채울 수 있어요</div>';
+    // 한 줄: 가장 많이 빈 날
+    let emptySum = 0, nDays = 0, maxE = -1, maxD = -1;
+    for (let d = 0; d < 7; d++) {
+      const ds = ws + d * TL_DAY; if (ds >= now) continue;
+      let e = 0; for (let r = 0; r < 96; r++) if (ds + (r + 1) * 900000 <= now && !grid[d][r]) e += 15;
+      emptySum += e; nDays++; if (e > maxE) { maxE = e; maxD = d; }
+    }
+    if (nDays) h += `<div class="tl-insight">빈 시간 하루 평균 ${esc(tlFmtMin(emptySum / nDays).trim())}. ${maxE > 0 ? TL_DOW[maxD] + '요일이 가장 많이 비었어요.' : '비어 있는 날이 없어요.'}</div>`;
+    // 나머지 주간 요약 (중요도·집중·전환·기록률) — 접어 둔다
+    const recH = st.rec / 60;
+    h += `<details class="tl-more"${TLS.wMore ? ' open' : ''} ontoggle="TLS.wMore=this.open"><summary><i class="ti ti-chevron-right" aria-hidden="true"></i>중요도 · 집중 · 기록률 보기</summary>`;
+    h += `<div class="tl-blk"><div class="tl-h">중요도 <small>(수면 제외)</small></div>${tlImpRows(st)}</div>`;
+    h += `<div class="tl-blk"><div class="tl-kv"><div><b>${st.focus}</b>개<small>집중 블록 (중요 활동 60분 이상 연속, 수면 제외)</small></div><div><b>${st.switchAvg == null ? '—' : st.switchAvg.toFixed(1)}</b>번<small>하루 평균 전환 횟수 (기록한 ${st.recDays}일 기준)</small></div></div></div>`;
+    h += `<div class="tl-blk"><div class="tl-h">기록률</div><div class="tl-cov"><b>${tlPct(st.cov)}</b> <span>기록 ${recH.toFixed(1)}시간 / 168시간</span></div>${st.covSoFar != null ? `<div class="tl-note">아직 끝나지 않은 주예요. 지금까지만 보면 ${tlPct(st.covSoFar)}</div>` : ''}<div class="tl-note">${st.cov < 0.6 ? '기록이 적어서 이 주의 숫자는 참고용이에요' : '기록이 충분해서 믿고 봐도 돼요'}</div></div></details>`;
+    body.innerHTML = h;
+  } else {
+    // 하루 보기: 큰 날짜 + ‹ › + 그날 합계 (주간 분류별 합계와 같은 tlStats.days 값)
+    const dsD = ws + D * TL_DAY, pD = tlParts(dsD), dd = st.days[tlDayKey(dsD)], isToday = dsD === tlDayStart(now), nowH = tlParts(now).hh;
+    const dayCat = {}; (dd ? dd.pieces : []).forEach(x => { dayCat[x.catId] = (dayCat[x.catId] || 0) + (x.end - x.start) / TL_MIN; });
+    h += `<button class="tl-back" data-act="wback"><i class="ti ti-chevron-left" aria-hidden="true"></i>주간 보기</button><div class="tl-dhead" id="tlDayHead">` +
+      `<div class="tl-dnav"><button data-act="dprev" aria-label="전날"><i class="ti ti-chevron-left" aria-hidden="true"></i></button><h2 class="tl-dtitle" id="tlDayTitle">${pD.m}월 ${pD.d}일 (${TL_DOW[D]})${isToday ? '<small>오늘</small>' : ''}</h2><button data-act="dnext" aria-label="다음날"><i class="ti ti-chevron-right" aria-hidden="true"></i></button></div>` +
+      `<div class="tl-dtot" id="tlDayTotal">${dd ? '기록 <b>' + esc(tlFmtMin(dd.rec).trim()) + '</b>' : '이 날은 기록이 없어요'}</div></div>`;
+    if (TLS.fillA != null) {
+      const [fs] = tlCellRange(TLS.fillA);
+      h += `<div class="tl-pills"><button class="tl-pill on" data-act="fillcancel">${esc(TL_DOW[Math.floor(TLS.fillA / 96)])} ${esc(tlHM(fs))}부터 · 끝 칸을 누르세요 (취소)</button>${hlBtn}</div>`;
+    } else h += `<div class="tl-pills"><button class="tl-pill${TLS.fill ? ' on' : ''}" data-act="fill">${TLS.fill ? '채우기 켜짐 · 시작 칸, 끝 칸을 차례로' : '<i class="ti ti-plus" aria-hidden="true"></i> 빈 시간 채우기'}</button>${hlBtn}</div><div class="tl-note">빈 칸을 누르면 바로 시작점이 돼요</div>`;
+    // 격자: 페이지 흐름 안에 (안쪽 스크롤 없음). 00~06시가 모두 비면 한 줄로 접는다
+    const fold = !TLS.showNight && grid[D].slice(0, 24).every(c => !c) && !(isToday && nowH < 6);
+    h += '<div class="tl-gridwrap" id="tlGridWrap"><div class="tl-day"><span class="tl-ch"></span><span class="tl-ch">:00</span><span class="tl-ch">:15</span><span class="tl-ch">:30</span><span class="tl-ch">:45</span>';
+    if (fold) h += '<button class="tl-night" data-act="night">00~06시 · 기록 없음 <i class="ti ti-chevron-down" aria-hidden="true"></i></button>';
+    for (let hr = fold ? 6 : 0; hr < 24; hr++) {
+      h += `<div class="tl-hl" id="tlH${hr}">${hr}</div>`;
+      for (let q = 0; q < 4; q++) {
+        const r = hr * 4 + q, c = grid[D][r], i = D * 96 + r, prev = r ? grid[D][r - 1] : null;
+        const cls = 'tc' + (c && c.source !== 'manual' ? ' auto' : '') + (TLS.fillA === i ? ' st' : '') + (TLS.sel === i ? ' sel' : '') + (TLS.hl ? (c && c.catId === TLS.hl ? ' hl' : ' dim') : '');
+        const ci = c ? tlCatInfo(cats, c.catId) : null, col = c ? tlColor(ci.color) : '';
+        const first = c && !(prev && prev.catId === c.catId);   // 블록의 첫 칸에만 분류 이름
+        h += `<i class="${cls}" data-act="cell" data-i="${i}"${c ? ` style="background-color:${col};color:${inkOn(col)}"` : ''} aria-label="${tlPad(hr)}:${tlPad(q * 15)} ${c ? esc(ci.name) : '빈 칸'}">${first ? '<span>' + esc(ci.name) + '</span>' : ''}</i>`;
+      }
+    }
+    h += '</div></div>';
+    if (grid[D].some(c => c && c.source !== 'manual')) h += '<div class="tl-legend"><span><i class="tl-dot auto"></i>자동 기록(빗금)</span></div>';
+    h += '<div id="tlCellInfo"></div>';
+    // 그날 분류별 합계 (누르면 강조 — 주간과 같은 동작)
+    const rank = tlRank(dayCat, cats, dd ? dd.rec : 0), mx = Math.max(1, ...rank.map(r => r.min));
+    if (rank.length) h += '<div class="tl-sec">이 날 분류별 합계</div>' + rank.map(r => catBar(r, mx, (r.min / 60).toFixed(1) + 'h', '')).join('');
+    body.innerHTML = h;
+    // 날짜·합계 줄은 위 머리글 바로 아래에 붙어 있게 (스크롤해도 보임)
+    const hd = document.querySelector('header'), dh = document.getElementById('tlDayHead'), topH = hd && getComputedStyle(hd).display !== 'none' ? hd.offsetHeight : 0;
+    dh.style.top = topH + 'px';
+    if (TLS.dScroll) {   // 날을 열거나 바꿨을 때만: 오늘이면 지금 시각, 아니면 첫 기록 쪽으로
+      TLS.dScroll = false;
+      const fr = grid[D].findIndex(Boolean), hr = isToday ? nowH : fr >= 0 ? Math.floor(fr / 4) : -1;
+      const row = hr >= 0 ? document.getElementById('tlH' + Math.max(hr - 1, fold ? 6 : 0)) : null;
+      if (row) window.scrollTo(0, Math.max(0, row.getBoundingClientRect().top + window.scrollY - topH - dh.offsetHeight - 30));   // 30 = 열 머리 자리
+      else window.scrollTo(0, 0);
     }
   }
-  h += '</div></div>';
-  const used = [...new Set(grid[D].filter(Boolean).map(c => c.catId))];
-  h += '<div class="tl-legend">' + used.map(id => { const ci = tlCatInfo(cats, id); return `<span>${tlDot(ci)}${esc(ci.name)}</span>`; }).join('') + (grid[D].some(c => c && c.source !== 'manual') ? '<span><i class="tl-dot auto"></i>자동(빗금)</span>' : '') + '</div>';
-  h += '<div id="tlCellInfo"></div>';
-  // 분류별 합계 + 지난주 대비
-  const pws = ws - 7 * TL_DAY, pst = tlStats(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now);
-  const rank = tlRank(st.byCat, cats, st.rec), mx = Math.max(1, ...rank.map(r => r.min));
-  h += '<div class="tl-sec">분류별 합계 <small>지난주 대비</small></div>';
-  h += rank.length ? rank.map(r => `<div class="tl-wbar${TLS.hl === r.id ? ' hl' : ''}" data-act="hlcat" data-cat="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(r.info.name)} 강조"><span class="n">${esc(r.info.name)}</span><span class="b"><i style="width:${(r.min / mx * 100).toFixed(1)}%;background:${tlColor(r.info.color)}"></i></span><b>${Math.round(r.min / 60)}h</b><small>${esc(tlDeltaText(r.min - (pst.byCat[r.id] || 0)))}</small></div>`).join('')
-    : '<div class="tl-tot empty">이 주에는 기록이 없어요. 격자의 빈 칸을 눌러 채울 수 있어요</div>';
-  // 한 줄: 가장 많이 빈 날
-  let emptySum = 0, nDays = 0, maxE = -1, maxD = -1;
-  for (let d = 0; d < 7; d++) {
-    const ds = ws + d * TL_DAY; if (ds >= now) continue;
-    let e = 0; for (let r = 0; r < 96; r++) if (ds + (r + 1) * 900000 <= now && !grid[d][r]) e += 15;
-    emptySum += e; nDays++; if (e > maxE) { maxE = e; maxD = d; }
-  }
-  if (nDays) h += `<div class="tl-insight">빈 시간 하루 평균 ${esc(tlFmtMin(emptySum / nDays).trim())}. ${maxE > 0 ? TL_DOW[maxD] + '요일이 가장 많이 비었어요.' : '비어 있는 날이 없어요.'}</div>`;
-  // 나머지 주간 요약 (중요도·집중·전환·기록률) — 접어 둔다
-  const recH = st.rec / 60;
-  h += `<details class="tl-more"${TLS.wMore ? ' open' : ''} ontoggle="TLS.wMore=this.open"><summary><i class="ti ti-chevron-right" aria-hidden="true"></i>중요도 · 집중 · 기록률 보기</summary>`;
-  h += `<div class="tl-blk"><div class="tl-h">중요도 <small>(수면 제외)</small></div>${tlImpRows(st)}</div>`;
-  h += `<div class="tl-blk"><div class="tl-kv"><div><b>${st.focus}</b>개<small>집중 블록 (중요 활동 60분 이상 연속, 수면 제외)</small></div><div><b>${st.switchAvg == null ? '—' : st.switchAvg.toFixed(1)}</b>번<small>하루 평균 전환 횟수 (기록한 ${st.recDays}일 기준)</small></div></div></div>`;
-  h += `<div class="tl-blk"><div class="tl-h">기록률</div><div class="tl-cov"><b>${tlPct(st.cov)}</b> <span>기록 ${recH.toFixed(1)}시간 / 168시간</span></div>${st.covSoFar != null ? `<div class="tl-note">아직 끝나지 않은 주예요. 지금까지만 보면 ${tlPct(st.covSoFar)}</div>` : ''}<div class="tl-note">${st.cov < 0.6 ? '기록이 적어서 이 주의 숫자는 참고용이에요' : '기록이 충분해서 믿고 봐도 돼요'}</div></div></details>`;
-  body.innerHTML = h;
-  const wrap = document.getElementById('tlGridWrap');
-  if (wrap) wrap.scrollTop = TLS.gridScroll >= 0 ? TLS.gridScroll : 7 * 24;   // 처음엔 오전 7시쯤부터 보이게
   if (TLS.sel != null) tlShowCellInfo(TLS.sel, grid, entries, cats);
   TLS._grid = grid; TLS._entries = entries;
 }
@@ -5321,8 +5361,8 @@ function tlAct(el) {
       const w = document.getElementById('tlGridWrap');
       if (w && TLS.hl) {
         const f = w.querySelector('.tc.hl');
-        if (f) { w.scrollTop = Math.max(0, f.getBoundingClientRect().top - w.getBoundingClientRect().top + w.scrollTop - 30); w.scrollIntoView({ block: 'center', behavior: 'smooth' }); }   // 그 분류가 처음 나오는 시각으로
-        else toast('이 분류는 이번 주 기록이 없어요');
+        if (f) f.scrollIntoView({ block: 'center', behavior: 'smooth' });   // 그 분류가 처음 나오는 시각으로
+        else toast('이 날은 이 분류 기록이 없어요');
       }
       break;
     }
@@ -5331,7 +5371,10 @@ function tlAct(el) {
     case 'fillcancel': TLS.fillA = null; TLS.fill = false; tlRender(); break;
     case 'fillfrom': TLS.fill = true; TLS.fillA = i; TLS.sel = null; tlRender(); break;
     case 'cell': tlCellTap(i); break;
-    case 'wday': TLS.wDay = Number(el.dataset.d); TLS.sel = null; TLS.gridScroll = -1; tlRender(); break;
+    case 'wday': TLS.wDay = Number(el.dataset.d); TLS.wView = 'day'; TLS.sel = null; TLS.showNight = false; TLS.dScroll = true; tlRender(); break;
+    case 'dprev': case 'dnext': { const d = TLS.wDay + (a === 'dprev' ? -1 : 1); if (d < 0) { TLS.wStart -= 7 * TL_DAY; TLS.wDay = 6; } else if (d > 6) { TLS.wStart += 7 * TL_DAY; TLS.wDay = 0; } else TLS.wDay = d; TLS.sel = null; TLS.showNight = false; TLS.dScroll = true; tlRender(); break; }
+    case 'wback': TLS.wView = 'week'; TLS.sel = null; TLS.fillA = null; TLS.fill = false; tlRender(); window.scrollTo(0, 0); break;
+    case 'night': TLS.showNight = true; tlRender(); break;
     case 'mprev': { const d = new Date(Date.UTC(TLS.mY, TLS.mM - 2, 1)); TLS.mY = d.getUTCFullYear(); TLS.mM = d.getUTCMonth() + 1; tlRender(); break; }
     case 'mnext': { const d = new Date(Date.UTC(TLS.mY, TLS.mM, 1)); TLS.mY = d.getUTCFullYear(); TLS.mM = d.getUTCMonth() + 1; tlRender(); break; }
     case 'csv': tlDownloadCsv(); break;
