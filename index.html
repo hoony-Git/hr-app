@@ -36,6 +36,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     --bg: #161B33; --bg-deep: #03040B; --surface: #1F2645; --surface2: #262D52; --border: #262D52; --border-strong: #3A4270;
     --text: #E8EAF6; --muted: #9AA0C3; --faint: #6F769C;
     --empty-past: #2A3158; --empty-future: #1F2645;
+    --rb-track: #1F2645; --rb-guide: rgba(232,234,246,.16);
     --accent-soft: rgba(94,227,161,.14);
     --tl-none: #2A3158; --row-important: rgba(255,200,87,.07); --index-bar: #262D52; --dot-off: #6F769C;
     --pill-bg-pct: 22%; --pill-fg-pct: 55%; --pill-fg-base: #fff; --on-index: #E8EAF6;
@@ -46,6 +47,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
       --bg: #EEF0F8; --surface: #FFFFFF; --surface2: #E2E5F2; --border: #D5D9EA; --border-strong: #B8BEDA;
       --text: #1A1F3D; --muted: #5A6080; --faint: #8A90AE;
       --empty-past: #D0D5EA; --empty-future: #E6E9F4;
+      --rb-track: #D7DBEC; --rb-guide: rgba(26,31,61,.18);
       --accent-text: #16794A; --tl-yellow-text: #8A5A00; --violet-text: #7A3FD1; --tl-red-text: #B42B2A; --z4-text: #9A4A16;
       --accent-soft: rgba(94,227,161,.18);
       --tl-none: #D0D5EA; --row-important: #FFF6DD; --index-bar: #4256B8;
@@ -57,6 +59,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     --bg: #EEF0F8; --surface: #FFFFFF; --surface2: #E2E5F2; --border: #D5D9EA; --border-strong: #B8BEDA;
     --text: #1A1F3D; --muted: #5A6080; --faint: #8A90AE;
     --empty-past: #D0D5EA; --empty-future: #E6E9F4;
+    --rb-track: #D7DBEC; --rb-guide: rgba(26,31,61,.18);
     --accent-text: #16794A; --tl-yellow-text: #8A5A00; --violet-text: #7A3FD1; --tl-red-text: #B42B2A; --z4-text: #9A4A16;
     --accent-soft: rgba(94,227,161,.18);
     --tl-none: #D0D5EA; --row-important: #FFF6DD; --index-bar: #4256B8;
@@ -486,6 +489,12 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-kv b, .tl-sum b { font-size: 26px; color: var(--text); font-variant-numeric: tabular-nums; }
   .tl-kv small, .tl-sum small { display: block; font-size: var(--fs-xs); margin-top: 3px; line-height: 1.35; }
   .tl-sum b { font-size: 22px; }
+  .tl-sumrow + .tl-sumrow { border-top: 1px solid var(--border); margin-top: var(--sp-4); padding-top: var(--sp-4); }
+  .tl-sumrow .tl-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-4); } .tl-num { white-space: nowrap; }
+  @media (max-width: 360px) { .tl-sumrow .tl-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .tl-subv { display: block; font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 1px; white-space: nowrap; }
+  .tl-sumlab { font-size: var(--fs-xs); color: var(--muted); font-weight: 500; margin-bottom: var(--sp-2); }
+  @media (max-width: 359px) { .tl-sum { flex-wrap: wrap; row-gap: var(--sp-4); } .tl-sum > div { flex: 1 1 40%; } }   /* 좁은 화면: 2×2, 설명 글자를 자르지 않음 */
   .tl-cov b { font-size: 28px; font-variant-numeric: tabular-nums; } .tl-cov span { font-size: var(--fs-base); color: var(--muted); }
   .tl-tbl { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
   .tl-tbl th, .tl-tbl td { padding: var(--sp-2) 2px; text-align: center; border-bottom: 1px solid var(--border); }
@@ -607,7 +616,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   /* 시간 › 지금 */
   .tl-now-h { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-base); color: var(--muted); margin: var(--sp-1) 0 0; }
   .tl-now-h small { font-size: var(--fs-sm); }
-  .tl-now-dial svg.dial, .tl-md svg.dial, .hr-gauge svg.dial, .hrv-dial svg.dial { width: 100%; display: block; }
+  .tl-now-dial svg.dial, .hr-gauge svg.dial, .hrv-dial svg.dial { width: 100%; display: block; }
   .tl-now-dial svg.dial { max-width: 236px; margin: var(--sp-1) auto var(--sp-4); }
   .tl-circles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-1); margin: 0 0 var(--sp-6); }
   .tl-cc { flex-direction: column; gap: 5px; padding: 0; background: transparent; border-radius: 0; font-size: var(--fs-xs); font-weight: 400; color: var(--muted); min-width: 0; }
@@ -636,15 +645,26 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   #tab-time .tl-row { border-bottom: 0; border-top: 1px solid var(--border); }
   .tl-quiet { width: 100%; justify-content: flex-start; padding: var(--sp-5) 0; background: transparent; color: var(--muted); font-size: var(--fs-sm); font-weight: 400; border-radius: 0; border-top: 1px solid var(--border); gap: var(--sp-2); }
   /* 시간 › 주간 */
+  .tl-rbs { margin: 0 0 var(--sp-2); }
+  .tl-rbax, .tl-rbrow { display: grid; grid-template-columns: 38px minmax(0, 1fr) 40px; gap: var(--sp-3); align-items: center; }
+  .tl-rbax .ax { position: relative; height: 16px; }
+  .tl-rbax .ax i { position: absolute; top: 0; transform: translateX(-50%); font-style: normal; font-size: var(--fs-2xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .tl-rbax .ax i:first-child { transform: none; } .tl-rbax .ax i:last-child { transform: translateX(-100%); }
+  .tl-rbrow { width: 100%; padding: 5px 0; background: transparent; border-radius: var(--radius-sm); font-weight: 400; color: var(--muted); }
+  .tl-rbrow .rbl { font-size: var(--fs-sm); text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tl-rbrow.today .rbl { color: var(--text); font-weight: 500; }
+  .tl-rbrow.sel .rbl { color: var(--accent-text); font-weight: 500; }
+  .tl-rbrow .rbt { font-size: var(--fs-sm); text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+  .tl-rb { position: relative; display: block; height: 22px; border-radius: 5px; overflow: hidden; background: var(--rb-track); }
+  .tl-rb i { position: absolute; top: 0; bottom: 0; font-style: normal; }
+  .tl-rb .g { width: 1px; background: var(--rb-guide); }
+  .tl-rb .run { min-width: 3px; }   /* 15분 한 칸도 3px 이상 (지우지 않음) */
+  .tl-rb .run.auto { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.45) 0 2px, transparent 2px 6px); }
+  .tl-rb .run.dim { opacity: .2; }
   .tl-wnav { display: flex; align-items: center; justify-content: space-between; margin: 0 0 var(--sp-3); }
   .tl-wnav button { flex: none; width: 34px; height: 34px; padding: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 18px; }
   .tl-wnav .t { font-size: var(--fs-md); color: var(--muted); }
   .tl-wnav .t small { color: var(--faint); margin-left: var(--sp-1); }
-  .tl-minis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-3); margin: 0 0 var(--sp-2); }
-  .tl-md { flex-direction: column; gap: var(--sp-1); padding: var(--sp-1); background: transparent; border-radius: 50% 50% var(--radius-md) var(--radius-md); font-size: var(--fs-xs); font-weight: 400; color: var(--muted); }
-  .tl-md svg.dial { max-width: 70px; border-radius: 50%; }
-  .tl-md.sel svg.dial { outline: 1.5px solid var(--text); outline-offset: 3px; }
-  .tl-md.today span { color: var(--text); }
   #tab-time .tl-gridwrap { max-height: none; overflow: visible; border: 0; border-top: 1px solid var(--border); border-radius: 0; background: transparent; margin-top: var(--sp-3); }
   .tl-day { display: grid; grid-template-columns: 26px repeat(4, minmax(0, 1fr)); gap: 2px; padding: var(--sp-2) 0; }
   .tl-day .tl-hl { height: 22px; line-height: 22px; }
@@ -663,7 +683,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-dtitle small { font-size: var(--fs-sm); color: var(--accent-text); margin-left: var(--sp-2); font-weight: 500; }
   .tl-dtot { text-align: center; margin-top: var(--sp-2); font-size: var(--fs-base); color: var(--muted); }
   .tl-dtot b { color: var(--text); font-weight: 500; }
-  .tl-md span small { font-size: inherit; color: inherit; }
   .tl-wbar { display: grid; grid-template-columns: minmax(60px, 92px) 1fr 36px minmax(58px, auto); gap: var(--sp-3); align-items: center; padding: var(--sp-3) 0; font-size: var(--fs-base); cursor: pointer; border-radius: var(--radius-sm); }
   .tl-wbar .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tl-wbar .b { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
@@ -4665,7 +4684,7 @@ function bookMapSheet(b, data) {
 const TL_OFF = 9 * 3600000, TL_DAY = 86400000, TL_MIN = 60000;
 const TL_KEY_RE = /^time_log_(\d{4})_(\d{2})$/;
 const TL_IMP = ['중요', '보통', '낭비'];
-const TL_SLEEP = 'sleep', TL_PHONE = 'phone', TL_EXERCISE = 'exercise';
+const TL_SLEEP = 'sleep', TL_PHONE = 'phone', TL_EXERCISE = 'exercise', TL_WORK = 'work';   // 분류는 이름이 아니라 id 로 찾는다 (이름은 바꿀 수 있음)
 const TL_CELL_MIN = 8;   // 15분 칸 안에 기록된 시간이 이보다 짧으면 빈 칸으로 둔다
 const TL_DEFAULT_CATS = [
   { id: 'sleep', name: '수면', emoji: '😴', color: '#5b6bbf', importance: '보통' },
@@ -4761,32 +4780,41 @@ function tlMergeAdj(segs) {   // 맞닿은 같은 분류 조각을 하나로 (�
 }
 
 // 구간 [from,to) 의 통계. segs 는 tlResolve 결과.
-function tlStats(segs, from, to, cats, now) {
-  const cl = tlClip(segs, from, to);
+// excl = 뺄 분류 id 목록 (예: [TL_WORK]). 뺀 분류는 모든 값에서 빠지고, 기록률 분모(구간 시간)에서도 그 시간만큼 뺀다
+function tlStats(segs, from, to, cats, now, excl) {
+  const ex = excl && excl.length ? new Set(excl) : null, all = tlClip(segs, from, to);
+  const cl = ex ? all.filter(s => !ex.has(s.catId)) : all;
+  const exMin = ex ? all.reduce((a, s) => a + (ex.has(s.catId) ? (s.end - s.start) / TL_MIN : 0), 0) : 0;
   const byCat = {}, imp = { '중요': 0, '보통': 0, '낭비': 0 }, days = {};
-  let rec = 0;
+  let rec = 0, waste = 0;
   tlSplitDays(cl).forEach(p => {
     const min = (p.end - p.start) / TL_MIN, info = tlCatInfo(cats, p.catId);
     byCat[p.catId] = (byCat[p.catId] || 0) + min; rec += min;
+    if (info.importance === '낭비') waste += min;   // 분류의 중요도(importance) 값으로 판단 — 이름이 아니라 id 로 찾은 분류의 현재 값
     if (p.catId !== TL_SLEEP) imp[TL_IMP.includes(info.importance) ? info.importance : '보통'] += min;
     const d = days[p.day] || (days[p.day] = { start: tlDayStart(p.start), rec: 0, important: 0, pieces: [] });
     d.rec += min; d.pieces.push(p);
     if (p.catId !== TL_SLEEP && info.importance === '중요') d.important += min;
   });
-  let focus = 0;
-  tlMergeAdj(cl).forEach(s => { if (s.catId !== TL_SLEEP && tlCatInfo(cats, s.catId).importance === '중요' && (s.end - s.start) >= 60 * TL_MIN) focus++; });
+  let focus = 0, focusMin = 0;
+  tlMergeAdj(cl).forEach(s => { if (s.catId !== TL_SLEEP && tlCatInfo(cats, s.catId).importance === '중요' && (s.end - s.start) >= 60 * TL_MIN) { focus++; focusMin += (s.end - s.start) / TL_MIN; } });
   const dk = Object.keys(days);
   const sw = dk.map(k => tlMergeAdj(days[k].pieces).length);
   const impBase = imp['중요'] + imp['보통'] + imp['낭비'];
-  const total = (to - from) / TL_MIN, elapsed = Math.min(to, now) - from;
+  const total = (to - from) / TL_MIN - exMin, elapsed = (Math.min(to, now) - from) / TL_MIN - exMin;
   return {
-    byCat, rec, imp, impBase, days, focus, recDays: dk.length,
+    byCat, rec, imp, impBase, days, focus, focusMin, recDays: dk.length, exMin,
+    impMin: imp['중요'],   // 중요 비율의 분자 (분모 = impBase)
     sleepMin: byCat[TL_SLEEP] || 0,
     switchAvg: sw.length ? sw.reduce((a, b) => a + b, 0) / sw.length : null,
+    impPct: impBase > 0 ? imp['중요'] / impBase : null,   // 중요 비율 (수면 제외, excl 도 제외)
+    wasteMin: waste, wastePct: rec > 0 ? waste / rec : null,   // 낭비 비율 = 낭비 분류 시간 / 기록한 시간 (excl 을 뺀 기록 기준)
     total, cov: total > 0 ? rec / total : 0,
-    covSoFar: (now < to && elapsed > 0) ? rec / (elapsed / TL_MIN) : null,   // 아직 안 끝난 구간: 지금까지만 기준으로 본 기록률
+    covSoFar: (now < to && elapsed > 0) ? rec / elapsed : null,   // 아직 안 끝난 구간: 지금까지만 기준으로 본 기록률
   };
 }
+// 한 줄 요약 두 줄: 전체 / 업무·수면 빼고 (월간·주간이 같이 쓴다). nowork = 업무와 수면을 뺀 줄
+function tlSummary(segs, from, to, cats, now) { return { all: tlStats(segs, from, to, cats, now), nowork: tlStats(segs, from, to, cats, now, [TL_WORK, TL_SLEEP]) }; }
 function tlRank(byCat, cats, base) {
   return Object.keys(byCat).filter(k => byCat[k] > 0).map(k => ({ id: k, info: tlCatInfo(cats, k), min: byCat[k], pct: base > 0 ? byCat[k] / base : 0 })).sort((a, b) => b.min - a.min);
 }
@@ -4813,12 +4841,23 @@ function tlGrid(segs, weekStart) {
     return { catId: bk, id: cell.cats[bk].id, source: cell.cats[bk].source, min: cell.cats[bk].min };
   }));
 }
+// 주간 띠: tlGrid 의 하루 줄(96칸)을 맞닿은 같은 분류·같은 종류(수동/자동) 칸 묶음으로. 칸 계산은 tlGrid 를 그대로 쓴다
+function tlRibbon(day) {
+  const out = [];
+  (day || []).forEach((c, i) => {
+    if (!c) return;
+    const auto = c.source !== 'manual', l = out[out.length - 1];
+    if (l && l.c1 === i - 1 && l.catId === c.catId && l.auto === auto) l.c1 = i;
+    else out.push({ c0: i, c1: i, catId: c.catId, auto });
+  });
+  return out;
+}
 
 // 한 달 보고서. entries 는 (이전 달 비교를 위해) 두 달 전부터 이번 달까지의 기록 + 자동 기록 + 진행 중 기록
 function tlMonthReport(entries, y, m, cats, now) {
   const from = tlMonthStart(y, m), to = tlMonthStart(y, m + 1), pFrom = tlMonthStart(y, m - 1);
   const segs = tlResolve(entries, now);
-  const cur = tlStats(segs, from, to, cats, now), prev = tlStats(segs, pFrom, from, cats, now);
+  const sum = tlSummary(segs, from, to, cats, now), cur = sum.all, prev = tlStats(segs, pFrom, from, cats, now);
   const hasPrev = prev.rec > 0;
   const ids = [...new Set([...Object.keys(cur.byCat), ...Object.keys(prev.byCat)])].filter(k => (cur.byCat[k] || 0) > 0 || (prev.byCat[k] || 0) > 0);
   const rank = ids.map(k => ({ id: k, info: tlCatInfo(cats, k), min: cur.byCat[k] || 0, pct: cur.rec > 0 ? (cur.byCat[k] || 0) / cur.rec : 0, delta: hasPrev ? (cur.byCat[k] || 0) - (prev.byCat[k] || 0) : null })).sort((a, b) => b.min - a.min || (b.delta || 0) - (a.delta || 0));
@@ -4853,7 +4892,7 @@ function tlMonthReport(entries, y, m, cats, now) {
     from, to, cur, prev, hasPrev, rank, weeks, weekday, rhythmCat, topDays, lowCov: lowCov.slice(0, 3),
     avgSleepH: cur.recDays ? cur.sleepMin / cur.recDays / 60 : null,
     avgPhoneH: cur.recDays ? (cur.byCat[TL_PHONE] || 0) / cur.recDays / 60 : null,
-    impPct: cur.impBase > 0 ? cur.imp['중요'] / cur.impBase : null,
+    impPct: cur.impPct, nowork: sum.nowork,
     segs,
   };
 }
@@ -5073,7 +5112,8 @@ function tlRenderRec(body) {
   TLS._dialAt = now;
 }
 
-// ---------- 주간 (작은 다이얼 7개 → 누르면 그날 15분 격자) ----------
+// ---------- 주간 (하루 띠 7줄 → 누르면 그날 15분 격자) ----------
+function tlPpText(d) { const n = Math.round(d * 100); return (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n) + '%p'; }   // 비율 차이 (%p)
 function tlDeltaText(d) {   // 지난주 대비 (10분 단위로 반올림)
   const m = Math.round(d / 10) * 10;
   if (!m) return '같음';
@@ -5082,7 +5122,7 @@ function tlDeltaText(d) {   // 지난주 대비 (10분 단위로 반올림)
 function tlRenderWeek(body) {
   const cats = tlCats(), now = Date.now();
   if (!TLS.wStart) TLS.wStart = tlWeekStart(now);
-  const ws = TLS.wStart, we = ws + 7 * TL_DAY, entries = tlEntriesFor(ws, we, now), segs = tlResolve(entries, now), grid = tlGrid(segs, ws), st = tlStats(segs, ws, we, cats, now);
+  const ws = TLS.wStart, we = ws + 7 * TL_DAY, entries = tlEntriesFor(ws, we, now), segs = tlResolve(entries, now), grid = tlGrid(segs, ws), sm = tlSummary(segs, ws, we, cats, now), st = sm.all;
   if (TLS.wDay == null) TLS.wDay = Math.max(0, Math.min(6, Math.floor((tlDayStart(now) - ws) / TL_DAY)));
   const D = TLS.wDay, dayView = TLS.wView === 'day';
   const p0 = tlParts(ws), p1 = tlParts(we - 1);
@@ -5091,19 +5131,21 @@ function tlRenderWeek(body) {
   let h = '';
   if (!dayView) {
     h += `<div class="tl-wnav"><button data-act="wprev" aria-label="지난주"><i class="ti ti-chevron-left" aria-hidden="true"></i></button><div class="t">${p0.m}월 ${p0.d}일 ~ ${p1.m === p0.m ? '' : p1.m + '월 '}${p1.d}일${ws === tlWeekStart(now) ? ' <small>이번 주</small>' : ''}</div><button data-act="wnext" aria-label="다음주"><i class="ti ti-chevron-right" aria-hidden="true"></i></button></div>`;
-    // 작은 다이얼 7개 → 누르면 그날 하루 보기
-    h += '<div class="tl-minis">';
+    // 하루 띠 7줄 (96칸 = tlGrid 그대로) → 줄을 누르면 그날 하루 보기
+    h += '<div class="tl-rbs"><div class="tl-rbax" aria-hidden="true"><span></span><span class="ax">' + [0, 6, 12, 18, 24].map(x => `<i style="left:${x / 24 * 100}%">${x}</i>`).join('') + '</span><span></span></div>';
     for (let d = 0; d < 7; d++) {
-      const ds = ws + d * TL_DAY, nowIdx = now >= ds + TL_DAY ? 96 : now <= ds ? 0 : Math.floor((now - ds) / 900000);
-      const cells = grid[d].map(c => c ? { color: tlColor(tlCatInfo(cats, c.catId).color), dashed: c.source !== 'manual', dim: !!TLS.hl && c.catId !== TLS.hl } : null);
-      const dm = st.days[tlDayKey(ds)];
-      h += `<button class="tl-md${ds === tlDayStart(now) ? ' today' : ''}" data-act="wday" data-d="${d}" aria-label="${TL_DOW[d]}요일 ${tlParts(ds).d}일 하루 보기, ${dm ? '기록 ' + esc(tlFmtMin(dm.rec).trim()) : '기록 없음'}">${Dial.svg({ cells, now: nowIdx, labels: false, stroke: 14, r: 88, label: '' })}<span>${TL_DOW[d]} <small>${tlParts(ds).d}</small></span></button>`;
+      const ds = ws + d * TL_DAY, pd = tlParts(ds), dm = st.days[tlDayKey(ds)];
+      const runs = tlRibbon(grid[d]).map(r => { const col = tlColor(tlCatInfo(cats, r.catId).color); return `<i class="run${r.auto ? ' auto' : ''}${TLS.hl && r.catId !== TLS.hl ? ' dim' : ''}" style="left:${(r.c0 / 96 * 100).toFixed(3)}%;width:${((r.c1 - r.c0 + 1) / 96 * 100).toFixed(3)}%;background-color:${col}"></i>`; }).join('');
+      h += `<button class="tl-rbrow${ds === tlDayStart(now) ? ' today' : ''}${d === D ? ' sel' : ''}" data-act="wday" data-d="${d}" aria-label="${pd.m}월 ${pd.d}일 ${TL_DOW[d]}요일, ${dm ? esc(tlFmtMin(dm.rec).trim()) + ' 기록' : '기록 없음'}">` +
+        `<span class="rbl">${TL_DOW[d]} ${pd.d}</span><span class="tl-rb"><i class="g" style="left:25%"></i><i class="g" style="left:50%"></i><i class="g" style="left:75%"></i>${runs}</span><span class="rbt">${dm ? (dm.rec / 60).toFixed(1) + 'h' : ''}</span></button>`;
     }
-    h += '</div><div class="tl-note" style="text-align:center">날짜를 누르면 그날 15분 격자를 열어요</div>';
+    h += '</div><div class="tl-note" style="text-align:center">줄을 누르면 그날 15분 격자를 열어요</div>';
     if (hlBtn) h += `<div class="tl-pills">${hlBtn}</div>`;
     // 이번 주 분류별 합계 + 지난주 대비
-    const pws = ws - 7 * TL_DAY, pst = tlStats(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now);
+    const pws = ws - 7 * TL_DAY, psm = tlSummary(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now), pst = psm.all;
     const rank = tlRank(st.byCat, cats, st.rec), mx = Math.max(1, ...rank.map(r => r.min));
+    // 이번 주 한 줄 요약 (월간과 같은 tlSummary·tlSumHtml, 기간만 이 주)
+    h += `<div class="card tl-sumw" id="tlWeekSum"><div class="tl-h">한 줄 요약</div>${tlSumHtml(sm, 7, '주예요')}${pst.rec > 0 ? `<div class="tl-note" id="tlWeekNwDelta">업무·수면 빼고 기록한 시간, 지난주 대비 ${esc(tlDeltaText(sm.nowork.rec - psm.nowork.rec))}${sm.nowork.wastePct != null && psm.nowork.wastePct != null ? ' · 낭비 지난주 대비 ' + tlPpText(sm.nowork.wastePct - psm.nowork.wastePct) : ''}</div>` : ''}</div>`;
     h += '<div class="tl-sec">이번 주 분류별 합계 <small>지난주 대비</small></div>';
     h += rank.length ? rank.map(r => catBar(r, mx, Math.round(r.min / 60) + 'h', tlDeltaText(r.min - (pst.byCat[r.id] || 0)))).join('')
       : '<div class="tl-tot empty">이 주에는 기록이 없어요. 날짜를 눌러 그날 빈 칸을 채울 수 있어요</div>';
@@ -5201,6 +5243,24 @@ function tlCellTap(i) {
 }
 
 // ---------- 월간 보고 ----------
+// ① 한 줄 요약 두 줄 (월간·주간이 같이 씀). sm = tlSummary 결과, days = 구간 일수, still = '달이에요' / '주예요'
+// ① 한 줄 요약 두 줄 (월간·주간이 같이 씀). sm = tlSummary 결과, days = 구간 일수, still = '달이에요' / '주예요'
+// 칸 = 큰 숫자 → 작은 짝 값(같은 tlStats 결과의 분자·분모 시간) → 설명
+function tlSumHtml(sm, days, still) {
+  const a = sm.all, n = sm.nowork;
+  const den = m => tlH1(m).replace(/\.0$/, '');   // 기록률 분모: 168시간·720시간처럼 딱 떨어지면 .0 없이
+  const sub = t => `<span class="tl-subv">${t}</span>`;
+  const cells = (x, c) => `<div><span class="tl-num"><b>${tlH1(x.rec)}</b>시간</span><small>기록한 시간</small></div>` +
+    `<div><b>${tlPct(x.cov)}</b>${sub(tlH1(x.rec) + ' / ' + den(x.total) + '시간')}<small>${c.cov}</small></div>` +
+    `<div><b>${tlPct(x.impPct)}</b>${sub(tlH1(x.impMin) + '시간')}<small>${c.imp}</small></div>` +
+    `<div><span class="tl-num"><b>${x.focus}</b>개</span>${sub(tlH1(x.focusMin) + '시간')}<small>${c.focus}</small></div>` +
+    `<div><b>${tlPct(x.wastePct)}</b>${sub(tlH1(x.wasteMin) + '시간')}<small>${c.waste}</small></div>`;
+  const row = (lab, html) => `<div class="tl-sumrow"><div class="tl-sumlab">${lab}</div><div class="tl-sum">${html}</div></div>`;
+  let h = row('전체', cells(a, { cov: `기록률 (${days}일 × 24시간 기준)`, imp: '중요 비율 (수면 제외)', focus: '집중 블록', waste: '낭비 (기록한 시간 중)' }));
+  h += row('업무·수면 빼고', cells(n, { cov: '기록률 (업무·수면 뺀 시간 기준)', imp: '중요 비율 (수면·업무 제외)', focus: '집중 블록 (업무·수면 제외)', waste: '낭비 (업무·수면 뺀 기록 중)' }));
+  if (a.covSoFar != null) h += `<div class="tl-note">아직 끝나지 않은 ${still}. 지금까지만 보면 기록률 ${tlPct(a.covSoFar)} · 업무·수면 빼고 ${tlPct(n.covSoFar)}</div>`;
+  return h;
+}
 function tlRenderMonth(body) {
   const cats = tlCats(), now = Date.now();
   if (!TLS.mY) { const p = tlParts(now); TLS.mY = p.y; TLS.mM = p.m; }
@@ -5211,7 +5271,7 @@ function tlRenderMonth(body) {
   h += `<div class="tl-print-title">시간 기록 월간 보고 — ${y}년 ${m}월</div><div id="tlReport">`;
   if (!st.rec) { body.innerHTML = h + '<div class="card empty-hist">이 달에는 기록이 없어요</div></div>'; return; }
   const days = (to - from) / TL_DAY;
-  h += `<div class="card"><div class="tl-h">① 한 줄 요약</div><div class="tl-sum"><div><b>${tlH1(st.rec)}</b>시간<small>기록한 시간</small></div><div><b>${tlPct(st.cov)}</b><small>기록률 (${days}일 × 24시간 기준)</small></div><div><b>${tlPct(rep.impPct)}</b><small>중요 비율 (수면 제외)</small></div><div><b>${st.focus}</b>개<small>집중 블록</small></div></div>${st.covSoFar != null ? `<div class="tl-note">아직 끝나지 않은 달이에요. 지금까지만 보면 기록률 ${tlPct(st.covSoFar)}</div>` : ''}</div>`;
+  h += `<div class="card"><div class="tl-h">① 한 줄 요약</div>${tlSumHtml({ all: st, nowork: rep.nowork }, days, '달이에요')}</div>`;
   h += `<div class="card"><div class="tl-h">② 분류별 시간 <small>(지난달 대비)</small></div>${rep.hasPrev ? '' : '<div class="tl-note">이전 달 자료 없음 — 비교는 표시하지 않아요</div>'}${tlBars(rep.rank, true)}</div>`;
   h += `<div class="card"><div class="tl-h">③ 주별 중요도 <small>(시간, 수면 제외)</small></div><table class="tl-tbl"><tr><th>주</th><th>중요</th><th>보통</th><th>낭비</th></tr>${rep.weeks.map(w => `<tr><td>${esc(w.label)}</td><td>${tlH1(w.imp['중요'])}</td><td>${tlH1(w.imp['보통'])}</td><td>${tlH1(w.imp['낭비'])}</td></tr>`).join('')}</table><div class="tl-note">달에 걸친 주는 이 달에 속한 날만 셌어요</div></div>`;
   h += `<div class="card"><div class="tl-h">④ 요일별 평균 <small>(시간, 그 요일에 기록한 날 기준)</small></div><table class="tl-tbl"><tr><th></th>${TL_DOW.map(d => `<th>${d}</th>`).join('')}</tr>${rep.weekday.map(r => `<tr><td class="l">${tlDot(r.info)}${esc(r.info.name)}</td>${r.avg.map(v => `<td>${v == null ? '·' : v.toFixed(1)}</td>`).join('')}</tr>`).join('')}</table></div>`;
