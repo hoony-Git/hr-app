@@ -297,5 +297,42 @@ t('주간 요약: 주를 옮기면 다시 계산 (지난주 · 업무 없는 주
   near(cur.all.rec, 60); assert(cur.all.covSoFar != null && cur.nowork.covSoFar != null, '진행 중인 주: 지금까지 값');
   sameSum(pick(cur.nowork), handSum(SUMES, cw, cw + 7 * T.TL_DAY, SUMNOW, cats, true), '이번 주 업무 빼고');
 });
+// ---- 낭비 비율: 분류의 importance === '낭비' 인 시간 / 기록한 시간 (업무 빼고 줄은 업무 뺀 기록 기준) ----
+function handWaste(es, from, to, now, cs, noWork) {   // 분 단위로 직접 칠해 계산 (앱 함수 안 씀)
+  const imp = id => (cs.find(c => c.id === id) || {}).importance, end = Math.min(to, now);
+  let rec = 0, waste = 0;
+  for (let t = from; t < end; t += 60000) {
+    let best = null;
+    es.forEach(e => { const ee = e.end == null ? now : e.end; if (e.start <= t && t < ee) { const pri = e.source === 'manual' ? 1 : 0; if (!best || pri > best.pri || (pri === best.pri && e.start > best.e.start)) best = { e, pri }; } });
+    const c = best && best.e.catId; if (!c || (noWork && c === 'work')) continue;
+    rec++; if (imp(c) === '낭비') waste++;
+  }
+  return { wasteMin: waste, wastePct: rec ? waste / rec : null };
+}
+t('낭비 비율: 월·주 × 전체·업무 빼고 = 따로 계산한 값', () => {
+  const rep = T.tlMonthReport(SUMES, 2026, 11, cats, SUMNOW), from = T.tlMonthStart(2026, 11), to = T.tlMonthStart(2026, 12);
+  [[rep.cur, false], [rep.nowork, true]].forEach(([st, nw]) => { const h = handWaste(SUMES, from, to, SUMNOW, cats, nw); near(st.wasteMin, h.wasteMin, '월 ' + nw); near(st.wastePct, h.wastePct, '월 % ' + nw); });
+  near(rep.cur.wasteMin, 60, '유튜브 1시간'); near(rep.cur.wastePct, 60 / rep.cur.rec); near(rep.nowork.wastePct, 60 / (rep.cur.rec - 16 * 60), '업무 뺀 기록 기준');
+  const ws = T.tlWeekStart(K(2026, 11, 4, 12)), sm = T.tlSummary(segsSum, ws, ws + 7 * T.TL_DAY, cats, SUMNOW);
+  [[sm.all, false], [sm.nowork, true]].forEach(([st, nw]) => { const h = handWaste(SUMES, ws, ws + 7 * T.TL_DAY, SUMNOW, cats, nw); near(st.wasteMin, h.wasteMin); near(st.wastePct, h.wastePct, '주 % ' + nw); });
+});
+t('낭비 비율: 낭비 분류 이름을 바꿔도 같음 (id 로 찾음)', () => {
+  const renamed = cats.map(c => c.id === 'youtube' ? Object.assign({}, c, { name: '영상(바꾼 이름)' }) : c);
+  const a = T.tlMonthReport(SUMES, 2026, 11, cats, SUMNOW), b = T.tlMonthReport(SUMES, 2026, 11, renamed, SUMNOW);
+  assert.strictEqual(b.cur.wastePct, a.cur.wastePct); assert.strictEqual(b.nowork.wastePct, a.nowork.wastePct);
+});
+t('낭비 비율: 분류의 낭비 표시를 바꾸면 지난 기간 값도 바뀜 (분류 속성이라 기록에 저장되지 않음)', () => {
+  const off = cats.map(c => c.id === 'youtube' ? Object.assign({}, c, { importance: '보통' }) : c);
+  const on = cats.map(c => c.id === 'rest' ? Object.assign({}, c, { importance: '낭비' }) : c);
+  const base = T.tlMonthReport(SUMES, 2026, 11, cats, SUMNOW).cur;
+  near(T.tlMonthReport(SUMES, 2026, 11, off, SUMNOW).cur.wasteMin, 0, '유튜브 낭비 해제 → 0');
+  near(T.tlMonthReport(SUMES, 2026, 11, on, SUMNOW).cur.wasteMin, base.wasteMin + 40, '휴식을 낭비로 → +40분');
+});
+t('낭비 비율: 낭비 시간이 없는 기간 → 0% (기록이 없으면 —)', () => {
+  const oct = T.tlMonthReport(SUMES, 2026, 10, cats, SUMNOW);   // 10월: dev 뿐
+  assert(oct.cur.rec > 0); assert.strictEqual(oct.cur.wastePct, 0); assert.strictEqual(oct.nowork.wastePct, 0);
+  const empty = T.tlSummary(segsSum, T.tlWeekStart(K(2026, 11, 11, 12)), T.tlWeekStart(K(2026, 11, 11, 12)) + 7 * T.TL_DAY, cats, SUMNOW);
+  assert.strictEqual(empty.all.rec, 0); assert.strictEqual(empty.all.wastePct, null, '기록 없는 주');
+});
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
 process.exit(fail ? 1 : 0);
