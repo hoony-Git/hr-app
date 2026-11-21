@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path'), assert = require('assert');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const m = html.match(/\/\* TL-CORE-BEGIN \*\/([\s\S]*?)\/\* TL-CORE-END \*\//);
 if (!m) { console.error('TL-CORE 구간을 찾지 못했습니다'); process.exit(2); }
-const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj'];
+const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj'];
 const T = new Function(m[1] + '\nreturn {' + names.join(',') + '};')();
 const cats = T.TL_DEFAULT_CATS.map((c, i) => Object.assign({ order: i, archived: false }, c));
 const K = (y, mo, d, h = 0, mi = 0) => Date.UTC(y, mo - 1, d, h, mi) - 9 * 3600000;   // 한국 시간 -> epoch
@@ -198,6 +198,31 @@ t('하루 격자 = 분류별 합계의 그날 합 (한국 자정·달 경계·�
   }
   near(Object.values(st.byCat).reduce((a, b) => a + b, 0), want.reduce((a, b) => a + b, 0), '분류별 합계 = 날 합의 합');
   near(st.byCat.work, 40 * 60, '회사 업무 40h');
+});
+t('주간 띠의 칸 = 하루 격자의 칸 (자정·달 경계·자동·15분 한 칸·진행 중)', () => {
+  // 주 2026-10-26(월)~11-01(일)
+  const now = K(2026, 11, 1, 10, 0), ws = T.tlWeekStart(now);
+  const es = [
+    E('m', K(2026, 10, 31, 22), K(2026, 11, 1, 2), 'sleep'),               // 달·자정 넘김
+    E('one', K(2026, 10, 27, 13, 15), K(2026, 10, 27, 13, 30), 'study'),   // 15분 한 칸
+    E('w', K(2026, 10, 27, 9), K(2026, 10, 27, 12), 'work'),
+    E('a', K(2026, 10, 28, 18), K(2026, 10, 28, 19), 'exercise', 'auto-hr'),   // 자동
+    E('b', K(2026, 10, 28, 19), K(2026, 10, 28, 19, 30), 'exercise'),          // 자동 바로 뒤 같은 분류 수동 → 다른 묶음
+    E('cur', K(2026, 11, 1, 9), null, 'study'),                                 // 진행 중 → 지금까지
+  ];
+  const g = T.tlGrid(T.tlResolve(es, now), ws);
+  for (let d = 0; d < 7; d++) {
+    const runs = T.tlRibbon(g[d]), cells = new Array(96).fill(null);
+    runs.forEach(r => { for (let i = r.c0; i <= r.c1; i++) { assert(cells[i] === null, '겹침 ' + d + ':' + i); cells[i] = r.catId + (r.auto ? '*' : ''); } });
+    assert.deepStrictEqual(cells, g[d].map(c => c ? c.catId + (c.source !== 'manual' ? '*' : '') : null), '날 ' + d);
+  }
+  const tue = T.tlRibbon(g[1]);
+  assert(tue.some(r => r.catId === 'study' && r.c0 === 53 && r.c1 === 53), '15분 한 칸이 묶음으로 남음');
+  const wed = T.tlRibbon(g[2]);
+  assert.deepStrictEqual(wed.map(r => [r.c0, r.c1, r.auto]), [[72, 75, true], [76, 77, false]], '자동/수동 따로');
+  const sun = T.tlRibbon(g[6]);
+  assert.deepStrictEqual(sun.map(r => [r.catId, r.c0, r.c1]), [['sleep', 0, 7], ['study', 36, 39]], '자정 넘김 + 진행 중은 지금(10:00)까지');
+  assert.deepStrictEqual(T.tlRibbon(g[5]).map(r => [r.catId, r.c0, r.c1]), [['sleep', 88, 95]], '10/31 22~24시');
 });
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
 process.exit(fail ? 1 : 0);

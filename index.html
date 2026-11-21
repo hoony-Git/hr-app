@@ -36,6 +36,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     --bg: #161B33; --bg-deep: #03040B; --surface: #1F2645; --surface2: #262D52; --border: #262D52; --border-strong: #3A4270;
     --text: #E8EAF6; --muted: #9AA0C3; --faint: #6F769C;
     --empty-past: #2A3158; --empty-future: #1F2645;
+    --rb-track: #1F2645; --rb-guide: rgba(232,234,246,.16);
     --accent-soft: rgba(94,227,161,.14);
     --tl-none: #2A3158; --row-important: rgba(255,200,87,.07); --index-bar: #262D52; --dot-off: #6F769C;
     --pill-bg-pct: 22%; --pill-fg-pct: 55%; --pill-fg-base: #fff; --on-index: #E8EAF6;
@@ -46,6 +47,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
       --bg: #EEF0F8; --surface: #FFFFFF; --surface2: #E2E5F2; --border: #D5D9EA; --border-strong: #B8BEDA;
       --text: #1A1F3D; --muted: #5A6080; --faint: #8A90AE;
       --empty-past: #D0D5EA; --empty-future: #E6E9F4;
+      --rb-track: #D7DBEC; --rb-guide: rgba(26,31,61,.18);
       --accent-text: #16794A; --tl-yellow-text: #8A5A00; --violet-text: #7A3FD1; --tl-red-text: #B42B2A; --z4-text: #9A4A16;
       --accent-soft: rgba(94,227,161,.18);
       --tl-none: #D0D5EA; --row-important: #FFF6DD; --index-bar: #4256B8;
@@ -57,6 +59,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     --bg: #EEF0F8; --surface: #FFFFFF; --surface2: #E2E5F2; --border: #D5D9EA; --border-strong: #B8BEDA;
     --text: #1A1F3D; --muted: #5A6080; --faint: #8A90AE;
     --empty-past: #D0D5EA; --empty-future: #E6E9F4;
+    --rb-track: #D7DBEC; --rb-guide: rgba(26,31,61,.18);
     --accent-text: #16794A; --tl-yellow-text: #8A5A00; --violet-text: #7A3FD1; --tl-red-text: #B42B2A; --z4-text: #9A4A16;
     --accent-soft: rgba(94,227,161,.18);
     --tl-none: #D0D5EA; --row-important: #FFF6DD; --index-bar: #4256B8;
@@ -607,7 +610,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   /* 시간 › 지금 */
   .tl-now-h { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-base); color: var(--muted); margin: var(--sp-1) 0 0; }
   .tl-now-h small { font-size: var(--fs-sm); }
-  .tl-now-dial svg.dial, .tl-md svg.dial, .hr-gauge svg.dial, .hrv-dial svg.dial { width: 100%; display: block; }
+  .tl-now-dial svg.dial, .hr-gauge svg.dial, .hrv-dial svg.dial { width: 100%; display: block; }
   .tl-now-dial svg.dial { max-width: 236px; margin: var(--sp-1) auto var(--sp-4); }
   .tl-circles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-1); margin: 0 0 var(--sp-6); }
   .tl-cc { flex-direction: column; gap: 5px; padding: 0; background: transparent; border-radius: 0; font-size: var(--fs-xs); font-weight: 400; color: var(--muted); min-width: 0; }
@@ -636,15 +639,26 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   #tab-time .tl-row { border-bottom: 0; border-top: 1px solid var(--border); }
   .tl-quiet { width: 100%; justify-content: flex-start; padding: var(--sp-5) 0; background: transparent; color: var(--muted); font-size: var(--fs-sm); font-weight: 400; border-radius: 0; border-top: 1px solid var(--border); gap: var(--sp-2); }
   /* 시간 › 주간 */
+  .tl-rbs { margin: 0 0 var(--sp-2); }
+  .tl-rbax, .tl-rbrow { display: grid; grid-template-columns: 38px minmax(0, 1fr) 40px; gap: var(--sp-3); align-items: center; }
+  .tl-rbax .ax { position: relative; height: 16px; }
+  .tl-rbax .ax i { position: absolute; top: 0; transform: translateX(-50%); font-style: normal; font-size: var(--fs-2xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .tl-rbax .ax i:first-child { transform: none; } .tl-rbax .ax i:last-child { transform: translateX(-100%); }
+  .tl-rbrow { width: 100%; padding: 5px 0; background: transparent; border-radius: var(--radius-sm); font-weight: 400; color: var(--muted); }
+  .tl-rbrow .rbl { font-size: var(--fs-sm); text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tl-rbrow.today .rbl { color: var(--text); font-weight: 500; }
+  .tl-rbrow.sel .rbl { color: var(--accent-text); font-weight: 500; }
+  .tl-rbrow .rbt { font-size: var(--fs-sm); text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+  .tl-rb { position: relative; display: block; height: 22px; border-radius: 5px; overflow: hidden; background: var(--rb-track); }
+  .tl-rb i { position: absolute; top: 0; bottom: 0; font-style: normal; }
+  .tl-rb .g { width: 1px; background: var(--rb-guide); }
+  .tl-rb .run { min-width: 3px; }   /* 15분 한 칸도 3px 이상 (지우지 않음) */
+  .tl-rb .run.auto { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.45) 0 2px, transparent 2px 6px); }
+  .tl-rb .run.dim { opacity: .2; }
   .tl-wnav { display: flex; align-items: center; justify-content: space-between; margin: 0 0 var(--sp-3); }
   .tl-wnav button { flex: none; width: 34px; height: 34px; padding: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 18px; }
   .tl-wnav .t { font-size: var(--fs-md); color: var(--muted); }
   .tl-wnav .t small { color: var(--faint); margin-left: var(--sp-1); }
-  .tl-minis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-3); margin: 0 0 var(--sp-2); }
-  .tl-md { flex-direction: column; gap: var(--sp-1); padding: var(--sp-1); background: transparent; border-radius: 50% 50% var(--radius-md) var(--radius-md); font-size: var(--fs-xs); font-weight: 400; color: var(--muted); }
-  .tl-md svg.dial { max-width: 70px; border-radius: 50%; }
-  .tl-md.sel svg.dial { outline: 1.5px solid var(--text); outline-offset: 3px; }
-  .tl-md.today span { color: var(--text); }
   #tab-time .tl-gridwrap { max-height: none; overflow: visible; border: 0; border-top: 1px solid var(--border); border-radius: 0; background: transparent; margin-top: var(--sp-3); }
   .tl-day { display: grid; grid-template-columns: 26px repeat(4, minmax(0, 1fr)); gap: 2px; padding: var(--sp-2) 0; }
   .tl-day .tl-hl { height: 22px; line-height: 22px; }
@@ -663,7 +677,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-dtitle small { font-size: var(--fs-sm); color: var(--accent-text); margin-left: var(--sp-2); font-weight: 500; }
   .tl-dtot { text-align: center; margin-top: var(--sp-2); font-size: var(--fs-base); color: var(--muted); }
   .tl-dtot b { color: var(--text); font-weight: 500; }
-  .tl-md span small { font-size: inherit; color: inherit; }
   .tl-wbar { display: grid; grid-template-columns: minmax(60px, 92px) 1fr 36px minmax(58px, auto); gap: var(--sp-3); align-items: center; padding: var(--sp-3) 0; font-size: var(--fs-base); cursor: pointer; border-radius: var(--radius-sm); }
   .tl-wbar .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tl-wbar .b { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
@@ -4813,6 +4826,17 @@ function tlGrid(segs, weekStart) {
     return { catId: bk, id: cell.cats[bk].id, source: cell.cats[bk].source, min: cell.cats[bk].min };
   }));
 }
+// 주간 띠: tlGrid 의 하루 줄(96칸)을 맞닿은 같은 분류·같은 종류(수동/자동) 칸 묶음으로. 칸 계산은 tlGrid 를 그대로 쓴다
+function tlRibbon(day) {
+  const out = [];
+  (day || []).forEach((c, i) => {
+    if (!c) return;
+    const auto = c.source !== 'manual', l = out[out.length - 1];
+    if (l && l.c1 === i - 1 && l.catId === c.catId && l.auto === auto) l.c1 = i;
+    else out.push({ c0: i, c1: i, catId: c.catId, auto });
+  });
+  return out;
+}
 
 // 한 달 보고서. entries 는 (이전 달 비교를 위해) 두 달 전부터 이번 달까지의 기록 + 자동 기록 + 진행 중 기록
 function tlMonthReport(entries, y, m, cats, now) {
@@ -5091,15 +5115,15 @@ function tlRenderWeek(body) {
   let h = '';
   if (!dayView) {
     h += `<div class="tl-wnav"><button data-act="wprev" aria-label="지난주"><i class="ti ti-chevron-left" aria-hidden="true"></i></button><div class="t">${p0.m}월 ${p0.d}일 ~ ${p1.m === p0.m ? '' : p1.m + '월 '}${p1.d}일${ws === tlWeekStart(now) ? ' <small>이번 주</small>' : ''}</div><button data-act="wnext" aria-label="다음주"><i class="ti ti-chevron-right" aria-hidden="true"></i></button></div>`;
-    // 작은 다이얼 7개 → 누르면 그날 하루 보기
-    h += '<div class="tl-minis">';
+    // 하루 띠 7줄 (96칸 = tlGrid 그대로) → 줄을 누르면 그날 하루 보기
+    h += '<div class="tl-rbs"><div class="tl-rbax" aria-hidden="true"><span></span><span class="ax">' + [0, 6, 12, 18, 24].map(x => `<i style="left:${x / 24 * 100}%">${x}</i>`).join('') + '</span><span></span></div>';
     for (let d = 0; d < 7; d++) {
-      const ds = ws + d * TL_DAY, nowIdx = now >= ds + TL_DAY ? 96 : now <= ds ? 0 : Math.floor((now - ds) / 900000);
-      const cells = grid[d].map(c => c ? { color: tlColor(tlCatInfo(cats, c.catId).color), dashed: c.source !== 'manual', dim: !!TLS.hl && c.catId !== TLS.hl } : null);
-      const dm = st.days[tlDayKey(ds)];
-      h += `<button class="tl-md${ds === tlDayStart(now) ? ' today' : ''}" data-act="wday" data-d="${d}" aria-label="${TL_DOW[d]}요일 ${tlParts(ds).d}일 하루 보기, ${dm ? '기록 ' + esc(tlFmtMin(dm.rec).trim()) : '기록 없음'}">${Dial.svg({ cells, now: nowIdx, labels: false, stroke: 14, r: 88, label: '' })}<span>${TL_DOW[d]} <small>${tlParts(ds).d}</small></span></button>`;
+      const ds = ws + d * TL_DAY, pd = tlParts(ds), dm = st.days[tlDayKey(ds)];
+      const runs = tlRibbon(grid[d]).map(r => { const col = tlColor(tlCatInfo(cats, r.catId).color); return `<i class="run${r.auto ? ' auto' : ''}${TLS.hl && r.catId !== TLS.hl ? ' dim' : ''}" style="left:${(r.c0 / 96 * 100).toFixed(3)}%;width:${((r.c1 - r.c0 + 1) / 96 * 100).toFixed(3)}%;background-color:${col}"></i>`; }).join('');
+      h += `<button class="tl-rbrow${ds === tlDayStart(now) ? ' today' : ''}${d === D ? ' sel' : ''}" data-act="wday" data-d="${d}" aria-label="${pd.m}월 ${pd.d}일 ${TL_DOW[d]}요일, ${dm ? esc(tlFmtMin(dm.rec).trim()) + ' 기록' : '기록 없음'}">` +
+        `<span class="rbl">${TL_DOW[d]} ${pd.d}</span><span class="tl-rb"><i class="g" style="left:25%"></i><i class="g" style="left:50%"></i><i class="g" style="left:75%"></i>${runs}</span><span class="rbt">${dm ? (dm.rec / 60).toFixed(1) + 'h' : ''}</span></button>`;
     }
-    h += '</div><div class="tl-note" style="text-align:center">날짜를 누르면 그날 15분 격자를 열어요</div>';
+    h += '</div><div class="tl-note" style="text-align:center">줄을 누르면 그날 15분 격자를 열어요</div>';
     if (hlBtn) h += `<div class="tl-pills">${hlBtn}</div>`;
     // 이번 주 분류별 합계 + 지난주 대비
     const pws = ws - 7 * TL_DAY, pst = tlStats(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now);
