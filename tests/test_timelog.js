@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path'), assert = require('assert');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const m = html.match(/\/\* TL-CORE-BEGIN \*\/([\s\S]*?)\/\* TL-CORE-END \*\//);
 if (!m) { console.error('TL-CORE 구간을 찾지 못했습니다'); process.exit(2); }
-const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlSummary','TL_WORK','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj'];
+const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlSummary','TL_WORK','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj','tlImpBar','tlWasteTop','tlPrevSamePoint'];
 const T = new Function(m[1] + '\nreturn {' + names.join(',') + '};')();
 const cats = T.TL_DEFAULT_CATS.map((c, i) => Object.assign({ order: i, archived: false }, c));
 const K = (y, mo, d, h = 0, mi = 0) => Date.UTC(y, mo - 1, d, h, mi) - 9 * 3600000;   // 한국 시간 -> epoch
@@ -36,8 +36,9 @@ t('달 넘김: 10/31 22:00~11/1 02:00 은 10월 키에 저장되고 집계는 �
   const segs = T.tlResolve([e], NOW);
   near(T.tlStats(segs, T.tlMonthStart(2026, 10), T.tlMonthStart(2026, 11), cats, NOW).rec, 120);
   near(T.tlStats(segs, T.tlMonthStart(2026, 11), T.tlMonthStart(2026, 12), cats, NOW).rec, 120);
-  const rep = T.tlMonthReport([e], 2026, 11, cats, NOW);
+  const rep = T.tlMonthReport([e], 2026, 11, cats, K(2026, 12, 5));   // 끝난 달: 지난달 전체와 비교
   near(rep.cur.byCat.work, 120); near(rep.prev.byCat.work, 120);
+  assert.strictEqual(T.tlMonthReport([e], 2026, 11, cats, NOW).prev.byCat.work, undefined, '안 끝난 달(11/20 12시): 지난달은 10/20 12시까지만 → 10/31 기록은 비교에 안 들어감');
 });
 t('겹침 정리(저장 계획): 삭제 / 앞부분 줄임 / 뒷부분 줄임 / 둘로 나눔', () => {
   const ex = [E('del', K(2026, 11, 10, 9), K(2026, 11, 10, 10), 'rest'), E('head', K(2026, 11, 10, 8), K(2026, 11, 10, 10, 30), 'work'),
@@ -362,6 +363,114 @@ t('한 줄 요약 짝 값: 표시한 분자 ÷ 분모 = 표시한 %, 분자·분
       assert.strictEqual(pct(st.wasteMin / st.rec), pct(st.wastePct), m + ' 낭비');
     });
   });
+});
+
+// ---- 한 줄 요약 v2: 중요/보통/낭비 막대 · 낭비 1위 · 같은 시점 비교. 기대값은 분 단위로 직접 칠해 따로 계산 ----
+function paint(es, from, to, now) {   // [from, min(to, now)) 의 분마다 분류 id (수동이 자동을 이김, 같으면 늦게 시작한 쪽)
+  const mins = [];
+  for (let t = from; t < Math.min(to, now); t += 60000) {
+    let best = null;
+    es.forEach(e => { const ee = e.end == null ? now : e.end; if (e.start <= t && t < ee) { const pri = e.source === 'manual' ? 1 : 0; if (!best || pri > best.pri || (pri === best.pri && e.start > best.e.start)) best = { e, pri }; } });
+    mins.push(best ? best.e.catId : null);
+  }
+  return mins;
+}
+function handMix(es, from, to, now, cs, noWS) {   // 따로 계산: 기록·중요·보통·낭비 분, 낭비 분류별 분
+  const imp = id => (cs.find(c => c.id === id) || {}).importance;
+  const kept = paint(es, from, to, now).filter(c => c && !(noWS && (c === 'work' || c === 'sleep')));
+  const good = kept.filter(c => c !== 'sleep' && imp(c) === '중요').length, bad = kept.filter(c => imp(c) === '낭비').length, wasteBy = {};
+  kept.forEach(c => { if (imp(c) === '낭비') wasteBy[c] = (wasteBy[c] || 0) + 1; });
+  return { rec: kept.length, good, mid: kept.length - good - bad, bad, wasteBy };
+}
+// 이번 주 = 11/16(월)~, 지난주 = 11/9(월)~. 지금 = 11/18(수) 15:00
+const CMPNOW = K(2026, 11, 18, 15, 0);
+const CMPES = [
+  E('p1', K(2026, 11, 9, 9), K(2026, 11, 9, 12), 'work'),
+  E('p2', K(2026, 11, 9, 20), K(2026, 11, 9, 21), 'youtube'),
+  E('p3', K(2026, 11, 10, 19), K(2026, 11, 10, 20, 30), 'read'),
+  E('p4', K(2026, 11, 10, 23), K(2026, 11, 11, 6), 'sleep'),
+  E('p5', K(2026, 11, 11, 14), K(2026, 11, 11, 16), 'phone'),               // 수 15:00 에 걸침 → 같은 시점 비교엔 60분만
+  E('p6', K(2026, 11, 12, 10), K(2026, 11, 12, 13), 'phone'),               // 수 15:00 뒤 → 같은 시점 비교엔 안 들어감
+  E('p7', K(2026, 11, 14, 10), K(2026, 11, 14, 12), 'study'),
+  E('c1', K(2026, 11, 16, 10), K(2026, 11, 16, 11), 'read'),
+  E('c2', K(2026, 11, 16, 13), K(2026, 11, 16, 17), 'work'),
+  E('c3', K(2026, 11, 17, 20), K(2026, 11, 17, 22), 'youtube'),
+  E('c4', K(2026, 11, 17, 22), K(2026, 11, 17, 22, 30), 'rest'),
+  E('c5', K(2026, 11, 18, 12), K(2026, 11, 18, 12, 50), 'phone'),
+  E('c6', K(2026, 11, 18, 14), null, 'web'),                                // 진행 중
+];
+t('막대(중요·보통·낭비): 세 칸 합 = 100%, 각 칸 = 따로 계산한 값 (월·주 × 두 줄)', () => {
+  const ws = T.tlWeekStart(K(2026, 11, 4, 12)), ws2 = T.tlWeekStart(CMPNOW);
+  [['월', SUMES, SUMNOW, T.tlMonthStart(2026, 11), T.tlMonthStart(2026, 12)], ['주', SUMES, SUMNOW, ws, ws + 7 * T.TL_DAY], ['이번 주(진행 중)', CMPES, CMPNOW, ws2, ws2 + 7 * T.TL_DAY], ['11월(진행 중)', CMPES, CMPNOW, T.tlMonthStart(2026, 11), T.tlMonthStart(2026, 12)]].forEach(([nm, es, now, from, to]) => {
+    const sm = T.tlSummary(T.tlResolve(es, now), from, to, cats, now);
+    [['전체', sm.all, false], ['업무·수면 빼고', sm.nowork, true]].forEach(([row, st, nw]) => {
+      const m = nm + ' ' + row, bar = T.tlImpBar(st), hd = handMix(es, from, to, now, cats, nw);
+      assert.deepStrictEqual(bar.map(p => p.k), ['중요', '보통', '낭비'], m + ' 순서');
+      near(bar.reduce((a, p) => a + p.pct, 0), 1, m + ' 합 100%'); near(bar.reduce((a, p) => a + p.min, 0), st.rec, m + ' 분 합 = 기록한 시간');
+      near(bar[0].min, hd.good, m + ' 중요 분'); near(bar[1].min, hd.mid, m + ' 보통 분'); near(bar[2].min, hd.bad, m + ' 낭비 분');
+      near(bar[0].pct, hd.good / hd.rec, m + ' 중요 %'); near(bar[1].pct, hd.mid / hd.rec, m + ' 보통 %'); near(bar[2].pct, hd.bad / hd.rec, m + ' 낭비 %');
+    });
+  });
+  const empty = T.tlImpBar(T.tlStats([], K(2026, 1, 1), K(2026, 1, 8), cats, NOW)); assert.deepStrictEqual(empty.map(p => p.pct), [0, 0, 0], '기록 없는 기간 → 0 (나누기 0 없음)');
+});
+t('낭비 1위: 원래 기록에서 직접 센 가장 긴 낭비 분류 (낭비가 없으면 null)', () => {
+  const ws = T.tlWeekStart(CMPNOW), from = ws - 7 * T.TL_DAY, to = ws + 7 * T.TL_DAY;   // 지난주 + 이번 주
+  const sm = T.tlSummary(T.tlResolve(CMPES, CMPNOW), from, to, cats, CMPNOW);
+  [[sm.all, false], [sm.nowork, true]].forEach(([st, nw]) => {
+    const by = handMix(CMPES, from, to, CMPNOW, cats, nw).wasteBy, want = Object.keys(by).sort((a, b) => by[b] - by[a])[0], top = T.tlWasteTop(st, cats);
+    assert.strictEqual(top.id, want); assert.strictEqual(want, 'phone', '폰 120+180+50=350분 > 유튜브 180분 > 웹서핑 60분'); near(top.min, by[want]); near(top.min, 350);
+  });
+  const oct = T.tlMonthReport(SUMES, 2026, 10, cats, SUMNOW).cur;   // 10월: dev 뿐
+  assert.strictEqual(T.tlWasteTop(oct, cats), null);
+});
+t('같은 시점 비교(주): 수요일 15:00 → 지난주 월 00:00~수 15:00 과 비교 (따로 계산한 값과 같음)', () => {
+  const ws = T.tlWeekStart(CMPNOW), we = ws + 7 * T.TL_DAY, pws = ws - 7 * T.TL_DAY, pp = T.tlPrevSamePoint(ws, we, pws, CMPNOW);
+  assert.strictEqual(pp.from, K(2026, 11, 9, 0, 0)); assert.strictEqual(pp.to, K(2026, 11, 11, 15, 0)); assert.strictEqual(pp.partial, true);
+  const segs = T.tlResolve(CMPES, CMPNOW), psm = T.tlSummary(segs, pp.from, pp.to, cats, CMPNOW), sm = T.tlSummary(segs, ws, we, cats, CMPNOW);
+  [[psm.all, false], [psm.nowork, true]].forEach(([st, nw]) => {
+    const hd = handMix(CMPES, K(2026, 11, 9), K(2026, 11, 11, 15), CMPNOW, cats, nw);
+    near(st.rec, hd.rec, '기록'); near(st.wasteMin, hd.bad, '낭비'); near(st.impMin, hd.good, '중요');
+  });
+  near(psm.nowork.rec, 60 + 90 + 60, '유튜브 60 + 독서 90 + 폰(15:00 까지) 60'); near(psm.all.byCat.phone, 60, '15:00 에 걸친 기록은 그 앞만');
+  // 화면의 비교 값: 기록 차이, 낭비 %p 차이
+  const cur = handMix(CMPES, ws, we, CMPNOW, cats, true), prev = handMix(CMPES, K(2026, 11, 9), K(2026, 11, 11, 15), CMPNOW, cats, true);
+  near(sm.nowork.rec - psm.nowork.rec, cur.rec - prev.rec); near(sm.nowork.wastePct - psm.nowork.wastePct, cur.bad / cur.rec - prev.bad / prev.rec);
+  // 분류별 '지난주 대비'도 같은 구간
+  near((sm.all.byCat.phone || 0) - (psm.all.byCat.phone || 0), 50 - 60);
+});
+t('같은 시점 비교(월): 같은 날짜·시각까지, 지난달 길이를 넘지 않음 (31일 → 30일짜리 달)', () => {
+  const a = T.tlPrevSamePoint(T.tlMonthStart(2026, 12), T.tlMonthStart(2027, 1), T.tlMonthStart(2026, 11), K(2026, 12, 10, 12, 0));
+  assert.strictEqual(a.to, K(2026, 11, 10, 12, 0)); assert.strictEqual(a.partial, true);
+  const b = T.tlPrevSamePoint(T.tlMonthStart(2026, 12), T.tlMonthStart(2027, 1), T.tlMonthStart(2026, 11), K(2026, 12, 31, 15, 0));
+  assert.strictEqual(b.to, T.tlMonthStart(2026, 12), '12/31 15:00 → 11월은 30일까지뿐이라 11월 전체'); assert.strictEqual(b.partial, true);
+  const c = T.tlPrevSamePoint(T.tlMonthStart(2026, 3), T.tlMonthStart(2026, 4), T.tlMonthStart(2026, 2), K(2026, 3, 30, 9, 0));
+  assert.strictEqual(c.to, T.tlMonthStart(2026, 3), '3/30 → 2월(28일) 전체');
+  // 월간 보고가 실제로 그 구간을 쓴다: 12/31 15:00 에 본 12월 → 11월 전체 / 12/10 12:00 에 본 12월 → 11/10 12:00 까지
+  const es = [E('n1', K(2026, 11, 5, 9), K(2026, 11, 5, 11), 'read'), E('n2', K(2026, 11, 10, 11), K(2026, 11, 10, 13), 'youtube'), E('n3', K(2026, 11, 30, 20), K(2026, 11, 30, 23), 'phone'), E('d1', K(2026, 12, 3, 9), K(2026, 12, 3, 10), 'read')];
+  const late = T.tlMonthReport(es, 2026, 12, cats, K(2026, 12, 31, 15, 0)), early = T.tlMonthReport(es, 2026, 12, cats, K(2026, 12, 10, 12, 0));
+  near(late.prev.rec, handMix(es, K(2026, 11, 1), K(2026, 12, 1), K(2026, 12, 31, 15), cats, false).rec); near(late.prev.rec, 120 + 120 + 180);
+  near(early.prev.rec, handMix(es, K(2026, 11, 1), K(2026, 11, 10, 12), K(2026, 12, 10, 12), cats, false).rec); near(early.prev.rec, 120 + 60, '11/10 12:00 에 걸친 유튜브는 60분만');
+  near(early.prevNowork.wasteMin, 60); assert.strictEqual(early.prevPartial, true);
+  near(early.rank.find(r => r.id === 'youtube').delta, -60, '분류별 지난달 대비도 같은 구간');
+});
+t('끝난 기간 비교: 전체 대 전체 (주·월)', () => {
+  const ws = T.tlWeekStart(CMPNOW) - 7 * T.TL_DAY, pws = ws - 7 * T.TL_DAY;   // 지난주를 이번 주 수요일에 봄 → 끝난 주
+  const pp = T.tlPrevSamePoint(ws, ws + 7 * T.TL_DAY, pws, CMPNOW);
+  assert.deepStrictEqual(pp, { from: pws, to: ws, partial: false });
+  const w2 = T.tlWeekStart(CMPNOW), q = T.tlPrevSamePoint(w2, w2 + 7 * T.TL_DAY, w2 - 7 * T.TL_DAY, w2 + 7 * T.TL_DAY);   // 이번 주가 막 끝난 순간
+  assert.deepStrictEqual(q, { from: w2 - 7 * T.TL_DAY, to: w2, partial: false });
+  near(T.tlSummary(T.tlResolve(CMPES, w2 + 7 * T.TL_DAY), q.from, q.to, cats, w2 + 7 * T.TL_DAY).all.byCat.phone, 120 + 180, '끝난 주 비교엔 지난주 폰 기록 전부');
+  const rep = T.tlMonthReport(SUMES, 2026, 11, cats, K(2026, 12, 3));   // 끝난 11월 → 10월 전체
+  assert.strictEqual(rep.prevPartial, false); near(rep.prev.rec, 120, '10/31 22:00~24:00 dev');
+});
+t('기존 지표 값은 그대로: 막대의 중요·낭비 시간 = 기존 값, 업무·수면 뺀 줄은 %도 같음 / 전체 줄 중요 %만 분모가 바뀜(수면 포함)', () => {
+  const from = T.tlMonthStart(2026, 11), to = T.tlMonthStart(2026, 12), sm = T.tlSummary(segsSum, from, to, cats, SUMNOW);
+  [sm.all, sm.nowork].forEach(st => { const bar = T.tlImpBar(st); near(bar[0].min, st.impMin); near(bar[2].min, st.wasteMin); near(bar[2].pct, st.wastePct, '낭비 % 는 두 줄 모두 기존과 같음'); });
+  near(T.tlImpBar(sm.nowork)[0].pct, sm.nowork.impPct, '업무·수면 빼고: 중요 % 기존과 같음 (분모가 원래 같음)');
+  const hd = handSum(SUMES, from, to, SUMNOW, cats, false), hn = handSum(SUMES, from, to, SUMNOW, cats, true);
+  sameSum(pick(sm.all), hd, '전체'); sameSum(pick(sm.nowork), hn, '업무·수면 빼고');   // 기존 지표(기록·기록률·중요 비율·집중 블록)는 따로 계산한 값 그대로
+  near(T.tlImpBar(sm.all)[0].pct, sm.all.impMin / sm.all.rec); assert(T.tlImpBar(sm.all)[0].pct < sm.all.impPct, '전체 줄: 막대의 중요 % (기록한 시간 기준) < 기존 중요 비율 (수면 제외 기준)');
+  near(sm.all.impBase, sm.all.rec - sm.all.sleepMin, '두 분모의 차이 = 수면 시간');
 });
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
 process.exit(fail ? 1 : 0);

@@ -496,6 +496,16 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   @media (max-width: 360px) { .tl-sumrow .tl-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .tl-subv { display: block; font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 1px; white-space: nowrap; }
   .tl-sumlab { font-size: var(--fs-xs); color: var(--muted); font-weight: 500; margin-bottom: var(--sp-2); }
+  /* 중요/보통/낭비 막대 + 글 설명, 전체 줄 접기 */
+  .tl-ibar { display: flex; height: 10px; border-radius: var(--radius-sm); overflow: hidden; background: var(--surface2); margin-top: var(--sp-5); }
+  .tl-ibar i { display: block; min-width: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tl-ibar .i0, .tl-ileg .i0 { background: var(--tl-green); } .tl-ibar .i1, .tl-ileg .i1 { background: #94a3b8; } .tl-ibar .i2, .tl-ileg .i2 { background: var(--tl-red); }
+  .tl-ileg, .tl-itop { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--sp-2); line-height: 1.6; font-variant-numeric: tabular-nums; }
+  .tl-ileg span { white-space: nowrap; } .tl-ileg b { color: var(--text); font-weight: 500; }
+  .tl-sumline { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+  .tl-sumline .tl-sumlab { margin: 0; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+  .tl-sumtog { flex: none; padding: var(--sp-3) var(--sp-5); border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--border-strong); color: var(--text); font-size: var(--fs-sm); font-weight: 500; }
+  #tlSumAll:not([hidden]) { margin-top: var(--sp-4); }
   @media (max-width: 359px) { .tl-sum { flex-wrap: wrap; row-gap: var(--sp-4); } .tl-sum > div { flex: 1 1 40%; } }   /* 좁은 화면: 2×2, 설명 글자를 자르지 않음 */
   .tl-cov b { font-size: 28px; font-variant-numeric: tabular-nums; } .tl-cov span { font-size: var(--fs-base); color: var(--muted); }
   .tl-tbl { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
@@ -4820,6 +4830,24 @@ function tlStats(segs, from, to, cats, now, excl) {
 }
 // 한 줄 요약 두 줄: 전체 / 업무·수면 빼고 (월간·주간이 같이 쓴다). nowork = 업무와 수면을 뺀 줄
 function tlSummary(segs, from, to, cats, now) { return { all: tlStats(segs, from, to, cats, now), nowork: tlStats(segs, from, to, cats, now, [TL_WORK, TL_SLEEP]) }; }
+// 중요/보통/낭비 막대 (st = tlStats 결과). 세 값 모두 낭비 비율의 분모(기록한 시간 rec)를 쓰고, 보통 = 나머지라 합이 100%.
+// 중요·낭비 시간은 기존 값(impMin·wasteMin) 그대로. 전체 줄에서는 중요 비율에서 빼던 수면이 보통에 들어간다
+function tlImpBar(st) {
+  const den = st.rec, mins = [st.impMin, Math.max(0, den - st.impMin - st.wasteMin), st.wasteMin];
+  return TL_IMP.map((k, i) => ({ k, min: mins[i], pct: den > 0 ? mins[i] / den : 0 }));
+}
+// 낭비 1위: 낭비로 표시된 분류 중 시간이 가장 긴 것 (낭비 시간이 없으면 null)
+function tlWasteTop(st, cats) {
+  let top = null;
+  Object.keys(st.byCat).forEach(k => { const info = tlCatInfo(cats, k), min = st.byCat[k]; if (info.importance === '낭비' && min > 0 && (!top || min > top.min)) top = { id: k, info, min }; });
+  return top;
+}
+// 비교 구간 = 이전 기간을 "같은 시점"까지 (주간·월간이 같이 쓴다). [from,to) = 보는 기간, pFrom = 이전 기간 시작 (이전 기간 끝 = from).
+// 아직 안 끝난 기간(now < to)이면 이전 기간 시작 + 지금까지 지난 시간 (이전 기간 길이를 넘지 않게), 끝난 기간이면 이전 기간 전체
+function tlPrevSamePoint(from, to, pFrom, now) {
+  const partial = now < to;
+  return { from: pFrom, to: partial ? Math.max(pFrom, Math.min(pFrom + (now - from), from)) : from, partial };
+}
 function tlRank(byCat, cats, base) {
   return Object.keys(byCat).filter(k => byCat[k] > 0).map(k => ({ id: k, info: tlCatInfo(cats, k), min: byCat[k], pct: base > 0 ? byCat[k] / base : 0 })).sort((a, b) => b.min - a.min);
 }
@@ -4862,7 +4890,8 @@ function tlRibbon(day) {
 function tlMonthReport(entries, y, m, cats, now) {
   const from = tlMonthStart(y, m), to = tlMonthStart(y, m + 1), pFrom = tlMonthStart(y, m - 1);
   const segs = tlResolve(entries, now);
-  const sum = tlSummary(segs, from, to, cats, now), cur = sum.all, prev = tlStats(segs, pFrom, from, cats, now);
+  const pp = tlPrevSamePoint(from, to, pFrom, now), psum = tlSummary(segs, pp.from, pp.to, cats, now);   // 지난달은 같은 시점까지 (끝난 달이면 전체)
+  const sum = tlSummary(segs, from, to, cats, now), cur = sum.all, prev = psum.all;
   const hasPrev = prev.rec > 0;
   const ids = [...new Set([...Object.keys(cur.byCat), ...Object.keys(prev.byCat)])].filter(k => (cur.byCat[k] || 0) > 0 || (prev.byCat[k] || 0) > 0);
   const rank = ids.map(k => ({ id: k, info: tlCatInfo(cats, k), min: cur.byCat[k] || 0, pct: cur.rec > 0 ? (cur.byCat[k] || 0) / cur.rec : 0, delta: hasPrev ? (cur.byCat[k] || 0) - (prev.byCat[k] || 0) : null })).sort((a, b) => b.min - a.min || (b.delta || 0) - (a.delta || 0));
@@ -4897,7 +4926,7 @@ function tlMonthReport(entries, y, m, cats, now) {
     from, to, cur, prev, hasPrev, rank, weeks, weekday, rhythmCat, topDays, lowCov: lowCov.slice(0, 3),
     avgSleepH: cur.recDays ? cur.sleepMin / cur.recDays / 60 : null,
     avgPhoneH: cur.recDays ? (cur.byCat[TL_PHONE] || 0) / cur.recDays / 60 : null,
-    impPct: cur.impPct, nowork: sum.nowork,
+    impPct: cur.impPct, nowork: sum.nowork, prevNowork: psum.nowork, prevPartial: pp.partial,
     segs,
   };
 }
@@ -5147,11 +5176,11 @@ function tlRenderWeek(body) {
     h += '</div><div class="tl-note" style="text-align:center">줄을 누르면 그날 15분 격자를 열어요</div>';
     if (hlBtn) h += `<div class="tl-pills">${hlBtn}</div>`;
     // 이번 주 분류별 합계 + 지난주 대비
-    const pws = ws - 7 * TL_DAY, psm = tlSummary(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now), pst = psm.all;
+    const pws = ws - 7 * TL_DAY, pp = tlPrevSamePoint(ws, we, pws, now), psm = tlSummary(tlResolve(tlEntriesFor(pws, ws, now), now), pp.from, pp.to, cats, now), pst = psm.all;   // 지난주는 같은 시점까지 (끝난 주면 전체)
     const rank = tlRank(st.byCat, cats, st.rec), mx = Math.max(1, ...rank.map(r => r.min));
     // 이번 주 한 줄 요약 (월간과 같은 tlSummary·tlSumHtml, 기간만 이 주)
-    h += `<div class="card tl-sumw" id="tlWeekSum"><div class="tl-h">한 줄 요약</div>${tlSumHtml(sm, 7, '주예요')}${pst.rec > 0 ? `<div class="tl-note" id="tlWeekNwDelta">업무·수면 빼고 기록한 시간, 지난주 대비 ${esc(tlDeltaText(sm.nowork.rec - psm.nowork.rec))}${sm.nowork.wastePct != null && psm.nowork.wastePct != null ? ' · 낭비 지난주 대비 ' + tlPpText(sm.nowork.wastePct - psm.nowork.wastePct) : ''}</div>` : ''}</div>`;
-    h += '<div class="tl-sec">이번 주 분류별 합계 <small>지난주 대비</small></div>';
+    h += `<div class="card tl-sumw" id="tlWeekSum"><div class="tl-h">한 줄 요약</div>${tlSumHtml(sm, 7, '주예요', { word: '지난주', prev: pst.rec > 0 ? psm : null, partial: pp.partial }, cats)}</div>`;
+    h += `<div class="tl-sec">이번 주 분류별 합계 <small>지난주${pp.partial ? ' 같은 시점' : ''} 대비</small></div>`;
     h += rank.length ? rank.map(r => catBar(r, mx, Math.round(r.min / 60) + 'h', tlDeltaText(r.min - (pst.byCat[r.id] || 0)))).join('')
       : '<div class="tl-tot empty">이 주에는 기록이 없어요. 날짜를 눌러 그날 빈 칸을 채울 수 있어요</div>';
     // 한 줄: 가장 많이 빈 날
@@ -5258,21 +5287,30 @@ function tlCellTap(i) {
 }
 
 // ---------- 월간 보고 ----------
-// ① 한 줄 요약 두 줄 (월간·주간이 같이 씀). sm = tlSummary 결과, days = 구간 일수, still = '달이에요' / '주예요'
-// ① 한 줄 요약 두 줄 (월간·주간이 같이 씀). sm = tlSummary 결과, days = 구간 일수, still = '달이에요' / '주예요'
-// 칸 = 큰 숫자 → 작은 짝 값(같은 tlStats 결과의 분자·분모 시간) → 설명
-function tlSumHtml(sm, days, still) {
+// ① 한 줄 요약 (월간·주간이 같이 씀). 위 = 업무·수면 빼고 (주 줄), 아래 = 전체 (한 줄로 접힘, '전체 보기'로 펼침 — 펼침 상태는 TLS.sumAll, 저장 안 함)
+// sm = tlSummary 결과, days = 구간 일수, still = '달이에요' / '주예요', cmp = { word: '지난주'|'지난달', prev: 같은 시점까지의 tlSummary 결과 | null, partial }
+// 줄 = 숫자 3칸(기록한 시간 · 기록률 · 집중 블록) → 중요/보통/낭비 막대 → 그 글 설명 → 낭비 1위
+function tlHSign(min) { const h = Math.round(min / 6) / 10; return (h > 0 ? '+' : h < 0 ? '−' : '±') + Math.abs(h).toFixed(1) + '시간'; }   // 시간 차이 (0.1시간 단위)
+function tlSumHtml(sm, days, still, cmp, cats) {
   const a = sm.all, n = sm.nowork;
-  const den = m => tlH1(m).replace(/\.0$/, '');   // 기록률 분모: 168시간·720시간처럼 딱 떨어지면 .0 없이
+  const den = m => tlH1(m).replace(/.0$/, '');   // 기록률 분모: 168시간·720시간처럼 딱 떨어지면 .0 없이
   const sub = t => `<span class="tl-subv">${t}</span>`;
-  const cells = (x, c) => `<div><span class="tl-num"><b>${tlH1(x.rec)}</b>시간</span><small>기록한 시간</small></div>` +
+  const cells = (x, c) => `<div class="tl-sum"><div><span class="tl-num"><b>${tlH1(x.rec)}</b>시간</span><small>기록한 시간</small></div>` +
     `<div><b>${tlPct(x.cov)}</b>${sub(tlH1(x.rec) + ' / ' + den(x.total) + '시간')}<small>${c.cov}</small></div>` +
-    `<div><b>${tlPct(x.impPct)}</b>${sub(tlH1(x.impMin) + '시간')}<small>${c.imp}</small></div>` +
-    `<div><span class="tl-num"><b>${x.focus}</b>개</span>${sub(tlH1(x.focusMin) + '시간')}<small>${c.focus}</small></div>` +
-    `<div><b>${tlPct(x.wastePct)}</b>${sub(tlH1(x.wasteMin) + '시간')}<small>${c.waste}</small></div>`;
-  const row = (lab, html) => `<div class="tl-sumrow"><div class="tl-sumlab">${lab}</div><div class="tl-sum">${html}</div></div>`;
-  let h = row('전체', cells(a, { cov: `기록률 (${days}일 × 24시간 기준)`, imp: '중요 비율 (수면 제외)', focus: '집중 블록', waste: '낭비 (기록한 시간 중)' }));
-  h += row('업무·수면 빼고', cells(n, { cov: '기록률 (업무·수면 뺀 시간 기준)', imp: '중요 비율 (수면·업무 제외)', focus: '집중 블록 (업무·수면 제외)', waste: '낭비 (업무·수면 뺀 기록 중)' }));
+    `<div><span class="tl-num"><b>${x.focus}</b>개</span>${sub(tlH1(x.focusMin) + '시간')}<small>${c.focus}</small></div></div>`;
+  const mix = x => {   // 막대는 장식(aria-hidden), 같은 내용을 바로 아래 글로 적는다
+    if (!(x.rec > 0)) return '';
+    const bar = tlImpBar(x), top = tlWasteTop(x, cats);
+    return `<div class="tl-ibar" aria-hidden="true">${bar.map((p, i) => p.min > 0 ? `<i class="i${i}" style="width:${(p.pct * 100).toFixed(2)}%"></i>` : '').join('')}</div>` +
+      `<div class="tl-ileg">${bar.map((p, i) => `<span><i class="tl-dot i${i}" aria-hidden="true"></i>${p.k} <b>${tlPct(p.pct)}</b> ${tlH1(p.min)}시간${i < 2 ? ' ·' : ''}</span>`).join(' ')}</div>` +
+      (top ? `<div class="tl-itop">낭비 1위: ${esc(top.info.name)} ${tlH1(top.min)}시간</div>` : '');
+  };
+  let h = `<div class="tl-sumrow"><div class="tl-sumlab">업무·수면 빼고</div>${cells(n, { cov: '기록률 (업무·수면 뺀 시간 기준)', focus: '집중 블록 (중요 60분+ 연속, 업무·수면 제외)' })}${mix(n)}`;
+  if (cmp && cmp.prev) { const pn = cmp.prev.nowork; h += `<div class="tl-note tl-sumdelta">${cmp.word}${cmp.partial ? ' 같은 시점' : ''} 대비: 기록 ${tlHSign(n.rec - pn.rec)}${n.wastePct != null && pn.wastePct != null ? ' · 낭비 ' + tlPpText(n.wastePct - pn.wastePct) : ''}</div>`; }
+  h += '</div>';
+  const open = !!TLS.sumAll;
+  h += `<div class="tl-sumrow"><div class="tl-sumline"><span class="tl-sumlab">${open ? '전체' : `전체 · 기록 ${tlH1(a.rec)}시간 · 기록률 ${tlPct(a.cov)}`}</span><button class="tl-sumtog" id="tlSumTog" data-act="sumall" aria-expanded="${open}" aria-controls="tlSumAll">${open ? '전체 접기' : '전체 보기'}</button></div>` +
+    `<div id="tlSumAll"${open ? '' : ' hidden'}>${open ? cells(a, { cov: `기록률 (${days}일 × 24시간 기준)`, focus: '집중 블록 (중요 60분+ 연속)' }) + mix(a) : ''}</div></div>`;
   if (a.covSoFar != null) h += `<div class="tl-note">아직 끝나지 않은 ${still}. 지금까지만 보면 기록률 ${tlPct(a.covSoFar)} · 업무·수면 빼고 ${tlPct(n.covSoFar)}</div>`;
   return h;
 }
@@ -5286,8 +5324,8 @@ function tlRenderMonth(body) {
   h += `<div class="tl-print-title">시간 기록 월간 보고 — ${y}년 ${m}월</div><div id="tlReport">`;
   if (!st.rec) { body.innerHTML = h + '<div class="card empty-hist">이 달에는 기록이 없어요</div></div>'; return; }
   const days = (to - from) / TL_DAY;
-  h += `<div class="card"><div class="tl-h">① 한 줄 요약</div>${tlSumHtml({ all: st, nowork: rep.nowork }, days, '달이에요')}</div>`;
-  h += `<div class="card"><div class="tl-h">② 분류별 시간 <small>(지난달 대비)</small></div>${rep.hasPrev ? '' : '<div class="tl-note">이전 달 자료 없음 — 비교는 표시하지 않아요</div>'}${tlBars(rep.rank, true)}</div>`;
+  h += `<div class="card"><div class="tl-h">① 한 줄 요약</div>${tlSumHtml({ all: st, nowork: rep.nowork }, days, '달이에요', { word: '지난달', prev: rep.hasPrev ? { all: rep.prev, nowork: rep.prevNowork } : null, partial: rep.prevPartial }, cats)}</div>`;
+  h += `<div class="card"><div class="tl-h">② 분류별 시간 <small>(지난달${rep.prevPartial ? ' 같은 시점' : ''} 대비)</small></div>${rep.hasPrev ? '' : '<div class="tl-note">이전 달 자료 없음 — 비교는 표시하지 않아요</div>'}${tlBars(rep.rank, true)}</div>`;
   h += `<div class="card"><div class="tl-h">③ 주별 중요도 <small>(시간, 수면 제외)</small></div><table class="tl-tbl"><tr><th>주</th><th>중요</th><th>보통</th><th>낭비</th></tr>${rep.weeks.map(w => `<tr><td>${esc(w.label)}</td><td>${tlH1(w.imp['중요'])}</td><td>${tlH1(w.imp['보통'])}</td><td>${tlH1(w.imp['낭비'])}</td></tr>`).join('')}</table><div class="tl-note">달에 걸친 주는 이 달에 속한 날만 셌어요</div></div>`;
   h += `<div class="card"><div class="tl-h">④ 요일별 평균 <small>(시간, 그 요일에 기록한 날 기준)</small></div><table class="tl-tbl"><tr><th></th>${TL_DOW.map(d => `<th>${d}</th>`).join('')}</tr>${rep.weekday.map(r => `<tr><td class="l">${tlDot(r.info)}${esc(r.info.name)}</td>${r.avg.map(v => `<td>${v == null ? '·' : v.toFixed(1)}</td>`).join('')}</tr>`).join('')}</table></div>`;
   h += `<div class="card"><div class="tl-h">⑤ 하루 리듬 <small>(시간대별로 가장 많이 기록된 활동)</small></div><div class="tl-rhy">${rep.rhythmCat.map((id, hr) => `<i style="${id ? 'background:' + tlColor(tlCatInfo(cats, id).color) : ''}" title="${hr}시 ${id ? esc(tlCatInfo(cats, id).name) : '기록 없음'}"></i>`).join('')}</div><div class="tl-rhy-l">${[0, 3, 6, 9, 12, 15, 18, 21].map(x => `<span>${x}시</span>`).join('')}</div><div class="tl-legend">${[...new Set(rep.rhythmCat.filter(Boolean))].map(id => { const ci = tlCatInfo(cats, id); return `<span>${tlDot(ci)}${esc(ci.name)}</span>`; }).join('')}</div></div>`;
@@ -5442,6 +5480,7 @@ function tlAct(el) {
       break;
     }
     case 'hlclear': TLS.hl = null; tlRender(); break;
+    case 'sumall': { TLS.sumAll = !TLS.sumAll; tlRender(); const b = document.getElementById('tlSumTog'); if (b) b.focus({ preventScroll: true }); break; }   // 전체 줄 펼침/접힘 (메모리에만)
     case 'selclose': tlCloseCell(); break;
     case 'fillcancel': TLS.fillA = null; TLS.fill = false; tlRender(); break;
     case 'fillfrom': TLS.fill = true; TLS.fillA = i; TLS.sel = null; tlRender(); break;
@@ -5546,7 +5585,7 @@ document.addEventListener('keydown', e => {
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
 // ====================== 설정 · 내정보 (Phase 5) ======================
-const APP_VERSION = '3.5', APP_VERSION_DATE = '2026-11-21';   // index.html 을 고쳐 배포할 때마다 같이 올린다
+const APP_VERSION = '3.6', APP_VERSION_DATE = '2026-11-21';   // index.html 을 고쳐 배포할 때마다 같이 올린다
 // 색 위 글자색: 그 색과 대비가 더 큰 쪽 (짙은 남색 / 흰색)
 function inkOn(c) { if (!hexOk(c)) return 'var(--text)'; const n = parseInt(c.slice(1), 16), f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }, L = 0.2126 * f(n >> 16 & 255) + 0.7152 * f(n >> 8 & 255) + 0.0722 * f(n & 255); return (L + 0.05) / 0.0614 >= 1.05 / (L + 0.05) ? '#161B33' : '#FFFFFF'; }
 function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
