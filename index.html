@@ -5116,7 +5116,7 @@ function tlDeltaText(d) {   // 지난주 대비 (10분 단위로 반올림)
 function tlRenderWeek(body) {
   const cats = tlCats(), now = Date.now();
   if (!TLS.wStart) TLS.wStart = tlWeekStart(now);
-  const ws = TLS.wStart, we = ws + 7 * TL_DAY, entries = tlEntriesFor(ws, we, now), segs = tlResolve(entries, now), grid = tlGrid(segs, ws), st = tlStats(segs, ws, we, cats, now);
+  const ws = TLS.wStart, we = ws + 7 * TL_DAY, entries = tlEntriesFor(ws, we, now), segs = tlResolve(entries, now), grid = tlGrid(segs, ws), sm = tlSummary(segs, ws, we, cats, now), st = sm.all;
   if (TLS.wDay == null) TLS.wDay = Math.max(0, Math.min(6, Math.floor((tlDayStart(now) - ws) / TL_DAY)));
   const D = TLS.wDay, dayView = TLS.wView === 'day';
   const p0 = tlParts(ws), p1 = tlParts(we - 1);
@@ -5136,8 +5136,10 @@ function tlRenderWeek(body) {
     h += '</div><div class="tl-note" style="text-align:center">줄을 누르면 그날 15분 격자를 열어요</div>';
     if (hlBtn) h += `<div class="tl-pills">${hlBtn}</div>`;
     // 이번 주 분류별 합계 + 지난주 대비
-    const pws = ws - 7 * TL_DAY, pst = tlStats(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now);
+    const pws = ws - 7 * TL_DAY, psm = tlSummary(tlResolve(tlEntriesFor(pws, ws, now), now), pws, ws, cats, now), pst = psm.all;
     const rank = tlRank(st.byCat, cats, st.rec), mx = Math.max(1, ...rank.map(r => r.min));
+    // 이번 주 한 줄 요약 (월간과 같은 tlSummary·tlSumHtml, 기간만 이 주)
+    h += `<div class="card tl-sumw" id="tlWeekSum"><div class="tl-h">한 줄 요약</div>${tlSumHtml(sm, 7, '주예요')}${pst.rec > 0 ? `<div class="tl-note" id="tlWeekNwDelta">회사 업무 빼고 기록한 시간, 지난주 대비 ${esc(tlDeltaText(sm.nowork.rec - psm.nowork.rec))}</div>` : ''}</div>`;
     h += '<div class="tl-sec">이번 주 분류별 합계 <small>지난주 대비</small></div>';
     h += rank.length ? rank.map(r => catBar(r, mx, Math.round(r.min / 60) + 'h', tlDeltaText(r.min - (pst.byCat[r.id] || 0)))).join('')
       : '<div class="tl-tot empty">이 주에는 기록이 없어요. 날짜를 눌러 그날 빈 칸을 채울 수 있어요</div>';

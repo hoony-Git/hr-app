@@ -278,5 +278,24 @@ t('월간 요약: 업무 기록이 없는 달 → 두 줄 값이 같음', () => 
   const rep = T.tlMonthReport(SUMES, 2026, 10, cats, SUMNOW);   // 10월: dev 2시간뿐
   assert(rep.cur.rec > 0); assert.deepStrictEqual(pick(rep.nowork), pick(rep.cur)); near(rep.nowork.exMin, 0);
 });
+t('주간 요약: 이 주 지표 = 같은 7일에 월간 계산(tlStats·tlSummary)을 적용한 값 = 따로 계산한 값', () => {
+  const ws = T.tlWeekStart(K(2026, 11, 4, 12)), we = ws + 7 * T.TL_DAY, sm = T.tlSummary(segsSum, ws, we, cats, SUMNOW);
+  assert.strictEqual(T.tlDayKey(ws), '2026-11-02');
+  assert.deepStrictEqual(pick(sm.all), pick(T.tlStats(segsSum, ws, we, cats, SUMNOW)));
+  assert.deepStrictEqual(pick(sm.nowork), pick(T.tlStats(segsSum, ws, we, cats, SUMNOW, ['work'])));
+  sameSum(pick(sm.all), handSum(SUMES, ws, we, SUMNOW, cats, false), '주 전체');
+  sameSum(pick(sm.nowork), handSum(SUMES, ws, we, SUMNOW, cats, true), '주 업무 빼고');
+  near(sm.all.cov, sm.all.rec / (7 * 1440)); near(sm.nowork.cov, sm.nowork.rec / (7 * 1440 - 16 * 60));
+  assert.strictEqual(sm.all.covSoFar, null, '끝난 주는 지금까지 값 없음');
+});
+t('주간 요약: 주를 옮기면 다시 계산 (지난주 · 업무 없는 주 · 진행 중인 주)', () => {
+  const ws = T.tlWeekStart(K(2026, 11, 4, 12));
+  const prev = T.tlSummary(segsSum, ws - 7 * T.TL_DAY, ws, cats, SUMNOW);   // 10/26~11/1: dev 3시간(달 경계)
+  sameSum(pick(prev.all), handSum(SUMES, ws - 7 * T.TL_DAY, ws, SUMNOW, cats, false), '지난주');
+  near(prev.all.rec, 180); assert.deepStrictEqual(pick(prev.nowork), pick(prev.all), '업무 없는 주 → 같음');
+  const cw = T.tlWeekStart(SUMNOW), cur = T.tlSummary(segsSum, cw, cw + 7 * T.TL_DAY, cats, SUMNOW);   // 11/16~22: 진행 중 공부 1시간
+  near(cur.all.rec, 60); assert(cur.all.covSoFar != null && cur.nowork.covSoFar != null, '진행 중인 주: 지금까지 값');
+  sameSum(pick(cur.nowork), handSum(SUMES, cw, cw + 7 * T.TL_DAY, SUMNOW, cats, true), '이번 주 업무 빼고');
+});
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
 process.exit(fail ? 1 : 0);
