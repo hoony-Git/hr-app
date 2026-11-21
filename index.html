@@ -469,9 +469,11 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-legend { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-5); margin: var(--sp-3) 2px var(--sp-1); font-size: var(--fs-sm); color: var(--muted); }
   .tl-dot { margin-right: var(--sp-2); vertical-align: -1px; }
   .tl-dot.auto { background: repeating-linear-gradient(45deg, var(--muted) 0 2px, transparent 2px 4px); }
-  .tl-info { margin-top: var(--sp-4); font-size: var(--fs-md); line-height: 1.5; }
-  #tlCellInfo:not(:empty) { position: fixed; left: 14px; right: 14px; bottom: calc(env(safe-area-inset-bottom) + 76px); max-width: 532px; margin: 0 auto; z-index: 25; }
-  #tlCellInfo .tl-info { margin-top: 0; box-shadow: 0 -2px 14px rgba(0,0,0,.25); }
+  /* 칸 상세 = 아래 시트 (.modal). 버튼 둘은 한 줄: 주 버튼(채운 알약) + 닫기(테두리 알약) */
+  #tlCellInfo { font-size: var(--fs-md); line-height: 1.5; outline: none; }
+  #tlCellInfo .tl-actions { flex-wrap: nowrap; margin-top: var(--sp-6); }
+  #tlCellInfo .tl-sm { flex: 1; min-width: 0; word-break: keep-all; }
+  #tlCellInfo .tl-sm.line { background: transparent; border: 1px solid var(--border-strong); }
   .tl-h { font-size: var(--fs-base); font-weight: 500; margin-bottom: var(--sp-3); }
   .tl-h small { font-weight: 500; color: var(--muted); }
   .tl-note { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--sp-2); line-height: 1.45; }
@@ -1193,7 +1195,10 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   </div>
 </div>
 
-<!-- 시간 기록: 기록 추가·수정 / 분류 관리 -->
+<!-- 시간 기록: 칸 상세 (편집 창이 이 위에 뜨도록 먼저 둔다) / 기록 추가·수정 / 분류 관리 -->
+<div class="modal-bg" id="tlCellModal">
+  <div class="modal" id="tlCellInfo" role="dialog" aria-modal="true" aria-labelledby="tlCellTitle" tabindex="-1"></div>
+</div>
 <div class="modal-bg" id="tlEditModal">
   <div class="modal">
     <h2 id="tlEditTitle">기록 수정</h2>
@@ -5191,7 +5196,6 @@ function tlRenderWeek(body) {
     }
     h += '</div></div>';
     if (grid[D].some(c => c && c.source !== 'manual')) h += '<div class="tl-legend"><span><i class="tl-dot auto"></i>자동 기록(빗금)</span></div>';
-    h += '<div id="tlCellInfo"></div>';
     // 그날 분류별 합계 (누르면 강조 — 주간과 같은 동작)
     const rank = tlRank(dayCat, cats, dd ? dd.rec : 0), mx = Math.max(1, ...rank.map(r => r.min));
     if (rank.length) h += '<div class="tl-sec">이 날 분류별 합계</div>' + rank.map(r => catBar(r, mx, (r.min / 60).toFixed(1) + 'h', '')).join('');
@@ -5207,24 +5211,35 @@ function tlRenderWeek(body) {
       else window.scrollTo(0, 0);
     }
   }
-  if (TLS.sel != null) tlShowCellInfo(TLS.sel, grid, entries, cats);
+  if (TLS.sel != null && dayView) tlShowCellInfo(TLS.sel, grid, entries, cats);
+  else document.getElementById('tlCellModal').classList.remove('show');
   TLS._grid = grid; TLS._entries = entries;
 }
 function tlCellRange(i) { const d = Math.floor(i / 96), r = i % 96, s = TLS.wStart + d * TL_DAY + r * 900000; return [s, s + 900000]; }
 function tlShowCellInfo(i, grid, entries, cats) {
   const box = document.getElementById('tlCellInfo'); if (!box) return;
   const d = Math.floor(i / 96), r = i % 96, c = grid[d][r], [s, e] = tlCellRange(i);
-  let h = `<div class="card tl-info"><div class="tl-h">${TL_DOW[d]} ${esc(tlMD(s))} ${esc(tlHM(s))}~${esc(tlHM(e))}</div>`;
+  let h = `<h2 id="tlCellTitle">${TL_DOW[d]} ${esc(tlMD(s))} ${esc(tlHM(s))}~${esc(tlHM(e))}</h2>`, main = '';   // main = 주 버튼 (닫기와 한 줄)
   const en = c && entries.find(x => x.id === c.id);
-  if (!c || !en) h += '<div class="tl-note">이 칸은 기록이 없어요 (또는 8분 미만)</div><div class="tl-actions"><button class="tl-sm" data-act="fillfrom" data-i="' + i + '">이 칸부터 채우기</button></div>';
+  if (!c || !en) { h += '<div class="tl-note">이 칸은 기록이 없어요 (또는 8분 미만)</div>'; main = '<button class="tl-sm save" data-act="fillfrom" data-i="' + i + '">이 칸부터 채우기</button>'; }
   else {
     const ci = tlCatInfo(cats, en.catId), end = en.end == null ? Date.now() : en.end;
     h += `<div>${esc(ci.emoji)} <b>${esc(ci.name)}</b> · ${esc(tlMD(en.start))} ${esc(tlHM(en.start))} ~ ${en.end == null ? '지금' : esc(tlMD(en.end) + ' ' + tlHM(en.end))} (${esc(tlFmtMin((end - en.start) / TL_MIN))})</div><div class="tl-note">${esc(TL_SRC_LABEL[en.source] || en.source)}${en.note ? ' · 메모: ' + esc(en.note) : ''}</div>`;
     if (en.id === '__cur') h += '<div class="tl-note">지금 진행 중인 활동이에요 (기록 탭에서 정지할 수 있어요)</div>';
-    else if (en.source === 'manual') h += `<div class="tl-actions"><button class="tl-sm" data-act="edit" data-id="${esc(en.id)}">편집</button></div>`;
-    else h += `<div class="tl-actions"><button class="tl-sm" data-act="overwrite" data-id="${esc(en.id)}">수동 기록으로 덮어쓰기</button></div>`;
+    else if (en.source === 'manual') main = `<button class="tl-sm save" data-act="edit" data-id="${esc(en.id)}">편집</button>`;
+    else main = `<button class="tl-sm save" data-act="overwrite" data-id="${esc(en.id)}">수동 기록으로 덮어쓰기</button>`;
   }
-  box.innerHTML = h + '<div class="tl-actions" style="margin-top:8px"><button class="tl-sm" data-act="selclose">닫기</button></div></div>';
+  h += `<div class="tl-actions">${main}<button class="tl-sm line" data-act="selclose">닫기</button></div>`;
+  const modal = document.getElementById('tlCellModal'), opening = !modal.classList.contains('show');
+  if (opening || box._h !== h) { const had = box.contains(document.activeElement); box.innerHTML = h; box._h = h; if (had) box.focus(); }   // 같은 내용이면 다시 그리지 않음 (포커스 유지)
+  modal.classList.add('show');
+  if (opening) box.focus();   // 포커스를 시트 안으로
+}
+// 칸 상세 닫기: 누른 칸으로 포커스를 돌려준다
+function tlCloseCell() {
+  const i = TLS.sel; TLS.sel = null; tlRender();
+  const c = i == null ? null : document.querySelector('#timeBody .tc[data-i="' + i + '"]');
+  if (c) { c.tabIndex = -1; c.focus({ preventScroll: true }); }
 }
 function tlCellTap(i) {
   const now = Date.now();
@@ -5427,7 +5442,7 @@ function tlAct(el) {
       break;
     }
     case 'hlclear': TLS.hl = null; tlRender(); break;
-    case 'selclose': TLS.sel = null; tlRender(); break;
+    case 'selclose': tlCloseCell(); break;
     case 'fillcancel': TLS.fillA = null; TLS.fill = false; tlRender(); break;
     case 'fillfrom': TLS.fill = true; TLS.fillA = i; TLS.sel = null; tlRender(); break;
     case 'cell': tlCellTap(i); break;
@@ -5442,6 +5457,19 @@ function tlAct(el) {
   }
 }
 document.getElementById('timeBody').addEventListener('click', ev => { const el = ev.target.closest('[data-act]'); if (el) tlAct(el); });
+// 칸 상세 시트: 바깥(scrim)·닫기·Esc 로 닫힘, Tab 은 시트 안에서만 돈다
+document.getElementById('tlCellModal').addEventListener('click', ev => {
+  if (ev.target.id === 'tlCellModal') { tlCloseCell(); return; }
+  const el = ev.target.closest('[data-act]'); if (el) tlAct(el);
+});
+document.addEventListener('keydown', ev => {
+  const modal = document.getElementById('tlCellModal');
+  if (!modal.classList.contains('show') || document.getElementById('tlEditModal').classList.contains('show')) return;   // 편집 창이 위에 떠 있으면 건드리지 않음
+  if (ev.key === 'Escape') { ev.preventDefault(); tlCloseCell(); return; }
+  if (ev.key !== 'Tab') return;
+  const fs = [...modal.querySelectorAll('button')], a = document.activeElement; if (!fs.length) return;
+  if (ev.shiftKey ? (a === fs[0] || !fs.includes(a)) : (a === fs[fs.length - 1] || !fs.includes(a))) { ev.preventDefault(); fs[ev.shiftKey ? fs.length - 1 : 0].focus(); }
+});
 document.getElementById('tlEditModal').addEventListener('click', ev => {
   if (ev.target.id === 'tlEditModal') { ev.target.classList.remove('show'); return; }
   const el = ev.target.closest('[data-act]'); if (!el) return;
@@ -5518,7 +5546,7 @@ document.addEventListener('keydown', e => {
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
 // ====================== 설정 · 내정보 (Phase 5) ======================
-const APP_VERSION = '3.4', APP_VERSION_DATE = '2026-11-20';   // index.html 을 고쳐 배포할 때마다 같이 올린다
+const APP_VERSION = '3.5', APP_VERSION_DATE = '2026-11-21';   // index.html 을 고쳐 배포할 때마다 같이 올린다
 // 색 위 글자색: 그 색과 대비가 더 큰 쪽 (짙은 남색 / 흰색)
 function inkOn(c) { if (!hexOk(c)) return 'var(--text)'; const n = parseInt(c.slice(1), 16), f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }, L = 0.2126 * f(n >> 16 & 255) + 0.7152 * f(n >> 8 & 255) + 0.0722 * f(n & 255); return (L + 0.05) / 0.0614 >= 1.05 / (L + 0.05) ? '#161B33' : '#FFFFFF'; }
 function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
