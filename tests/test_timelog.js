@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path'), assert = require('assert');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const m = html.match(/\/\* TL-CORE-BEGIN \*\/([\s\S]*?)\/\* TL-CORE-END \*\//);
 if (!m) { console.error('TL-CORE 구간을 찾지 못했습니다'); process.exit(2); }
-const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlSummary','TL_WORK','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj','tlImpBar','tlWasteTop','tlPrevSamePoint'];
+const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlSummary','TL_WORK','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj','tlImpBar','tlWasteTop','tlPrevSamePoint','tlCatRefs','tlNewCatId'];
 const T = new Function(m[1] + '\nreturn {' + names.join(',') + '};')();
 const cats = T.TL_DEFAULT_CATS.map((c, i) => Object.assign({ order: i, archived: false }, c));
 const K = (y, mo, d, h = 0, mi = 0) => Date.UTC(y, mo - 1, d, h, mi) - 9 * 3600000;   // 한국 시간 -> epoch
@@ -471,6 +471,52 @@ t('기존 지표 값은 그대로: 막대의 중요·낭비 시간 = 기존 값,
   sameSum(pick(sm.all), hd, '전체'); sameSum(pick(sm.nowork), hn, '업무·수면 빼고');   // 기존 지표(기록·기록률·중요 비율·집중 블록)는 따로 계산한 값 그대로
   near(T.tlImpBar(sm.all)[0].pct, sm.all.impMin / sm.all.rec); assert(T.tlImpBar(sm.all)[0].pct < sm.all.impPct, '전체 줄: 막대의 중요 % (기록한 시간 기준) < 기존 중요 비율 (수면 제외 기준)');
   near(sm.all.impBase, sm.all.rec - sm.all.sleepMin, '두 분모의 차이 = 수면 시간');
+});
+
+// ---- 분류 삭제 검사: 정확한 id 만, 모든 달 기록 + 지금 기록 중. 새 분류 id 는 저장 기록 어디에도 없는 값 ----
+const CATSTORE = () => ({
+  time_categories: cats.concat([{ id: 'cdev2', name: '트레이딩·개발중 유튜브', emoji: '🔸', color: '#888888', importance: '보통', archived: false }]),
+  time_current: { catId: 'study', start: K(2026, 11, 20, 11), note: '' },
+  time_log_2026_11: [E('x1', K(2026, 11, 2, 9), K(2026, 11, 2, 12), 'dev'), E('x2', K(2026, 11, 3, 9), K(2026, 11, 3, 10), 'dev'), E('x3', K(2026, 11, 3, 20), K(2026, 11, 3, 21), 'youtube')],
+  time_log_2025_01: [E('old', K(2025, 1, 5, 9), K(2025, 1, 5, 10), 'read')],   // 오래된 달
+  time_log_2026_10: 'not-an-array',                                            // 깨진 값도 죽지 않음
+  habit_defs: [{ id: 'cdev2', name: '같은 문자열이 다른 키에 있어도 분류 기록 아님' }],
+});
+t('분류 삭제 검사 (a): 이름이 겹치거나 앞부분·포함 관계여도 막지 않음 (정확한 id 만)', () => {
+  const st = CATSTORE();
+  assert.deepStrictEqual(T.tlCatRefs(st, 'cdev2'), { entries: 0, running: false }, '"트레이딩·개발중 유튜브" (새 분류) — 기록 0');
+  assert.strictEqual(T.tlCatRefs(st, 'dev').entries, 2, '"트레이딩·개발" (dev) 은 자기 기록 2개');
+  assert.strictEqual(T.tlCatRefs(st, 'de').entries, 0, 'id 앞부분만 같으면 0'); assert.strictEqual(T.tlCatRefs(st, 'dev2').entries, 0, 'id 를 포함해도 0');
+  assert.strictEqual(T.tlCatRefs(st, '트레이딩·개발').entries, 0, '이름으로는 찾지 않음');
+  st.time_log_2026_11.push(E('x4', K(2026, 11, 4, 9), K(2026, 11, 4, 10), 'dev', 'manual', 'cdev2 트레이딩·개발중 유튜브'));   // 메모에 id·이름이 있어도
+  assert.strictEqual(T.tlCatRefs(st, 'cdev2').entries, 0, '메모 글자는 세지 않음');
+});
+t('분류 삭제 검사 (b): 오래된 달에 기록 하나 → N=1 로 막힘', () => {
+  const st = CATSTORE();
+  assert.deepStrictEqual(T.tlCatRefs(st, 'read'), { entries: 1, running: false });
+  delete st.time_log_2025_01; assert.strictEqual(T.tlCatRefs(st, 'read').entries, 0, '그 달이 없으면 0');
+});
+t('분류 삭제 검사 (c): 기록은 없고 지금 기록 중이기만 한 분류 → running', () => {
+  const st = CATSTORE();
+  assert.deepStrictEqual(T.tlCatRefs(st, 'study'), { entries: 0, running: true });
+  st.time_current = { catId: 'cdev2', start: K(2026, 11, 20, 11) };
+  assert.deepStrictEqual(T.tlCatRefs(st, 'cdev2'), { entries: 0, running: true }, '방금 만든 분류로 바꾼 채 → running');
+  st.time_current = null; assert.deepStrictEqual(T.tlCatRefs(st, 'cdev2'), { entries: 0, running: false }, '다른 분류로 바꾸면(1분 미만이라 기록 안 남음) 바로 삭제 가능');
+});
+t('새 분류 id (d): 저장 기록 어디에도 있는 id 와 겹치지 않음 (분류 목록·모든 달·지금 기록 중·기본 분류)', () => {
+  const now = K(2026, 11, 21, 15), base = 'c' + now.toString(36), st = CATSTORE();
+  assert.strictEqual(T.tlNewCatId(st, now), base, '겹치는 게 없으면 시각 기반 id');
+  st.time_categories.push({ id: base, name: 'a' }); assert.strictEqual(T.tlNewCatId(st, now), base + '_1', '분류 목록에 있으면 피함');
+  st.time_log_2025_01.push(E('o2', K(2025, 1, 6), K(2025, 1, 6, 1), base + '_1')); assert.strictEqual(T.tlNewCatId(st, now), base + '_2', '삭제된 분류 id 가 옛 달 기록에만 남아 있어도 피함');
+  st.time_current = { catId: base + '_2', start: now }; assert.strictEqual(T.tlNewCatId(st, now), base + '_3', '지금 기록 중인 id 도 피함');
+  // 무작위 저장 상태 200번: 새 id 는 늘 어떤 저장 id 와도 다름
+  for (let r = 0; r < 200; r++) {
+    const t0 = K(2026, 1, 1) + r * 7919, ids = Array.from({ length: 5 }, (_, j) => 'c' + (t0 + (j % 2)).toString(36) + (j > 1 ? '_' + (j - 1).toString(36) : ''));
+    const s2 = { time_categories: [{ id: ids[0], name: 'x' }], time_log_2026_01: ids.slice(1, 4).map((id, j) => E('e' + j, t0, t0 + 60000, id)), time_current: { catId: ids[4], start: t0 } };
+    const id = T.tlNewCatId(s2, t0), all = new Set([...ids, ...cats.map(c => c.id)]);
+    assert(!all.has(id), r + ': ' + id + ' 가 이미 있음');
+  }
+  ['sleep', 'work', 'dev', 'phone'].forEach(id => assert.notStrictEqual(T.tlNewCatId({}, 0), id));
 });
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
 process.exit(fail ? 1 : 0);
