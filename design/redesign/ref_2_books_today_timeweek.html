@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>REF 2 — 독서 오늘 / 시간 주간</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+body{margin:0;padding:24px;background:#0b0d1a;color:#9AA0C3;font-family:'IBM Plex Sans KR',sans-serif}
+.ph{background:#161B33;color:#E8EAF6;border-radius:26px;padding:16px 16px 0;display:flex;flex-direction:column;min-height:540px;font-size:13px}
+.mu{color:#9AA0C3}
+.it{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #262D52}
+.bt{border-radius:999px;padding:5px 12px;font-size:12px;background:#262D52;color:#E8EAF6}
+.sg{display:flex;gap:16px;font-size:13px;margin-bottom:6px}
+.sg span{color:#6F769C;padding-bottom:4px}
+.sg .on{color:#E8EAF6;border-bottom:2px solid #E8EAF6}
+.nv{margin-top:auto;display:flex;justify-content:space-around;padding:12px 0 14px;color:#6F769C}
+.nv i{font-size:21px}
+.lb{font-size:13px;font-weight:500;margin:0 0 8px;color:#E8EAF6}
+.cp{font-size:12px;color:#9AA0C3;margin-top:8px;line-height:1.5}
+</style></head><body>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,320px));gap:18px">
+
+<div><p class="lb">독서 · 오늘</p><div class="ph">
+<div class="sg"><span class="on">오늘</span><span>서재</span><span>지도</span></div>
+<svg id="b1" viewBox="0 0 200 200" style="width:100%;max-width:190px;margin:4px auto 0;display:block"></svg>
+<div style="text-align:center;margin:2px 0 12px"><div style="font-weight:500">사피엔스</div><div class="mu" style="font-size:12px">212 / 636쪽, 이 속도면 12월 9일에 다 읽어요</div></div>
+<div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px"><span class="bt">+5</span><span class="bt">+10</span><span class="bt">+20</span><span class="bt" style="background:#C08BFF;color:#2A0F45">쪽 입력</span></div>
+<div class="mu" style="font-size:12px;margin-bottom:2px">함께 읽는 중</div>
+<div class="it"><span style="width:8px;height:8px;border-radius:50%;background:#4FD1C5"></span><span style="flex:1">돈의 심리학</span><span class="mu">64%</span></div>
+<div class="it"><span style="width:8px;height:8px;border-radius:50%;background:#FFC857"></span><span style="flex:1">불안 세대</span><span class="mu">18%</span></div>
+<div class="nv"><i class="ti ti-sun"></i><i class="ti ti-clock"></i><i class="ti ti-book" style="color:#E8EAF6"></i><i class="ti ti-heart"></i></div>
+</div><p class="cp">바깥 고리 = 오늘 목표 쪽수(칸 30개). 안쪽 고리 = 현재 책 진행률. 예상 완독일 표시. 쪽수는 빠른 버튼으로.</p></div>
+
+<div><p class="lb">시간 · 주간</p><div class="ph">
+<div class="sg"><span>지금</span><span class="on">주간</span><span>월간</span></div>
+<div class="mu" style="font-size:12px;margin-bottom:8px">11월 16일 ~ 22일</div>
+<div id="wd" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px 4px;margin-bottom:12px"></div>
+<div id="bars"></div>
+<div class="mu" style="font-size:12px;margin-top:8px">빈 시간 하루 평균 5시간 20분. 목요일이 가장 많이 비었어요.</div>
+<div class="nv"><i class="ti ti-sun"></i><i class="ti ti-clock" style="color:#E8EAF6"></i><i class="ti ti-book"></i><i class="ti ti-heart"></i></div>
+</div><p class="cp">하루 = 작은 다이얼 1개, 주 = 다이얼 7개. 다이얼 탭 → 그날 큰 다이얼/15분 격자 편집 화면(기존 셀 편집 기능 유지). 아래 분류별 합계와 지난주 대비.</p></div>
+
+</div>
+<script>
+var NS='http://www.w3.org/2000/svg';
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+function pt(cx,cy,r,a){a=(a-90)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)]}
+function arc(cx,cy,r,a0,a1){var s=pt(cx,cy,r,a0),e=pt(cx,cy,r,a1);return 'M'+s[0]+' '+s[1]+' A'+r+' '+r+' 0 '+(a1-a0>180?1:0)+' 1 '+e[0]+' '+e[1]}
+function txt(p,x,y,s,c,w,t){var e=el('text',{x:x,y:y,'text-anchor':'middle',fill:c,'font-size':s,'font-weight':w||400,'font-family':'IBM Plex Sans KR,sans-serif'},p);e.textContent=t}
+var b1=document.getElementById('b1');
+for(var i=0;i<30;i++){el('path',{d:arc(100,100,90,i*12+1.5,(i+1)*12-1.5),stroke:i<12?'#C08BFF':'#262D52','stroke-width':12,fill:'none'},b1)}
+el('path',{d:arc(100,100,66,0,359.9),stroke:'#1F2645','stroke-width':6,fill:'none'},b1);
+el('path',{d:arc(100,100,66,0,120),stroke:'#E8EAF6','stroke-width':6,'stroke-linecap':'round',fill:'none'},b1);
+txt(b1,100,100,30,'#E8EAF6',500,'12');txt(b1,100,120,11,'#9AA0C3',400,'오늘 30쪽 중');
+var C=['#7C9CFF','#C08BFF','#4FD1C5','#5EE3A1','#FFC857'];
+var days=['월','화','수','목','금','토','일'],wd=document.getElementById('wd');
+var plan=[[[34,50,0],[50,58,2],[58,72,0],[80,88,1]],[[30,36,2],[36,70,0],[76,84,3]],[[34,62,0],[64,70,0]],[[36,48,0]],[[30,40,2],[40,72,0],[80,90,1]],[[40,52,3],[56,64,1],[80,86,4]],[[44,52,4]]];
+plan.forEach(function(seg,d){var w=document.createElement('div');w.style.cssText='text-align:center;font-size:10px;color:#9AA0C3';var s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 60 60');s.style.cssText='width:100%;max-width:52px;display:block;margin:0 auto 2px';
+el('circle',{cx:30,cy:30,r:24,fill:'none',stroke:'#1F2645','stroke-width':7},s);
+seg.forEach(function(g){el('path',{d:arc(30,30,24,g[0]*3.75,g[1]*3.75),stroke:C[g[2]],'stroke-width':7,fill:'none'},s)});
+if(d==5)el('circle',{cx:30,cy:30,r:31,fill:'none',stroke:'#E8EAF6','stroke-width':1},s);
+w.appendChild(s);w.appendChild(document.createTextNode(days[d]));wd.appendChild(w)});
+var bars=document.getElementById('bars');
+[['업무',31,'+2시간',0],['공부',8,'+1시간 30분',1],['이동',14,'같음',2],['운동',4,'−1시간',3],['휴식',6,'+40분',4]].forEach(function(b){var r=document.createElement('div');r.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px';
+r.innerHTML='<span style="width:30px;color:#9AA0C3">'+b[0]+'</span><span style="flex:1;height:6px;background:#1F2645;border-radius:3px;overflow:hidden"><span style="display:block;height:100%;width:'+Math.round(b[1]/31*100)+'%;background:'+C[b[3]]+'"></span></span><span style="width:28px;text-align:right">'+b[1]+'h</span><span style="width:62px;text-align:right;color:#6F769C;font-size:11px">'+b[2]+'</span>';bars.appendChild(r)});
+</script></body></html>

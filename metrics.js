@@ -87,10 +87,13 @@
     const links = arr(store.book_links).filter(l => l && l.approved === true && ids.has(l.a) && ids.has(l.b) && l.a !== l.b)
       .map(l => ({ a: l.a, b: l.b, reason: str(l.reason) }));
     const r = reading(store, now), cut = localDayKey(new Date(now - 30 * DAY));
+    // 읽은 쪽 = 쪽 기록 중 가장 큰 쪽 − 첫 장 + 1 (지도 빛 알갱이 수에 쓴다. 기록 없으면 0)
+    const raw = {}; arr(store.book_list).forEach(b => { if (b && typeof b.id === 'string') raw[b.id] = b; });
+    const pagesOf = id => { const L = obj(logs[id]), sp = num(raw[id] && raw[id].startPage) || 1; let mx = null; Object.keys(L).forEach(k => { const p = num(L[k] && L[k].page); if (p != null && (mx == null || p > mx)) mx = p; }); return mx == null ? 0 : Math.max(0, mx - sp + 1); };
     return {
       fields: r.fields,
       books: books.map(b => Object.assign({}, b, {
-        notes: bookNotes(logs, b.id), candidate: isCandidate(b),
+        notes: bookNotes(logs, b.id), candidate: isCandidate(b), pages: pagesOf(b.id),
         recent: isDone(b) && !!b.finishedAt && b.finishedAt >= cut,
         linked: links.filter(l => l.a === b.id || l.b === b.id).map(l => ({ id: l.a === b.id ? l.b : l.a, reason: l.reason })),
       })),

@@ -184,5 +184,20 @@ t('기본 분류에 웹서핑·유튜브 시청 포함, id 중복 없음', () =>
   assert.strictEqual(new Set(T.TL_DEFAULT_CATS.map(c => c.id)).size, T.TL_DEFAULT_CATS.length);
   assert.strictEqual(nm.length, 14);
 });
+t('하루 격자 = 분류별 합계의 그날 합 (한국 자정·달 경계·진행 중 기록, 15분 단위)', () => {
+  // 주 2026-10-26(월)~11-01(일): 10/31 22:00~11/01 02:00 (달·자정 넘김), 10/28 00:00~00:45 (UTC 로는 전날), 평일 회사 업무 8h, 11/01 진행 중 1h
+  const now = K(2026, 11, 1, 10, 0), ws = T.tlWeekStart(now);
+  assert.strictEqual(T.tlDayKey(ws), '2026-10-26');
+  const es = [E('m', K(2026, 10, 31, 22), K(2026, 11, 1, 2), 'sleep'), E('n', K(2026, 10, 28, 0), K(2026, 10, 28, 0, 45), 'rest'), E('cur', K(2026, 11, 1, 9), null, 'study')];
+  for (let d = 26; d <= 30; d++) es.push(E('w' + d, K(2026, 10, d, 9), K(2026, 10, d, 17), 'work'));
+  const segs = T.tlResolve(es, now), g = T.tlGrid(segs, ws), st = T.tlStats(segs, ws, ws + 7 * T.TL_DAY, cats, now);
+  const want = [480, 480, 525, 480, 480, 120, 180];
+  for (let d = 0; d < 7; d++) {
+    const k = T.tlDayKey(ws + d * T.TL_DAY), gm = g[d].reduce((a, c) => a + (c ? c.min : 0), 0), sm = st.days[k] ? st.days[k].rec : 0;
+    near(gm, sm, k + ' 격자 vs 합계'); near(sm, want[d], k + ' 기대값');
+  }
+  near(Object.values(st.byCat).reduce((a, b) => a + b, 0), want.reduce((a, b) => a + b, 0), '분류별 합계 = 날 합의 합');
+  near(st.byCat.work, 40 * 60, '회사 업무 40h');
+});
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
 process.exit(fail ? 1 : 0);
