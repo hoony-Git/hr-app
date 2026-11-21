@@ -783,6 +783,66 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   #tab-measure .big-metric { font-weight: 500; }
   #measureBtn { border-radius: var(--radius-pill); background: var(--hrv); color: var(--on-hrv); padding: 13px; }
   #measureBtn.btn-stop { background: var(--tl-red); color: var(--on-red); }
+
+  /* ===================== Night Dial M3 — 독서 ===================== */
+  #bookSeg { display: flex; gap: 18px; padding: 0 2px; margin: 0 0 var(--sp-3); }
+  #bookSeg button { flex: none; padding: var(--sp-2) 0 5px; border-radius: 0; background: transparent; color: var(--faint); font-size: var(--fs-md); font-weight: 400; border-bottom: 2px solid transparent; }
+  #bookSeg button.sel { background: transparent; color: var(--text); border-bottom-color: var(--text); }
+  #tab-books > .today-body, #bookBody { background: transparent; border: 0; border-radius: 0; padding: 0; margin: 0; }
+  .bk-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; margin-right: 7px; vertical-align: middle; }
+  /* 오늘 */
+  .bk-dial svg.dial { width: 100%; max-width: 236px; display: block; margin: var(--sp-2) auto var(--sp-3); }
+  .bk-ttl { display: block; width: 100%; padding: 0; background: transparent; border-radius: 0; font-size: var(--fs-xl); font-weight: 500; text-align: center; color: var(--text); }
+  .bk-sub { text-align: center; font-size: var(--fs-base); color: var(--muted); margin-top: var(--sp-1); line-height: 1.5; }
+  .bk-quick { display: flex; justify-content: center; gap: var(--sp-3); margin: var(--sp-5) 0 var(--sp-2); flex-wrap: wrap; }
+  .bk-q { flex: none; padding: 9px var(--sp-6); border-radius: var(--radius-pill); background: var(--surface2); color: var(--text); font-size: var(--fs-base); font-weight: 500; }
+  .bk-q.main { background: var(--violet); color: var(--on-violet); }
+  .bk-in { display: flex; gap: var(--sp-3); margin: var(--sp-2) 0; }
+  .bk-in[hidden] { display: none; }
+  .bk-in .num-input { flex: 1; min-width: 0; }
+  .bk-in .num-input:first-child { flex: none; width: 110px; }
+  .bk-sec { font-size: var(--fs-sm); color: var(--muted); margin: var(--sp-7) 0 2px; }
+  .bk-with { width: 100%; justify-content: flex-start; gap: 0; padding: var(--sp-5) 0; background: transparent; border-radius: 0; border-top: 1px solid var(--border); font-size: var(--fs-md); font-weight: 400; color: var(--text); }
+  .bk-with .n { flex: 1; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bk-with .v { color: var(--muted); margin-left: var(--sp-3); }
+  .bk-add { width: 100%; justify-content: flex-start; gap: var(--sp-2); padding: var(--sp-5) 0; margin-top: var(--sp-3); background: transparent; border-radius: 0; border-top: 1px solid var(--border); color: var(--muted); font-size: var(--fs-md); font-weight: 400; }
+  .bk-add.top { border-top: 0; margin: 0 0 var(--sp-2); padding-top: 0; color: var(--text); }
+  /* 주간·월간·서재: 카드 → 머리선 줄 */
+  #tab-books .wk-card { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: var(--sp-4) 0 !important; margin: 0; box-shadow: none; }
+  #tab-books .wk-head { padding: 0 0 var(--sp-3) !important; background: transparent; }
+  #tab-books .card { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: var(--sp-6) 0; margin: 0; }
+  #tab-books .stat-nav button { background: transparent; color: var(--muted); border-radius: 50%; }
+  #tab-books .bk-row { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; padding: var(--sp-5) 0; margin: 0; }
+  #tab-books .bk-cover { border-radius: var(--radius-sm); }
+  #tab-books .bk-cover .ti { font-size: 18px; color: rgba(0,0,0,.45); }
+  #tab-books .chip { border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--border-strong); color: var(--muted); font-weight: 400; }
+  #tab-books .chip.sel { background: var(--text); color: var(--bg); border-color: var(--text); }
+  #tab-books .shelf-row { border-radius: 0; background: transparent; border-top: 1px solid var(--border); padding: var(--sp-4) 0; margin: 0; }
+  #tab-books .progress-bg { background: var(--surface2); }
+  #tab-books .progress-fill { background: var(--violet); }
+  #tab-books .shop-row { border-top: 1px solid var(--border); }
+  #tab-books .pill { border-radius: var(--radius-pill); }
+  /* 지도 */
+  .bm-wrap.nd { position: relative; height: 560px; border-radius: var(--radius-sheet); overflow: hidden; background: var(--bg-deep); margin: 0 0 var(--sp-4); border: 0; }
+  .bm-wrap.nd .bm-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .bm-legend2 { position: absolute; top: 14px; left: 14px; font-size: var(--fs-sm); line-height: 1.9; pointer-events: none; color: #6F769C; }
+  .bm-legend2 b { color: #E8EAF6; font-weight: 500; }
+  .bm-acts { position: absolute; top: 10px; right: 10px; display: flex; gap: var(--sp-2); }
+  .bm-pill { flex: none; padding: 6px var(--sp-5); border-radius: var(--radius-pill); background: rgba(31,38,69,.75); color: #C9CDE6; font-size: var(--fs-sm); font-weight: 400; gap: 4px; text-decoration: none; }
+  .bm-pill.main { background: var(--violet); color: var(--on-violet); font-weight: 500; }
+  .bm-pill.wide { display: flex; justify-content: center; padding: 11px; margin: 0 0 var(--sp-4); background: var(--surface2); color: var(--text); font-size: var(--fs-base); }
+  .bm-hint { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 0 0 var(--sp-4); }
+  .bm-wrap.nd .bm-sheet { position: absolute; left: 10px; right: 10px; bottom: 12px; background: rgba(14,17,36,.92); border: 1px solid #262D52; border-radius: 20px; padding: 14px 16px; color: #E8EAF6; max-height: 60%; overflow: auto; }
+  .bm-wrap.nd .bm-sheet h3 { font-size: var(--fs-lg); font-weight: 500; margin: 0 30px 2px 0; display: flex; align-items: center; }
+  .bm-wrap.nd .bm-sheet h3 small { margin-left: auto; font-size: var(--fs-sm); color: #9AA0C3; font-weight: 400; }
+  .bm-wrap.nd .bm-sheet .m { color: #9AA0C3; }
+  .bm-wrap.nd .bm-sheet .bar { height: 4px; background: #262D52; border-radius: 2px; overflow: hidden; margin: var(--sp-4) 0 var(--sp-3); }
+  .bm-wrap.nd .bm-sheet .bar i { display: block; height: 100%; }
+  .bm-wrap.nd .bm-sheet .acts { display: flex; gap: var(--sp-3); margin-top: var(--sp-4); }
+  .bm-wrap.nd .bm-sheet .acts .bm-pill { flex: 1; justify-content: center; padding: 9px; border: 1px solid #3A4270; background: transparent; }
+  .bm-wrap.nd .bm-sheet .acts .bm-pill.main { border-color: transparent; background: var(--violet); }
+  .bm-wrap.nd .bm-sheet .x { background: transparent; color: #9AA0C3; }
+  #tab-books .bw, #tab-books .bm-c { --rc: var(--violet) !important; }   /* 주간·월간 칸: 무지개 대신 보라 한 색 */
 </style>
 <script src="metrics.js"></script>
 <script src="book-map.js"></script>
@@ -884,7 +944,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
 <!-- ===================== 독서 ===================== -->
 <div id="tab-books" hidden>
   <div class="folder-tabs sm" id="bookSeg" role="tablist">
-    <button data-b="today" class="sel" role="tab" aria-selected="true">오늘 읽기</button>
+    <button data-b="today" class="sel" role="tab" aria-selected="true">오늘</button>
     <button data-b="week" role="tab" aria-selected="false">주간</button>
     <button data-b="month" role="tab" aria-selected="false">월간</button>
     <button data-b="shelf" role="tab" aria-selected="false">서재</button>
@@ -1030,7 +1090,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <button data-tab="stats" role="tab" aria-selected="false" hidden>통계</button>
   <button data-tab="me" role="tab" aria-selected="false" hidden>내정보</button>
 </nav>
-<button class="fab hidden" id="fabAdd" aria-label="습관 추가">+</button>
 
 <!-- 습관 추가·수정 모달 -->
 <div class="modal-bg" id="habitModal">
@@ -2978,6 +3037,8 @@ function sheetPick(n) { document.getElementById('sheetModal').classList.remove('
 //   nowFrac: 0..1                         하루 중 지금 위치에 흰 점 (없으면 안 그림)
 //   center: { fill, r, lines: [{ t, y, size, fill, w, id }] }   가운데 원과 글자 (id = 실시간으로 글자만 바꿀 때)
 //   cells[i].dim = true                   그 칸만 흐리게 (분류 강조)
+//   n: 칸 수 (기본 96)                     독서 목표 고리처럼 다른 칸 수
+//   inner: { frac: 0~1, r, color }        안쪽 진행 고리 (책 진행률)
 //   zone: { colors: [6], active: 0..5, pos: 0..1 }          270° 존 게이지 모드 (cells 대신)
 //   label: '화면 낭독용 설명' }
 const Dial = (() => {
@@ -2993,11 +3054,17 @@ const Dial = (() => {
       if (z.pos != null) { const q = pt(86, st + 270 * Math.max(0, Math.min(1, z.pos))); s += '<circle cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r="8" style="fill:var(--bg);stroke:var(--text)" stroke-width="3"/>'; }
     } else {
       const cells = o.cells || [], now = o.now == null ? 96 : o.now, r = o.r || 90, sw = o.stroke || 12;
-      for (let i = 0; i < 96; i++) {
+      const N = o.n || 96, step = 360 / N, gap = N >= 96 ? 0.5 : Math.min(3, step * 0.2);
+      for (let i = 0; i < N; i++) {
         const c = cells[i], col = c ? c.color : (i < now ? 'var(--empty-past)' : 'var(--empty-future)');
-        s += '<path d="' + arc(r, i * 3.75 + 0.5, (i + 1) * 3.75 - 0.5) + '" style="stroke:' + col + '" stroke-width="' + sw + '" fill="none"' + (c && c.dashed ? ' stroke-dasharray="2 2"' : '') + (c && c.dim ? ' opacity="0.22"' : '') + '/>';
+        s += '<path d="' + arc(r, i * step + gap, (i + 1) * step - gap) + '" style="stroke:' + col + '" stroke-width="' + sw + '" fill="none"' + (c && c.dashed ? ' stroke-dasharray="2 2"' : '') + (c && c.dim ? ' opacity="0.22"' : '') + '/>';
       }
       if (o.labels !== false) [0, 6, 12, 18].forEach(h => { const q = pt(r - 17, h * 15); s += '<g aria-hidden="true">' + text(q[0], q[1] + 3.5, 9, 'var(--faint)', 400, String(h)) + '</g>'; });
+      if (o.inner) {   // 안쪽 진행 고리 (0~1)
+        const ir = o.inner.r || 68, fr = Math.max(0, Math.min(1, o.inner.frac || 0));
+        s += '<circle cx="100" cy="100" r="' + ir + '" fill="none" style="stroke:var(--surface2)" stroke-width="4"/>';
+        if (fr > 0) s += fr >= 1 ? '<circle cx="100" cy="100" r="' + ir + '" fill="none" style="stroke:' + (o.inner.color || 'var(--text)') + '" stroke-width="4"/>' : '<path d="' + arc(ir, 0, fr * 360) + '" fill="none" style="stroke:' + (o.inner.color || 'var(--text)') + '" stroke-width="4" stroke-linecap="round"/>';
+      }
       if (o.nowFrac != null && o.nowFrac >= 0 && o.nowFrac <= 1) { const q = pt(r, o.nowFrac * 360); s += '<circle cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r="6" style="fill:var(--text)"/>'; }
     }
     if (o.center) {
@@ -3165,7 +3232,7 @@ function renderRoutine(c) {
 function renderWeekCards(c, today) {
   const days = weekDays(weekStartOf(selDate));
   const wrap = document.getElementById('weekCards');
-  if (!c.vis.length) { wrap.innerHTML = '<div class="rt-empty">아직 습관이 없어요.<br>오른쪽 아래 + 버튼으로 추가하세요.</div>'; return; }
+  if (!c.vis.length) { wrap.innerHTML = '<div class="rt-empty">아직 습관이 없어요.<br>오늘 탭의 + 습관으로 추가하세요.</div>'; return; }
   wrap.innerHTML = c.vis.map((h, idx) => {
     const notes = c.notes[h.id] || {};
     const cells = days.map(d => {
@@ -3195,7 +3262,7 @@ function shiftMonth(n) {
 function renderMonthCards(c, today) {
   const wrap = document.getElementById('monthCards'), y = selDate.getFullYear(), mo = selDate.getMonth(), days = monthDaysOf(y, mo);
   const nav = `<div class="mo-nav"><button onclick="shiftMonth(-1)" aria-label="지난달">‹</button><span>${y}년 ${mo + 1}월</span><button onclick="shiftMonth(1)" aria-label="다음달">›</button></div>`;
-  if (!c.vis.length) { wrap.innerHTML = nav + '<div class="rt-empty">아직 습관이 없어요.<br>오른쪽 아래 + 버튼으로 추가하세요.</div>'; return; }
+  if (!c.vis.length) { wrap.innerHTML = nav + '<div class="rt-empty">아직 습관이 없어요.<br>오늘 탭의 + 습관으로 추가하세요.</div>'; return; }
   const dows = weekOrder().map(i => `<div>${WD[i]}</div>`).join('');
   wrap.innerHTML = nav + c.vis.map((h, idx) => {
     let cells = '';
@@ -3450,7 +3517,6 @@ document.getElementById('monthBtn').onclick = () => {
 };
 document.getElementById('jumpDate').onchange = e => { if (e.target.value) { selDate = parseDayKey(e.target.value); renderToday(); } };
 document.querySelectorAll('#todaySeg button').forEach(b => b.onclick = () => { todayView = b.dataset.v; renderToday(); });
-document.getElementById('fabAdd').onclick = () => { if (curTab === 'books') openAddBook(); else openHabitModal(); };
 document.getElementById('lvChip').onclick = openLevelScreen;
 document.getElementById('lvBadge').onclick = openLevelScreen;
 (function () {   // 주 스트립 날짜 길게 누르기 -> 쉬는 날 지정/해제
@@ -4335,7 +4401,7 @@ document.getElementById('bkdClose').onclick = () => document.getElementById('bkd
 document.getElementById('bkdMore').onclick = () => { document.getElementById('bkdModal').classList.remove('show'); bookActions(bkdId); };
 function coverHtml(b) {
   const u = safeUrl(b.coverUrl), col = BOOK_CAT_COLOR[b.category] || BOOK_CAT_COLOR['기타'];
-  return `<div class="bk-cover" style="--p:${col}">${u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>📖</span></div>`;
+  return `<div class="bk-cover" style="--p:${col}">${u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<i class="ti ti-book" aria-hidden="true"></i></div>`;
 }
 function renderBooks() {
   if (document.getElementById('tab-books').hidden) return;
@@ -4352,22 +4418,53 @@ function renderBooks() {
   else if (bookView === 'month') body.innerHTML = renderBookMonth();
   else body.innerHTML = renderBookShelf();
 }
+// 독서 › 오늘 (Night Dial): 바깥 고리 = 하루 목표 쪽수 칸, 안쪽 고리 = 지금 책 진행률, 빠른 +5/+10/+20, 쪽 입력, 함께 읽는 중
+let bookTodayId = null;
+function bookCatColor(c) { return (window.BookMap && BookMap.CAT_COLOR[c]) || 'var(--violet)'; }
+function bookPace(b, logs) {   // 최근 14일 하루 평균 읽은 쪽. 기록한 날이 3일보다 적으면 null (예상 날짜를 숨긴다)
+  const tl = bookTimeline(b, logs), today = todayStart(), from = dayKey(addDays(today, -13)), to = dayKey(today);
+  const ks = Object.keys(tl).filter(k => k >= from && k <= to && tl[k].read > 0).sort();
+  if (ks.length < 3) return null;
+  const sum = ks.reduce((a, k) => a + tl[k].read, 0), days = Math.round((today.getTime() - parseDayKey(ks[0]).getTime()) / 864e5) + 1;
+  return sum > 0 ? sum / Math.max(days, 1) : null;
+}
+function bookLastLog(b, logs) { const k = Object.keys(logs[b.id] || {}).sort(); return k[k.length - 1] || ''; }
+function bookQuickAdd(id, n) {
+  const b = getBooks().find(x => x.id === id); if (!b) return;
+  const logs = getBookLogs(), tk = dayKey(new Date()), tl = bookTimeline(b, logs), last = bookLastPage(tl), e = tl[tk];
+  const base = last === null ? b.startPage - 1 : last, page = Math.min(b.endPage, base + n);
+  if (page <= base) { toast('이미 끝 장이에요'); return; }
+  saveBookLog(id, tk, page, e ? e.note : '');
+}
+function bookTodayPick(id) { bookTodayId = id; renderBooks(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function renderBookToday() {
   const logs = getBookLogs(), tk = dayKey(new Date()), t = readThreshold();
-  const list = getBooks().filter(b => b.status === 'reading').sort((a, b) => (b.daily10 ? 1 : 0) - (a.daily10 ? 1 : 0));
-  if (!list.length) return '<div class="rt-empty">읽고 있는 책이 없어요.<br>오른쪽 아래 + 버튼으로 책을 추가하세요.</div>';
-  return list.map(b => {
-    const tl = bookTimeline(b, logs), e = tl[tk], pr = bookProgress(b, logs);
-    return `<div class="bk-row ${e && e.read >= t ? 'ok' : ''}">` +
-      `<div class="bk-top">${coverHtml(b)}<div class="bk-info"><div class="bk-title" role="button" tabindex="0" onclick="bookActions('${b.id}')">${esc(b.title)}</div>` +
-      `<div class="bk-meta">${esc(b.author)}${b.author && b.category ? ' · ' : ''}${esc(b.category)}</div>` +
-      (b.daily10 ? `<span class="pill" style="--p:#8b5cf6">하루${t}쪽 · 누적 ${daily10Days(b, logs)}일</span>` : '') + `</div></div>` +
-      `<div class="progress-bg" style="margin:8px 0 4px;height:8px;"><div class="progress-fill" style="width:${pr}%"></div></div>` +
-      `<div class="lv-sub"><span>${e ? '오늘 ' + e.from + '→' + e.page + '쪽 (+' + e.read + '쪽)' : '오늘 기록 없음'}</span><span>${pr}% · ${b.startPage}~${b.endPage}쪽</span></div>` +
-      `<div class="habit-ctrls" style="margin-top:8px;"><input class="num-input" id="bp-${b.id}" type="number" inputmode="numeric" placeholder="현재 페이지" value="${e ? e.page : ''}" style="max-width:110px;">` +
-      `<input class="num-input" id="bn-${b.id}" type="text" maxlength="200" placeholder="감상" value="${e ? esc(e.note) : ''}" style="text-align:left;">` +
-      `<button class="btn-primary" style="flex:none;padding:13px 16px;" onclick="saveBookToday('${b.id}')">저장</button></div></div>`;
-  }).join('');
+  const list = getBooks().filter(b => b.status === 'reading').sort((a, b) => bookLastLog(b, logs).localeCompare(bookLastLog(a, logs)) || (b.daily10 ? 1 : 0) - (a.daily10 ? 1 : 0));
+  const add = '<button class="bk-add" onclick="openAddBook()"><i class="ti ti-plus" aria-hidden="true"></i> 책 추가</button>';
+  if (!list.length) return '<div class="rt-empty">읽고 있는 책이 없어요.</div>' + add;
+  const b = list.find(x => x.id === bookTodayId) || list[0];
+  const tl = bookTimeline(b, logs), e = tl[tk], readToday = e ? e.read : 0, last = bookLastPage(tl);
+  const read = last === null ? 0 : Math.max(0, last - b.startPage + 1), span = b.endPage - b.startPage + 1, pr = bookProgress(b, logs);
+  const N = Math.max(1, Math.min(96, t)), lit = Math.round(Math.min(1, readToday / t) * N);
+  const cells = Array.from({ length: N }, (_, i) => i < lit ? { color: 'var(--violet)' } : null);
+  const dial = Dial.svg({ n: N, cells, now: 0, labels: false, inner: { frac: pr / 100 }, label: '오늘 ' + readToday + '쪽 / 목표 ' + t + '쪽, 책 진행 ' + pr + '%',
+    center: { lines: [{ t: String(readToday), y: 106, size: 30, fill: 'var(--text)', w: 500 }, { t: '오늘 ' + t + '쪽 중', y: 124, size: 9.5, fill: 'var(--muted)' }] } });
+  const pace = bookPace(b, logs), left = b.endPage - (last === null ? b.startPage - 1 : last);
+  let eta = '';
+  if (pace && left > 0) { const d = addDays(todayStart(), Math.ceil(left / pace)); eta = ', 이 속도면 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일에 다 읽어요'; }
+  let h = `<div class="bk-dial">${dial}</div>` +
+    `<button class="bk-ttl" onclick="bookActions('${b.id}')" aria-label="${esc(b.title)} 메뉴">${esc(b.title)}</button>` +
+    `<div class="bk-sub">${read} / ${span}쪽${esc(eta)}</div>` +
+    (b.daily10 ? `<div class="bk-sub">하루 ${t}쪽 책 · 누적 ${daily10Days(b, logs)}일</div>` : '') +
+    `<div class="bk-quick">${[5, 10, 20].map(n => `<button class="bk-q" onclick="bookQuickAdd('${b.id}',${n})" aria-label="${n}쪽 더 읽음">+${n}</button>`).join('')}` +
+    `<button class="bk-q main" onclick="const r=document.getElementById('bkIn-${b.id}');r.hidden=!r.hidden;if(!r.hidden)document.getElementById('bp-${b.id}').focus()">쪽 입력</button></div>` +
+    `<div class="bk-in" id="bkIn-${b.id}" hidden><input class="num-input" id="bp-${b.id}" type="number" inputmode="numeric" placeholder="현재 페이지" aria-label="현재 페이지" value="${e ? e.page : ''}">` +
+    `<input class="num-input" id="bn-${b.id}" type="text" maxlength="200" placeholder="감상 (선택)" aria-label="감상" value="${e ? esc(e.note) : ''}">` +
+    `<button class="bk-q main" onclick="saveBookToday('${b.id}')">저장</button></div>` +
+    `<div class="bk-sub">${e ? '오늘 ' + e.from + '→' + e.page + '쪽 (+' + e.read + '쪽)' : '오늘 기록 없음'}</div>`;
+  const others = list.filter(x => x.id !== b.id);
+  if (others.length) h += '<div class="bk-sec">함께 읽는 중</div>' + others.map(x => `<button class="bk-with" onclick="bookTodayPick('${x.id}')"><i class="bk-dot" style="background:${bookCatColor(x.category)}"></i><span class="n">${esc(x.title)}</span><span class="v">${bookProgress(x, logs)}%</span></button>`).join('');
+  return h + add;
 }
 function bookRows(from, to) {   // 기간 안에 기록이 있거나 읽는 중인 책
   const logs = getBookLogs(), fk = dayKey(from), tk = dayKey(to);
@@ -4438,7 +4535,7 @@ function renderBookMonth() {
     return `<div class="wk-card" style="padding:10px 12px;"><div class="wk-nm" style="margin-bottom:6px;">${esc(b.title)}</div>` +
       `<div class="bm-dow">${weekOrder().map(i => `<div>${WD[i]}</div>`).join('')}</div><div class="bm-grid">${cells}</div>` +
       `<div class="lv-sub" style="margin-top:8px;"><span>이번 달 +${sum}쪽</span><span>${bookProgress(b, logs)}%</span></div></div>`;
-  }).join('') + `<div class="bw-leg"><span>진한 색 = 하루 ${t}쪽 이상</span><span>연한 색 = 그보다 적게</span><span>색은 월초 → 월말 순서</span></div>`;
+  }).join('') + `<div class="bw-leg"><span>진한 색 = 하루 ${t}쪽 이상</span><span>연한 색 = 그보다 적게</span></div>`;
 }
 let shelfQ = '', shelfRate = '', shelfPer = '', shelfFrom = '', shelfTo = '', shelfSort = 'new';
 function setShelf(k, v) { if (k === 'rate') shelfRate = v; else if (k === 'per') shelfPer = v; else if (k === 'sort') shelfSort = v; else if (k === 'from') shelfFrom = v; else if (k === 'to') shelfTo = v; renderBooks(); }
@@ -4481,10 +4578,10 @@ function refreshShelfList() { const el = document.getElementById('shelfList'); i
 function renderBookShelf() {
   const books = getBooks(), done = books.filter(b => b.status === 'done'), tg = getTargets();
   const ch = (cur, val, label, k) => `<button class="chip ${cur === val ? 'sel' : ''}" onclick="setShelf('${k}','${val}')">${label}</button>`;
-  let html = `<input type="search" class="text-input" id="shelfQ" style="width:100%;margin:0 0 8px;" placeholder="🔍 제목 · 저자 · 감상 검색" value="${esc(shelfQ)}" oninput="shelfQ=this.value;refreshShelfList()">` +
+  let html = '<button class="bk-add top" onclick="openAddBook()"><i class="ti ti-plus" aria-hidden="true"></i> 책 추가</button>' + `<input type="search" class="text-input" id="shelfQ" style="width:100%;margin:0 0 8px;" aria-label="서재 검색" placeholder="제목 · 저자 · 감상 검색" value="${esc(shelfQ)}" oninput="shelfQ=this.value;refreshShelfList()">` +
     `<div class="chips" style="margin-bottom:6px;">${ch(shelfPer, '', '전체 기간', 'per')}${ch(shelfPer, 'm', '이번 달', 'per')}${ch(shelfPer, '3m', '최근 3개월', 'per')}${ch(shelfPer, 'y', '올해', 'per')}${ch(shelfPer, 'c', '직접', 'per')}</div>` +
     (shelfPer === 'c' ? `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;font-size:12px;color:var(--muted);"><input type="date" class="text-input" style="flex:1;margin:0;" value="${esc(shelfFrom)}" onchange="setShelf('from',this.value)"> ~ <input type="date" class="text-input" style="flex:1;margin:0;" value="${esc(shelfTo)}" onchange="setShelf('to',this.value)"></div>` : '') +
-    `<div class="chips" style="margin-bottom:6px;">${ch(shelfRate, '', '평점 전체', 'rate')}${ch(shelfRate, '5', '😍 5점', 'rate')}${ch(shelfRate, '4+', '👍 4점 이상', 'rate')}${ch(shelfRate, '3-', '😕 3점 이하', 'rate')}</div>` +
+    `<div class="chips" style="margin-bottom:6px;">${ch(shelfRate, '', '평점 전체', 'rate')}${ch(shelfRate, '5', '5점', 'rate')}${ch(shelfRate, '4+', '4점 이상', 'rate')}${ch(shelfRate, '3-', '3점 이하', 'rate')}</div>` +
     `<div class="chips" style="margin-bottom:10px;">${ch(shelfSort, 'new', '최근 읽은 순', 'sort')}${ch(shelfSort, 'hi', '평점 높은 순', 'sort')}${ch(shelfSort, 'lo', '평점 낮은 순', 'sort')}</div>` +
     '<div class="field" style="border:0;padding-top:0;"><label>분야별 완독 (평생)</label></div>';
   BOOK_CATS.forEach(c => {
@@ -4515,14 +4612,17 @@ function bookMapClose() { if (bookMap) { bookMap.destroy(); bookMap = null; } }
 function renderBookMap(body) {
   if (!window.HRMetrics || !window.BookMap) { body.innerHTML = '<div class="rt-empty">지도 파일(metrics.js·book-map.js)을 불러오지 못했어요</div>'; return; }
   const st = bookMapStore(), data = HRMetrics.mapData(st, Date.now());
-  const fields = data.fields.map(f => `<div class="bm-f">${esc(f.cat)}<b>${f.completed}/${f.target}</b>${f.count}권${f.candidates ? `<br><span style="color:#fb923c">후보 ${f.candidates}</span>` : ''}<div class="bar"><i style="width:${Math.min(100, f.pct || 0)}%;background:${BookMap.CAT_COLOR[f.cat]}"></i></div></div>`).join('');
-  body.innerHTML = `<div class="bm-fields">${fields}</div>` +
-    `<div class="bm-wrap"><canvas class="bm-canvas" id="bmCanvas" aria-label="독서 지도"></canvas><div id="bmSheet"></div></div>` +
-    (safeUrl(settings.insightsUrl) ? `<a class="btn-primary btn-wide" id="bmInsights" href="${esc(safeUrl(settings.insightsUrl))}" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;text-decoration:none;margin:10px 0 2px;">AI 인사이트 열기 ↗</a>` : '') +
-    `<div class="bm-legend"><span>● 밝을수록 별점 높음</span><span>○ 읽는 중</span><span style="color:#fde047">✦ 최근 30일 완독</span><span style="color:#7dd3fc">◆ 감상·메모</span><span style="color:#fb923c">● 다시 분류할 후보 (ISBN 있는데 기타)</span></div>` +
-    `<input class="text-input" id="bmQ" placeholder="제목·감상·메모 검색" value="${esc(bookMapQ)}" style="width:100%;">` +
+  const counts = {}; data.books.forEach(b => { counts[b.category] = (counts[b.category] || 0) + 1; });
+  const legend = Object.keys(counts).sort((a, b) => BOOK_CATS.indexOf(a) - BOOK_CATS.indexOf(b)).map(c => `<div><i class="bk-dot" style="background:${bookCatColor(c)}"></i><b>${esc(c)}</b> ${counts[c]}권</div>`).join('');
+  body.innerHTML = `<div class="bm-wrap nd"><canvas class="bm-canvas" id="bmCanvas" aria-label="독서 지도: 분야 성단과 책. 아래 검색으로도 책을 찾을 수 있어요"></canvas>` +
+    `<div class="bm-legend2" aria-hidden="true">${legend}</div>` +
+    `<div class="bm-acts"><button class="bm-pill" onclick="const q=document.getElementById('bmQ');q.scrollIntoView({block:'center'});q.focus()"><i class="ti ti-search" aria-hidden="true"></i> 책 찾기</button><button class="bm-pill" onclick="openAddBook()"><i class="ti ti-plus" aria-hidden="true"></i> 책 추가</button></div>` +
+    `<div id="bmSheet"></div></div>` +
+    `<div class="bm-hint">빛 알갱이 1개 = 읽은 10쪽 · 꽉 찬 원 = 다 읽음 · 흰 원 = 읽는 중 · 테두리만 = 중단 · 주황 점 = 다시 분류할 후보. 성단을 누르면 확대, 빈 곳을 누르면 전체.</div>` +
+    (safeUrl(settings.insightsUrl) ? `<a class="bm-pill wide" id="bmInsights" href="${esc(safeUrl(settings.insightsUrl))}" target="_blank" rel="noopener noreferrer">AI 인사이트 열기 ↗</a>` : '') +
+    `<input class="text-input" id="bmQ" type="search" placeholder="제목·감상·메모 검색" aria-label="책 검색" value="${esc(bookMapQ)}" style="width:100%;">` +
     `<div id="bmRes"></div>`;
-  bookMap = BookMap.create(document.getElementById('bmCanvas'), { onSelect: b => bookMapSheet(b, data) });
+  bookMap = BookMap.create(document.getElementById('bmCanvas'), { onSelect: b => bookMapSheet(b, data), onGenre: g => bookMapGenreSheet(g) });
   bookMap.setData(data);
   const q = document.getElementById('bmQ');
   q.oninput = () => { bookMapQ = q.value; bookMapSearch(st); };
@@ -4532,21 +4632,36 @@ function bookMapSearch(st) {
   const el = document.getElementById('bmRes'); if (!el) return;
   if (!bookMapQ.trim()) { el.innerHTML = ''; return; }
   const r = HRMetrics.searchBooks(st, bookMapQ, 30);
-  el.innerHTML = r.length ? r.map(b => `<div class="bm-res" data-id="${esc(b.id)}">${esc(b.title)} <small>${esc(b.category)} · ${b.matched.join('·')}</small></div>`).join('') : '<div class="rt-empty">찾는 책이 없어요</div>';
-  el.querySelectorAll('.bm-res').forEach(d => d.onclick = () => { if (bookMap) bookMap.select(d.dataset.id, true); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  el.innerHTML = r.length ? r.map(b => `<div class="bm-res" data-id="${esc(b.id)}" role="button" tabindex="0">${esc(b.title)} <small>${esc(b.category)} · ${b.matched.join('·')}</small></div>`).join('') : '<div class="rt-empty">찾는 책이 없어요</div>';
+  el.querySelectorAll('.bm-res').forEach(d => d.onclick = () => { if (bookMap) bookMap.select(d.dataset.id, true); document.getElementById('bmCanvas').scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+}
+// 분야 시트 (성단을 눌렀을 때): 읽은 쪽, 완독/목표, 후보, 목표 바꾸기, 책 추가
+function bookMapGenreSheet(g) {
+  const el = document.getElementById('bmSheet'); if (!el) return;
+  if (!g) { if (el.dataset.kind === 'genre') { el.className = ''; el.innerHTML = ''; el.dataset.kind = ''; } return; }
+  const f = g.field || {}, pct = g.books ? Math.round(g.done / g.books * 100) : 0;
+  el.className = 'bm-sheet'; el.dataset.kind = 'genre';
+  el.innerHTML = `<button class="x" id="bmX" aria-label="닫기"><i class="ti ti-x" aria-hidden="true"></i></button>` +
+    `<h3><i class="bk-dot" style="background:${g.color}"></i>${esc(g.cat)} <small>${g.pages.toLocaleString()}쪽 읽음</small></h3>` +
+    `<div class="bar"><i style="width:${pct}%;background:${g.color}"></i></div>` +
+    `<div class="m">${g.books}권 중 ${g.done}권 다 읽음${g.reading ? ' · 읽는 중 ' + g.reading + '권' : ''}${f.target != null ? ' · 평생 목표 ' + (f.completed || 0) + '/' + f.target + '권' : ''}${f.candidates ? ' · 다시 분류할 후보 ' + f.candidates + '권' : ''}</div>` +
+    `<div class="m">${g.pagesPerParticle > 10 ? '빛 알갱이 1개 = ' + g.pagesPerParticle + '쪽 (600개로 묶음)' : '빛 알갱이 1개 = 10쪽'}. 책을 누르면 연결된 책이 보여요.</div>` +
+    `<div class="acts">${BOOK_CATS.includes(g.cat) ? `<button class="bm-pill" onclick="editTarget('${g.cat}')">목표 바꾸기</button>` : ''}<button class="bm-pill main" onclick="openAddBook()"><i class="ti ti-plus" aria-hidden="true"></i> 책 추가</button></div>`;
+  document.getElementById('bmX').onclick = () => bookMap && bookMap.reset();
 }
 function bookMapSheet(b, data) {
   const el = document.getElementById('bmSheet'); if (!el) return;
-  if (!b) { el.className = ''; el.innerHTML = ''; return; }
+  if (!b) { if (el.dataset.kind !== 'genre') { el.className = ''; el.innerHTML = ''; el.dataset.kind = ''; } return; }
   const title = id => { const x = data.books.find(y => y.id === id); return x ? x.title : id; };
-  const stat = b.status === 'done' ? '완독 ' + (b.finishedAt || '') : b.status === 'reading' ? '읽는 중' : '중단';
-  el.className = 'bm-sheet';
-  el.innerHTML = `<button class="x" id="bmX" aria-label="닫기">✕</button><h3>${esc(b.title)}</h3>` +
-    `<div class="m">${esc(b.author)}${b.author ? ' · ' : ''}${esc(b.category)} · ${esc(stat)}${b.rating ? ' · ' + '★'.repeat(b.rating) : ''}${b.candidate ? ' · <span style="color:#fb923c">다시 분류할 후보</span>' : ''}</div>` +
+  const stat = b.status === 'done' ? '다 읽음 ' + (b.finishedAt || '') : b.status === 'reading' ? '읽는 중' : '중단';
+  el.className = 'bm-sheet'; el.dataset.kind = 'book';
+  el.innerHTML = `<button class="x" id="bmX" aria-label="닫기"><i class="ti ti-x" aria-hidden="true"></i></button><h3><i class="bk-dot" style="background:${bookCatColor(b.category)}"></i>${esc(b.title)}</h3>` +
+    `<div class="m">${esc(b.author)}${b.author ? ' · ' : ''}${esc(b.category)} · ${esc(stat)}${b.rating ? ' · ' + '★'.repeat(b.rating) : ''}${b.candidate ? ' · <span style="color:var(--z4)">다시 분류할 후보</span>' : ''}</div>` +
     (b.review ? `<div class="n">“${esc(b.review)}”</div>` : '') +
     b.notes.map(n => `<div class="n"><small>${esc(n.day)}</small>${esc(n.note)}</div>`).join('') +
-    (b.linked.length ? `<div class="m" style="margin-top:10px">연결된 책</div>` + b.linked.map(l => `<div class="n">↔ ${esc(title(l.id))}${l.reason ? ' <small>' + esc(l.reason) + '</small>' : ''}</div>`).join('') : '') +
-    (!b.review && !b.notes.length ? '<div class="m">감상·메모가 아직 없어요</div>' : '');
+    (b.linked.length ? `<div class="m" style="margin-top:10px">연결된 책</div>` + b.linked.map(l => `<div class="n">↔ ${esc(title(l.id))}${l.reason ? ' <small>' + esc(l.reason) + '</small>' : ''}</div>`).join('') : '<div class="m">아직 연결된 책이 없어요</div>') +
+    (!b.review && !b.notes.length ? '<div class="m">감상·메모가 아직 없어요</div>' : '') +
+    `<div class="acts"><button class="bm-pill" onclick="openBookDetail('${b.id}')">자세히</button>${b.status === 'reading' ? `<button class="bm-pill main" onclick="openBookLog('${b.id}','${dayKey(new Date())}')">쪽수 기록</button>` : ''}</div>`;
   document.getElementById('bmX').onclick = () => bookMap && bookMap.select(null);
 }
 
@@ -5276,7 +5391,6 @@ function switchTab(name) {
   });
   curTab = name; updateHeader(name);
   if (name !== 'books') bookMapClose();   // 지도 애니메이션은 독서 탭에서만
-  document.getElementById('fabAdd').classList.toggle('hidden', name !== 'books');   // 오늘은 '+ 습관' 줄. 독서는 M3 까지 + 버튼 유지
   if (name === 'today') renderToday();
   if (name === 'books') renderBooks();
   if (name === 'time') tlRender();
