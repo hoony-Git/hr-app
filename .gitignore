@@ -6,3 +6,7 @@
 # 시간 기록 시험 산출물 / 작업 메모
 tests/screens/
 worklog*
+
+# 파이썬 캐시 / 개인 파일
+__pycache__/
+_private/
