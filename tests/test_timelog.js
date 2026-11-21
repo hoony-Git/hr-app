@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path'), assert = require('assert');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const m = html.match(/\/\* TL-CORE-BEGIN \*\/([\s\S]*?)\/\* TL-CORE-END \*\//);
 if (!m) { console.error('TL-CORE 구간을 찾지 못했습니다'); process.exit(2); }
-const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj'];
+const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlSummary','TL_WORK','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj'];
 const T = new Function(m[1] + '\nreturn {' + names.join(',') + '};')();
 const cats = T.TL_DEFAULT_CATS.map((c, i) => Object.assign({ order: i, archived: false }, c));
 const K = (y, mo, d, h = 0, mi = 0) => Date.UTC(y, mo - 1, d, h, mi) - 9 * 3600000;   // 한국 시간 -> epoch
@@ -223,6 +223,60 @@ t('주간 띠의 칸 = 하루 격자의 칸 (자정·달 경계·자동·15분 �
   const sun = T.tlRibbon(g[6]);
   assert.deepStrictEqual(sun.map(r => [r.catId, r.c0, r.c1]), [['sleep', 0, 7], ['study', 36, 39]], '자정 넘김 + 진행 중은 지금(10:00)까지');
   assert.deepStrictEqual(T.tlRibbon(g[5]).map(r => [r.catId, r.c0, r.c1]), [['sleep', 88, 95]], '10/31 22~24시');
+});
+// ---- 한 줄 요약: 전체 / 회사 업무 빼고 (월간·주간). 기대값은 분 단위로 직접 칠해서 따로 계산한다 ----
+const SUMNOW = K(2026, 11, 20, 12, 0);
+const SUMES = [
+  E('b1', K(2026, 10, 31, 22), K(2026, 11, 1, 1), 'dev'),                   // 달 경계
+  E('s1', K(2026, 11, 2, 9), K(2026, 11, 2, 18), 'work'),
+  E('s2', K(2026, 11, 2, 18), K(2026, 11, 2, 19, 30), 'study'),
+  E('s3', K(2026, 11, 2, 23), K(2026, 11, 3, 7), 'sleep'),                  // 자정 넘김
+  E('s4', K(2026, 11, 3, 9), K(2026, 11, 3, 12), 'work'),
+  E('s5', K(2026, 11, 3, 12), K(2026, 11, 3, 12, 40), 'rest'),
+  E('s6', K(2026, 11, 3, 13), K(2026, 11, 3, 17), 'work'),
+  E('s7', K(2026, 11, 3, 20), K(2026, 11, 3, 21), 'youtube'),
+  E('a1', K(2026, 11, 4, 6), K(2026, 11, 4, 7), 'exercise', 'auto-hr'),      // 자동 + 겹치는 수동
+  E('s8', K(2026, 11, 4, 6, 30), K(2026, 11, 4, 7, 30), 'exercise'),
+  E('s9', K(2026, 11, 5, 10), K(2026, 11, 5, 11), 'read'),
+  E('cur', K(2026, 11, 20, 11), null, 'study'),                             // 진행 중
+];
+function handSum(es, from, to, now, cs, noWork) {
+  const imp = id => (cs.find(c => c.id === id) || {}).importance;
+  const end = Math.min(to, now), mins = [];
+  for (let t = from; t < end; t += 60000) {
+    let best = null;
+    es.forEach(e => { const ee = e.end == null ? now : e.end; if (e.start <= t && t < ee) { const pri = e.source === 'manual' ? 1 : 0; if (!best || pri > best.pri || (pri === best.pri && e.start > best.e.start)) best = { e, pri }; } });
+    mins.push(best ? best.e.catId : null);
+  }
+  const keep = c => c && !(noWork && c === 'work');
+  const rec = mins.filter(keep).length, work = noWork ? mins.filter(c => c === 'work').length : 0;
+  const base = mins.filter(c => keep(c) && c !== 'sleep'), impPct = base.length ? base.filter(c => imp(c) === '중요').length / base.length : null;
+  let focus = 0;
+  for (let i = 0; i < mins.length;) { let j = i; while (j < mins.length && mins[j] === mins[i]) j++; const c = mins[i]; if (keep(c) && c !== 'sleep' && imp(c) === '중요' && j - i >= 60) focus++; i = j; }
+  const period = (to - from) / 60000 - work, el = (end - from) / 60000 - work;
+  return { rec, cov: rec / period, covSoFar: now < to && el > 0 ? rec / el : null, impPct, focus };
+}
+const pick = st => ({ rec: st.rec, cov: st.cov, covSoFar: st.covSoFar, impPct: st.impPct, focus: st.focus });
+function sameSum(got, want, msg) { ['rec', 'cov', 'impPct', 'focus'].forEach(k => near(got[k], want[k], msg + ' ' + k)); if (want.covSoFar == null) assert.strictEqual(got.covSoFar, null, msg + ' covSoFar'); else near(got.covSoFar, want.covSoFar, msg + ' covSoFar'); }
+const segsSum = T.tlResolve(SUMES, SUMNOW);
+
+t('월간 요약: 전체 − 회사 업무 = 업무 빼고 (4개 지표, 따로 계산한 값과 같음)', () => {
+  const from = T.tlMonthStart(2026, 11), to = T.tlMonthStart(2026, 12), rep = T.tlMonthReport(SUMES, 2026, 11, cats, SUMNOW);
+  sameSum(pick(rep.cur), handSum(SUMES, from, to, SUMNOW, cats, false), '전체');
+  sameSum(pick(rep.nowork), handSum(SUMES, from, to, SUMNOW, cats, true), '업무 빼고');
+  near(rep.cur.rec - rep.nowork.rec, 9 * 60 + 3 * 60 + 4 * 60, '빠진 시간 = 업무 16시간');
+  near(rep.nowork.exMin, 16 * 60);
+  near(rep.impPct, rep.cur.impPct);
+  assert(rep.cur.covSoFar != null && rep.nowork.covSoFar != null, '안 끝난 달: 지금까지 기록률 둘 다');
+});
+t('월간 요약: 회사 업무 이름을 바꿔도 결과 같음 (id 로 찾음)', () => {
+  const renamed = cats.map(c => c.id === 'work' ? Object.assign({}, c, { name: '본업(바꾼 이름)', order: 99 }) : c);
+  const a = T.tlMonthReport(SUMES, 2026, 11, cats, SUMNOW), b = T.tlMonthReport(SUMES, 2026, 11, renamed, SUMNOW);
+  assert.deepStrictEqual(pick(b.nowork), pick(a.nowork)); assert.deepStrictEqual(pick(b.cur), pick(a.cur));
+});
+t('월간 요약: 업무 기록이 없는 달 → 두 줄 값이 같음', () => {
+  const rep = T.tlMonthReport(SUMES, 2026, 10, cats, SUMNOW);   // 10월: dev 2시간뿐
+  assert(rep.cur.rec > 0); assert.deepStrictEqual(pick(rep.nowork), pick(rep.cur)); near(rep.nowork.exMin, 0);
 });
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
 process.exit(fail ? 1 : 0);
