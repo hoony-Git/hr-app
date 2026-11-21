@@ -473,7 +473,11 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   #tlCellInfo { font-size: var(--fs-md); line-height: 1.5; outline: none; }
   #tlCellInfo .tl-actions { flex-wrap: nowrap; margin-top: var(--sp-6); }
   #tlCellInfo .tl-sm { flex: 1; min-width: 0; word-break: keep-all; }
-  #tlCellInfo .tl-sm.line { background: transparent; border: 1px solid var(--border-strong); }
+  #tlCellInfo .tl-sm.line, #tlRenameSheet .tl-sm.line { background: transparent; border: 1px solid var(--border-strong); }
+  #tlRenameSheet { font-size: var(--fs-md); line-height: 1.5; outline: none; }
+  #tlRenameSheet .tl-actions { flex-wrap: nowrap; margin-top: var(--sp-6); }
+  #tlRenameSheet .tl-sm { flex: 1; min-width: 0; word-break: keep-all; }
+  #tlRenameMsg { word-break: keep-all; overflow-wrap: anywhere; }
   .tl-h { font-size: var(--fs-base); font-weight: 500; margin-bottom: var(--sp-3); }
   .tl-h small { font-weight: 500; color: var(--muted); }
   .tl-note { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--sp-2); line-height: 1.45; }
@@ -1221,6 +1225,14 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <div class="sub">이름·색·중요도를 바꾸고, ▲▼로 순서를 바꿔요. 기록이 있는 분류는 지우지 않고 "보관"만 해요 (보관해도 지난 기록과 통계는 그대로).</div>
     <div id="tlCatBody"></div>
     <div class="tl-actions" style="margin-top:14px"><button class="tl-sm" data-act="catadd">＋ 분류 추가</button><button class="tl-sm save" data-act="catclose">완료</button></div>
+  </div>
+</div>
+<!-- 기록이 있는 분류 이름 바꾸기 확인 (분류 관리 창 위에 뜬다) -->
+<div class="modal-bg" id="tlRenameModal">
+  <div class="modal" id="tlRenameSheet" role="dialog" aria-modal="true" aria-labelledby="tlRenameMsg" tabindex="-1">
+    <h2 id="tlRenameMsg"></h2>
+    <div class="sub" id="tlRenameSub"></div>
+    <div class="tl-actions"><button class="tl-sm save" data-act="renameok">바꾸기</button><button class="tl-sm line" data-act="renameundo">되돌리기</button></div>
   </div>
 </div>
 
@@ -5453,10 +5465,15 @@ function tlRenderCatMgr() {
     <label class="tl-arch"><input type="checkbox" data-f="archived"${c.archived ? ' checked' : ''}>보관</label><button class="tl-mv" data-act="catdel" data-id="${esc(c.id)}" title="삭제" aria-label="${esc(c.name)} 삭제"><i class="ti ti-trash" aria-hidden="true"></i></button></div>`).join('');
 }
 // 분류 관리의 모든 동작은 줄 번호가 아니라 분류 id 로 찾는다 (창이 열린 사이 목록이 바뀌어도 다른 분류를 고치지 않게)
-function tlCatEdit(id, f, v) {
+function tlCatEdit(id, f, v, confirmed) {   // confirmed = 이름 바꾸기 확인 시트에서 '바꾸기'를 누른 경우
   const list = tlCats(), c = list.find(x => x.id === id);
   if (!c) { toast('분류 목록이 바뀌었어요 — 다시 확인해 주세요'); tlRenderCatMgr(); return; }
-  if (f === 'name') { v = String(v).trim(); if (!v) { toast('이름은 비울 수 없어요'); tlRenderCatMgr(); return; } c.name = v.slice(0, 14); }
+  if (f === 'name') {
+    v = String(v).trim(); if (!v) { toast('이름은 비울 수 없어요'); tlRenderCatMgr(); return; }
+    v = v.slice(0, 14); if (v === c.name) return;   // 이름이 그대로면 아무것도 안 함
+    if (!confirmed) { const n = tlCatRefs(tlCatStore(), c.id).entries; if (n > 0) { tlRenameAsk(c, v, n); return; } }   // 기록이 있는 분류 → 저장 전에 묻기
+    c.name = v;
+  }
   else if (f === 'emoji') c.emoji = String(v).trim().slice(0, 4) || c.emoji;
   else if (f === 'color') c.color = tlColor(v);
   else if (f === 'importance') { if (!TL_IMP.includes(v)) return; c.importance = v; }
@@ -5464,6 +5481,27 @@ function tlCatEdit(id, f, v) {
   try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); tlRenderCatMgr(); return; }
   if (f === 'name' || (f === 'emoji' && String(v).trim())) return;   // 입력칸에 이미 보이는 값 — 다시 그리면 이어서 누른 버튼(휴지통 등)이 사라진다
   tlRenderCatMgr();
+}
+// 기록이 있는 분류 이름 바꾸기 확인 시트. 바꾸기 = 저장, 되돌리기(Esc 포함) = 입력칸을 원래 이름으로. 바깥을 눌러도 닫히지 않음 (둘 중 하나를 골라야 함)
+function tlRo(w) {   // 조사 로/으로: 마지막 글자가 받침(ㄹ 제외) 있는 한글이면 '으로', 받침 없음·ㄹ 이면 '로', 한글이 아니면 '(으)로'
+  const c = String(w).slice(-1).charCodeAt(0) - 0xAC00; if (!(c >= 0 && c < 11172)) return '(으)로';
+  const j = c % 28; return j === 0 || j === 8 ? '로' : '으로';
+}
+function tlRenameAsk(c, nv, n) {
+  const m = document.getElementById('tlRenameModal');
+  if (m.classList.contains('show')) return;   // 이미 묻는 중이면 또 띄우지 않음
+  TLS.rename = { id: c.id, old: c.name, nv };
+  document.getElementById('tlRenameMsg').textContent = '기록 ' + n + "개도 '" + nv + "'" + tlRo(nv) + ' 보여요. 바꿀까요?';
+  document.getElementById('tlRenameSub').textContent = '지금 이름: ' + c.name;
+  m.classList.add('show'); document.getElementById('tlRenameSheet').focus();
+}
+function tlRenameDone(ok) {
+  const r = TLS.rename; TLS.rename = null;
+  document.getElementById('tlRenameModal').classList.remove('show');
+  if (!r) return;
+  if (ok) tlCatEdit(r.id, 'name', r.nv, true);
+  const row = [...document.querySelectorAll('#tlCatBody .tl-cm')].find(x => x.dataset.id === r.id), inp = row && row.querySelector('input[data-f="name"]');
+  if (inp) { if (!ok) inp.value = r.old; inp.focus({ preventScroll: true }); }   // 되돌리기 = 원래 이름, 포커스는 그 이름 칸으로
 }
 function tlCatMove(id, dir) {
   const list = tlCats(), i = list.findIndex(x => x.id === id), j = i + dir;
@@ -5546,6 +5584,21 @@ function tlAct(el) {
   }
 }
 document.getElementById('timeBody').addEventListener('click', ev => { const el = ev.target.closest('[data-act]'); if (el) tlAct(el); });
+document.getElementById('tlRenameModal').addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  if (el.dataset.act === 'renameok') tlRenameDone(true); else if (el.dataset.act === 'renameundo') tlRenameDone(false);
+});
+document.addEventListener('keydown', ev => {
+  const m = document.getElementById('tlRenameModal');
+  if (!m.classList.contains('show')) {   // 분류 이름 칸에서 Enter = 이름 확정 (blur → change)
+    if (ev.key === 'Enter' && ev.target.matches && ev.target.matches('#tlCatBody input[data-f="name"]')) { ev.preventDefault(); ev.target.blur(); }
+    return;
+  }
+  if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); tlRenameDone(false); return; }
+  if (ev.key !== 'Tab') return;
+  const fs = [...m.querySelectorAll('button')], a = document.activeElement;
+  if (ev.shiftKey ? (a === fs[0] || !fs.includes(a)) : (a === fs[fs.length - 1] || !fs.includes(a))) { ev.preventDefault(); fs[ev.shiftKey ? fs.length - 1 : 0].focus(); }
+}, true);
 // 칸 상세 시트: 바깥(scrim)·닫기·Esc 로 닫힘, Tab 은 시트 안에서만 돈다
 document.getElementById('tlCellModal').addEventListener('click', ev => {
   if (ev.target.id === 'tlCellModal') { tlCloseCell(); return; }
@@ -5635,7 +5688,7 @@ document.addEventListener('keydown', e => {
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
 // ====================== 설정 · 내정보 (Phase 5) ======================
-const APP_VERSION = '3.8', APP_VERSION_DATE = '2026-11-21';   // index.html 을 고쳐 배포할 때마다 같이 올린다
+const APP_VERSION = '3.9', APP_VERSION_DATE = '2026-11-22';   // index.html 을 고쳐 배포할 때마다 같이 올린다
 // 색 위 글자색: 그 색과 대비가 더 큰 쪽 (짙은 남색 / 흰색)
 function inkOn(c) { if (!hexOk(c)) return 'var(--text)'; const n = parseInt(c.slice(1), 16), f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }, L = 0.2126 * f(n >> 16 & 255) + 0.7152 * f(n >> 8 & 255) + 0.0722 * f(n & 255); return (L + 0.05) / 0.0614 >= 1.05 / (L + 0.05) ? '#161B33' : '#FFFFFF'; }
 function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
