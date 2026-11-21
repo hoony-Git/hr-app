@@ -11,15 +11,15 @@
 | 탭 `시간` `[data-tab=time]` | 아래 탭 2 (`ti-clock`) | |
 | 탭 `독서` `[data-tab=books]` | 아래 탭 3 (`ti-book`) | |
 | 탭 `심박` `[data-tab=hr]` | 아래 탭 4 (`ti-heart`) | |
-| 탭 `통계` `[data-tab=stats]` | **아래 탭에서 뺌.** 버튼은 `hidden`으로 남김(`switchTab`이 6개 버튼을 모두 찾으므로 지우면 오류) | 내용은 오늘 › 기록으로 |
-| 탭 `내정보` `[data-tab=me]` | **아래 탭에서 뺌.** 버튼은 `hidden`으로 남김 | 오늘 날짜 줄 오른쪽의 레벨 원(`#lvChip`), 다른 탭 머리글의 레벨 원(`#lvBadge`, 새 요소) |
+| 탭 `통계` `[data-tab=stats]` | **아래 탭에서 뺌.** M4에서 버튼 삭제 (`switchTab` 이 버튼 없이도 동작하게 고친 뒤) | 내용은 오늘 › 기록으로 |
+| 탭 `내정보` `[data-tab=me]` | **아래 탭에서 뺌.** M4에서 버튼 삭제 | 오늘 날짜 줄 오른쪽의 레벨 원(`#lvChip`), 다른 탭 머리글의 레벨 원(`#lvBadge`, 새 요소) |
 
 ## 공통
 | 옛 위치 | 새 위치 |
 |---|---|
 | `#fabAdd` + (오늘) → `openHabitModal()` | 오늘 "남은 것" 목록 끝 **"+ 습관" 줄**. 오늘 탭에서는 + 버튼 숨김 |
-| `#fabAdd` + (독서) → `openAddBook()` | **M1에서는 독서 탭에 + 버튼을 그대로 둔다.** M3에서 서재·지도 시트의 "책 추가"로 옮긴 뒤 없앤다 |
-| 상태 점 `#dot` + `#statusText` (심박 머리글) | 그대로 (심박 탭 머리글). M2에서 연결 줄로 바뀜 |
+| `#fabAdd` + (독서) → `openAddBook()` | M3: 독서 › 오늘 · 서재 맨 위 · 지도 위 버튼 · 분야 시트의 "책 추가". `#fabAdd` 삭제 |
+| 상태 점 `#dot` + `#statusText` (심박 머리글, `#connStatus`) | 심박 › 운동의 연결 줄 `#hrConnText` (M2). M4에서 `#connStatus`·`#dot`·`#statusText` 삭제, `setStatus()` 는 연결 줄에 씀 |
 | `#toast` | 그대로 |
 | 머리글 `header > #headerTitle` | 그대로 (오늘 탭에서는 숨김: 오늘은 자체 날짜 줄). 오른쪽에 레벨 원 `#lvBadge` 추가 |
 
@@ -82,3 +82,11 @@
 - 정적 id 전부, `data-*` 값 전부가 1단계(`ui-phase1-tokens`)와 같은 개수 이상 있다.
 - `switchTab('today'|'time'|'books'|'hr'|'stats'|'me')` 6개 모두 오류 없이 열린다.
 - 오늘 화면에서 키보드·탭만으로: 습관 추가, 빠른 기록(4종), 습관 메뉴, 지난 날 입력, 쉬는 날 지정, 시간대 필터, 날짜 고르기, 주 이동, 기록(통계) 보기, 내정보 열기, 백업이 된다.
+
+## M4에서 지운 것 (코드 참조를 먼저 없앤 뒤)
+| 요소 | 대신 |
+|---|---|
+| 아래 탭의 숨긴 `data-tab="stats"`·`data-tab="me"` 버튼 | 오늘 › 기록, 레벨 원 |
+| `#connStatus` `#dot` `#statusText` | 심박 연결 줄 `#hrConnText` |
+| `#ladder` (Z1~Z5 사다리), `updateLadder()` | 270° 존 게이지 `#hrDial` |
+| `#countdown` (측정 남은 시간 글자) | 측정 다이얼 `#hrvDial` 가운데 |

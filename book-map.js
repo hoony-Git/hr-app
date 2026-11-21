@@ -1,7 +1,8 @@
 // 독서 지도 그리기 — Night Dial "성단" (hr-app 과 artifact/insights.html 이 같은 파일을 쓴다). 데이터는 밖에서 받는다 (HRMetrics.mapData 결과).
 // 저장소에 손대지 않는다.
 // 분야 = 구형 성단 (피보나치 구면 분포: 75% 껍질, 25% 안쪽). 빛 알갱이 1개 = 그 분야에서 읽은 10쪽 (book_logs 기준).
-//   한 성단이 600개를 넘으면 600개로 묶고 알갱이 1개가 맡는 쪽수를 늘린다 (ppp).
+//   전체가 1,200개를 넘으면 1,200개를 분야별 읽은 쪽에 비례해 나눈다 (읽은 게 있는 분야는 최소 40개 → 작은 분야도 성단으로 보임).
+//   처음 보일 때 60프레임을 재서 평균 22ms 를 넘으면 알갱이를 한 번 절반으로 줄인다 (그 판단은 이 페이지 동안 메모리에만 둔다).
 // 책 = 성단 안 큰 별 (꽉 찬 원 + 흰 테두리 = 다 읽음, 흰 원 + 깜빡이는 고리 = 읽는 중, 테두리만 = 중단·읽을 책).
 // 가운데 핵 ✦ = 내 서재, 핵 → 분야 허브 곡선, book_links = 책 사이 선. 배경 = 별 + 대각선 은하수 띠 + 성운 빛 3개, 시차 이동.
 // 배치는 고정 난수 (분야 이름에서 씨앗) → 열 때마다 같은 모양. 분야 1~12개를 겹치지 않게 놓는다.
@@ -13,7 +14,9 @@
   const CAT_COLOR = { '문학': '#FF8C69', '역사': '#C08BFF', '철학': '#4FD1C5', '과학': '#7C9CFF', '기타': '#FFC857' };
   const EXTRA = ['#5EE3A1', '#FF6B6B', '#FF9F5A', '#E8A0FF', '#9AD0FF', '#F6E27F', '#7FE0C8', '#FFB3C7', '#B8C0FF', '#D6A77A', '#8FE36F', '#A0AEC0'];
   const TILT = 0.32, TC = Math.cos(TILT), TS = Math.sin(TILT);
-  const PAGES_PER = 10, CAP = 600, FONT = '"IBM Plex Sans KR", system-ui, sans-serif';
+  const PAGES_PER = 10, CAP = 1200, MIN_G = 40, SLOW_MS = 22, PROBE = 60;
+  let QUALITY = null;   // null = 아직 안 잼, 1 = 그대로, 0.5 = 절반 (같은 페이지 안에서 다시 만들 때도 이어 씀. 저장소에 쓰지 않음)
+  const FONT = '"IBM Plex Sans KR", system-ui, sans-serif';
 
   // 고정 난수 (씨앗 → 같은 수열)
   function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -60,21 +63,41 @@
         const books = (d.books || []).filter(b => (b.category || '기타') === cat)
           .sort((a, b) => (a.id < b.id ? -1 : 1));   // id 순 → 배치 고정
         const pages = books.reduce((a, b) => a + (Number(b.pages) > 0 ? Number(b.pages) : 0), 0);
-        let n = Math.round(pages / PAGES_PER), ppp = PAGES_PER;
-        if (n > CAP) { ppp = pages / CAP; n = CAP; }
+        const n = 0, ppp = PAGES_PER;   // 개수는 아래 budget() 에서 정한다
         const color = (opts.catColors && opts.catColors[cat]) || CAT_COLOR[cat] || EXTRA[k % EXTRA.length];
         const rgb = rgbOf(color), R = rng(hash(cat));
         const g = { cat, k, color, rgb, sp: sprite(rgb), pages, ppp, n, books, f: (d.fields || []).find(x => x.cat === cat) || null,
           a: R() * 6.28, v: (0.05 + R() * 0.05) * (k % 2 ? 1 : -1), x: 0, y: 0,
-          R: Math.max(30, Math.min(70, 26 + 34 * Math.sqrt(n / CAP) + Math.min(14, books.length * 0.9))) };
-        g.pts = new Float32Array(n * 4);
-        for (let i = 0; i < n; i++) { const u = fib(i, n), q = R() < 0.75 ? 0.82 + R() * 0.18 : Math.cbrt(R()) * 0.8; g.pts[i * 4] = u[0] * q; g.pts[i * 4 + 1] = u[1] * q; g.pts[i * 4 + 2] = u[2] * q; g.pts[i * 4 + 3] = 0.6 + R() * 1.2; }
+          R: 30 };
+        g.R0 = R;   // 알갱이 자리를 만들 난수 (분야 이름에서 씨앗 → 늘 같음)
         books.forEach((b, i) => { const u = fib(i * 7 + 3, books.length * 7 + 6), nd = { b, g: k, u: [u[0] * 0.6, u[1] * 0.6, u[2] * 0.6], sx: 0, sy: 0, d: 0.5, tw: R() * 6.28 }; S.nodes.push(nd); S.byId[b.id] = nd; });
         S.G.push(g);
       });
-      place();
+      budget(); place();
       S.links = (d.links || []).filter(l => S.byId[l.a] && S.byId[l.b]);
     }
+    function budget() {
+      const G = S.G, raw = G.map(g => Math.round(g.pages / PAGES_PER)), sum = raw.reduce((a, b) => a + b, 0);
+      let ns = raw;
+      if (sum > CAP) {
+        const tp = G.reduce((a, g) => a + g.pages, 0) || 1;
+        ns = G.map(g => g.pages > 0 ? Math.max(MIN_G, Math.floor(CAP * g.pages / tp)) : 0);
+        let over = ns.reduce((a, b) => a + b, 0) - CAP;   // 최소 40 때문에 넘친 만큼 큰 분야에서 뺀다
+        while (over > 0) { const k = ns.indexOf(Math.max(...ns)); if (ns[k] <= MIN_G) break; const d = Math.min(over, ns[k] - MIN_G); ns[k] -= d; over -= d; }
+      }
+      G.forEach((g, k) => {
+        let n = ns[k];
+        g.R = Math.max(30, Math.min(70, 26 + 34 * Math.sqrt(Math.min(1, raw[k] / 600)) + Math.min(14, g.books.length * 0.9)));   // 크기는 읽은 쪽 기준 (상한과 무관)
+        g.ppp = n ? g.pages / n : PAGES_PER;
+        g.full = n;
+        g.pts = new Float32Array(n * 4); const R = g.R0;
+        for (let i = 0; i < n; i++) { const u = fib(i, n), q = R() < 0.75 ? 0.82 + R() * 0.18 : Math.cbrt(R()) * 0.8; g.pts[i * 4] = u[0] * q; g.pts[i * 4 + 1] = u[1] * q; g.pts[i * 4 + 2] = u[2] * q; g.pts[i * 4 + 3] = 0.6 + R() * 1.2; }
+        g.n = QUALITY === 0.5 ? Math.ceil(n / 2) : n;
+        if (QUALITY === 0.5) halve(g);
+      });
+    }
+    // 고르게 절반: 하나 걸러 하나 (피보나치 순서라 앞쪽 절반만 쓰면 위쪽 반구만 남는다)
+    function halve(g) { const P = g.pts, m = Math.ceil(g.full / 2), out = new Float32Array(m * 4); for (let i = 0; i < m; i++) out.set(P.subarray(i * 2 * 4, i * 2 * 4 + 4), i * 4); g.pts = out; g.n = m; }
     // 분야 1~12개: 6개까지는 한 바퀴, 그 이상은 안쪽 5개 + 바깥 나머지. 그다음 겹침을 밀어내 푼다 (고정된 계산이라 매번 같다)
     function place() {
       const G = S.G, k = G.length; if (!k) { S.ext = 200; return; }
@@ -222,12 +245,22 @@
       if (!S.running) return;
       if (!visible()) { S.running = false; return; }   // 숨겨지면 스스로 멈춤. 다시 보일 때 start() 로 깨운다
       if (!S.t0) S.t0 = now;
-      resize(); draw(now); S.frames++;
+      resize(); const t1 = performance.now(); draw(now); probe(now, performance.now() - t1); S.frames++;
       if (RM) { S.running = false; return; }
       S.raf = requestAnimationFrame(frame);
     }
+    // 처음 보일 때 60프레임: 프레임 간격(실제 걸린 시간)을 재서 평균 22ms 넘으면 한 번 절반
+    let pr = null;
+    function probe(now, drawMs) {
+      if (QUALITY !== null || RM) return;
+      if (!pr) { pr = { last: now, sum: 0, k: 0 }; return; }
+      const dt = now - pr.last; pr.last = now; pr.sum += Math.max(dt, drawMs); pr.k++;
+      if (pr.k < PROBE) return;
+      const avg = pr.sum / pr.k; QUALITY = avg > SLOW_MS ? 0.5 : 1; S.probeAvg = Math.round(avg * 10) / 10;
+      if (QUALITY === 0.5) S.G.forEach(halve);
+    }
     function start() { if (S.running || !visible()) return; S.running = true; S.raf = requestAnimationFrame(frame); }
-    function stop() { S.running = false; if (S.raf) cancelAnimationFrame(S.raf); S.raf = 0; }
+    function stop() { if (pr) pr = null; S.running = false; if (S.raf) cancelAnimationFrame(S.raf); S.raf = 0; }
     function kick() { if (!S.running) start(); }
     const onVis = () => { if (document.hidden) stop(); else start(); };
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis);
@@ -254,7 +287,7 @@
     }
     function genreInfo(k) {
       const g = S.G[k]; if (!g) return null;
-      return { cat: g.cat, color: g.color, pages: g.pages, particles: g.n, pagesPerParticle: Math.round(g.ppp * 10) / 10, books: g.books.length,
+      return { cat: g.cat, color: g.color, pages: g.pages, particles: g.n, books: g.books.length,
         done: g.books.filter(b => b.status === 'done').length, reading: g.books.filter(b => b.status === 'reading').length, field: g.f };
     }
     function reset() { S.gsel = -1; S.sel = null; S.tg = { x: 0, y: 0, z: S.z0 }; kick(); if (opts.onGenre) opts.onGenre(null); if (opts.onSelect) opts.onSelect(null); }
@@ -316,7 +349,7 @@
       setData(d) { S.data = d; layout(); if (S.sel && !S.byId[S.sel]) S.sel = null; if (S.gsel >= S.G.length) S.gsel = -1; S.fitted = false; resize(); fit(); kick(); },
       start, stop, select, fit() { fit(); kick(); }, reset,
       genre(cat) { const k = S.G.findIndex(g => g.cat === cat); if (k >= 0) focusGenre(k); },
-      get stats() { return { frames: S.frames, running: S.running, stars: stars.length, books: S.nodes.length, genres: S.G.length, particles: S.G.reduce((a, g) => a + g.n, 0), zoom: S.cam.z / (S.z0 || 1), genre: S.gsel, reducedMotion: RM }; },
+      get stats() { return { quality: QUALITY, probeAvgMs: S.probeAvg || null, frames: S.frames, running: S.running, stars: stars.length, books: S.nodes.length, genres: S.G.length, particles: S.G.reduce((a, g) => a + g.n, 0), zoom: S.cam.z / (S.z0 || 1), genre: S.gsel, reducedMotion: RM }; },
       where(cat) { const g = S.G.find(x => x.cat === cat); return g ? toScreen(g.x, g.y) : null; },   // 화면 좌표 (점검·접근성용)
       whereBook(id) { const nd = S.byId[id]; return nd ? [nd.sx, nd.sy] : null; },
       get layout() { return S.G.map(g => ({ cat: g.cat, x: g.x, y: g.y, R: g.R, n: g.n, ppp: g.ppp })); },

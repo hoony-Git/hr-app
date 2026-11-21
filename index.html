@@ -8,8 +8,7 @@
 // 첫 페인트 전에 테마 적용 (깜빡임 방지) — hr_settings.theme = 'auto'|'dark'|'light'
 try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if (_t === 'dark' || _t === 'light') document.documentElement.setAttribute('data-theme', _t); } catch(e) {}
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500&display=swap">
+<link rel="stylesheet" href="fonts/ibm-plex-sans-kr.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -25,7 +24,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     --on-green: #06301B; --on-yellow: #3A2A00; --on-yellow-2: #5C4500; --on-red: #3D0A0A;
     --violet: #C08BFF; --on-violet: #2A0F45;   /* 레벨·독서 강조 */
     --accent: #5EE3A1; --on-accent: #06301B;
-    --accent-text: var(--accent); --tl-yellow-text: var(--tl-yellow); --violet-text: var(--violet);   /* 글자로 쓸 때 (라이트에서 더 진하게) */
+    --accent-text: var(--accent); --tl-yellow-text: var(--tl-yellow); --violet-text: var(--violet); --tl-red-text: var(--tl-red); --z4-text: var(--z4);   /* 글자로 쓸 때 (라이트에서 더 진하게) */
     --radius-cell: 10px; --radius-card: 16px; --radius-pill: 999px;
     --radius-sm: 7px; --radius-md: 9px; --radius-btn: 14px; --radius-sheet: 26px;
     /* 글자 크기 (10px 미만 금지). 큰 숫자 표시(BPM 등 19px 이상)는 토큰 없이 그대로 */
@@ -47,9 +46,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
       --bg: #EEF0F8; --surface: #FFFFFF; --surface2: #E2E5F2; --border: #D5D9EA; --border-strong: #B8BEDA;
       --text: #1A1F3D; --muted: #5A6080; --faint: #8A90AE;
       --empty-past: #D0D5EA; --empty-future: #E6E9F4;
-      --accent-text: #16794A; --tl-yellow-text: #8A5A00; --violet-text: #7A3FD1;
+      --accent-text: #16794A; --tl-yellow-text: #8A5A00; --violet-text: #7A3FD1; --tl-red-text: #B42B2A; --z4-text: #9A4A16;
       --accent-soft: rgba(94,227,161,.18);
-      --tl-none: #D0D5EA; --row-important: #FFF6DD; --index-bar: #7C9CFF;
+      --tl-none: #D0D5EA; --row-important: #FFF6DD; --index-bar: #4256B8;
       --pill-bg-pct: 100%; --pill-fg-pct: 45%; --pill-fg-base: #000; --on-index: #fff;
     }
   }
@@ -58,9 +57,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     --bg: #EEF0F8; --surface: #FFFFFF; --surface2: #E2E5F2; --border: #D5D9EA; --border-strong: #B8BEDA;
     --text: #1A1F3D; --muted: #5A6080; --faint: #8A90AE;
     --empty-past: #D0D5EA; --empty-future: #E6E9F4;
-    --accent-text: #16794A; --tl-yellow-text: #8A5A00; --violet-text: #7A3FD1;
+    --accent-text: #16794A; --tl-yellow-text: #8A5A00; --violet-text: #7A3FD1; --tl-red-text: #B42B2A; --z4-text: #9A4A16;
     --accent-soft: rgba(94,227,161,.18);
-    --tl-none: #D0D5EA; --row-important: #FFF6DD; --index-bar: #7C9CFF;
+    --tl-none: #D0D5EA; --row-important: #FFF6DD; --index-bar: #4256B8;
     --pill-bg-pct: 100%; --pill-fg-pct: 45%; --pill-fg-base: #000; --on-index: #fff;
   }
   html, body { background: var(--bg); color: var(--text);
@@ -71,8 +70,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   header h1 { font-size: var(--fs-lg); font-weight: 500; letter-spacing: -0.3px; }
   header h1 span { color: var(--accent-text); }
   .status { font-size: var(--fs-sm); color: var(--muted); display: flex; align-items: center; gap: var(--sp-2); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot-off); transition: background .3s; }
-  .dot.on { background: var(--z2); box-shadow: 0 0 8px var(--z2); }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: var(--sp-7); margin-bottom: var(--sp-5); }
   .hero { text-align: center; padding: var(--sp-8) var(--sp-7); }
@@ -80,10 +77,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .bpm-unit { font-size: var(--fs-xl); color: var(--muted); font-weight: 500; margin-top: 2px; }
   .zone-label { display: inline-block; margin-top: var(--sp-5); font-size: var(--fs-md); font-weight: 500; padding: var(--sp-2) var(--sp-6); border-radius: var(--radius-pill); }
   .pct { font-size: var(--fs-base); color: var(--muted); margin-top: var(--sp-3); }
-  .ladder { display: flex; gap: var(--sp-2); margin-top: var(--sp-6); }
-  .lz { flex: 1; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
-    font-size: var(--fs-sm); font-weight: 500; opacity: .28; transition: opacity .25s, transform .25s; color: var(--on-zone); }
-  .lz.active { opacity: 1; transform: scaleY(1.18); }
 
   .chart-wrap { position: relative; height: 180px; }
   canvas { width: 100%; height: 100%; display: block; }
@@ -144,10 +137,8 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .rr-ok { background: rgba(34,197,94,.12); color: var(--accent-text); }
   .rr-wait { background: var(--surface2); color: var(--muted); }
   .rr-fail { background: rgba(245,158,11,.12); color: var(--warn); }
-  .countdown { font-size: var(--fs-md); color: var(--muted); text-align: center; margin-bottom: var(--sp-5); font-variant-numeric: tabular-nums; }
 
   /* 주간 대시보드 */
-  .weekly-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-6); }
   .weekly-val { font-size: 30px; font-weight: 500; color: var(--accent-text); font-variant-numeric: tabular-nums; }
   .weekly-goal { font-size: var(--fs-base); color: var(--muted); }
   .progress-bg { height: 12px; background: var(--surface2); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: var(--sp-7); }
@@ -233,20 +224,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .cal-month-stat b { color: var(--text); font-weight: 500; }
 
   /* 습관 탭 */
-  .habit-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: var(--sp-6); margin-bottom: var(--sp-5); }
-  .habit-head { display: flex; align-items: center; gap: var(--sp-4); margin-bottom: var(--sp-5); }
-  .habit-ico { font-size: 24px; }
-  .habit-info { flex: 1; min-width: 0; }
-  .habit-nm { font-size: var(--fs-lg); font-weight: 500; }
-  .habit-gl { font-size: var(--fs-sm); color: var(--muted); margin-top: 2px; }
-  .habit-val-big { font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .habit-val-big .u { font-size: var(--fs-base); color: var(--muted); font-weight: 500; margin-left: 2px; }
-  .habit-del { width: 30px; height: 30px; border-radius: var(--radius-md); padding: 0; flex: none; background: var(--surface2); font-size: var(--fs-base); color: var(--muted); }
-  .habit-pbar-bg { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-bottom: var(--sp-5); }
-  .habit-pbar { height: 100%; border-radius: 4px; transition: width .4s; }
-  .habit-past { width: 30px; height: 30px; border-radius: var(--radius-md); padding: 0; flex: none; background: var(--surface2); font-size: var(--fs-md); }
-  .miss-box { background: var(--surface); border: 1px solid var(--z3); border-radius: var(--radius-btn); padding: var(--sp-5) var(--sp-6); margin-bottom: var(--sp-5); }
-  .miss-box .mt { font-size: var(--fs-sm); color: var(--muted); margin-bottom: var(--sp-3); }
   .miss-chip { display: inline-flex; align-items: center; gap: var(--sp-1); margin: 0 var(--sp-2) var(--sp-2) 0; padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-5); border-radius: var(--radius-card); background: var(--surface2); font-size: var(--fs-base); }
   .miss-chip .mc-txt { cursor: pointer; padding: 3px 0; }
   .miss-chip .mc-x { width: 22px; height: 22px; border-radius: 50%; padding: 0; flex: none; background: var(--border); color: var(--muted); font-size: var(--fs-xs); line-height: 1; }
@@ -260,10 +237,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .sum-main b { font-size: var(--fs-xl); font-variant-numeric: tabular-nums; }
   .sum-sub { font-size: var(--fs-sm); color: var(--muted); margin-top: 3px; }
   .habit-ctrls { display: flex; gap: var(--sp-3); align-items: center; }
-  .cnt-btn { flex: none; width: 52px; height: 50px; background: var(--surface2); border-radius: var(--radius-btn); font-size: 22px; font-weight: 500; padding: 0; }
-  .cnt-btn.plus { background: var(--z2); color: var(--on-go); }
-  .cnt-btn.ten { width: auto; padding: 0 var(--sp-6); font-size: var(--fs-md); }
-  .cnt-val { flex: 1; text-align: center; font-size: 26px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .num-input { flex: 1; min-width: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-btn); color: var(--text); font-size: var(--fs-lg); padding: var(--sp-5); text-align: center; font-variant-numeric: tabular-nums; }
   .timer-display { font-size: 34px; font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; margin: var(--sp-1) 0 var(--sp-4); color: var(--accent-text); }
   .habit-add-btn { width: 100%; border: 2px dashed var(--border); background: transparent; color: var(--muted); padding: var(--sp-6); border-radius: var(--radius-btn); font-size: var(--fs-md); font-weight: 500; }
@@ -277,13 +250,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .text-input { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: var(--fs-lg); padding: var(--sp-4) var(--sp-5); }
 
   /* 홈 대시보드 */
-  .home-date { font-size: var(--fs-md); color: var(--muted); margin: 2px 2px var(--sp-6); }
-  .home-habit-row { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4) 0; border-bottom: 1px solid var(--border); }
-  .home-habit-row:last-child { border-bottom: none; }
-  .hh-ic { font-size: var(--fs-xl); }
-  .hh-nm { flex: 1; font-size: var(--fs-md); }
-  .hh-val { font-size: var(--fs-base); color: var(--muted); font-variant-numeric: tabular-nums; }
-  .hh-mood { font-size: var(--fs-xl); width: 22px; text-align: center; }
   .home-big-stat { text-align: center; padding: var(--sp-1) 0; }
   .hbs-mood { font-size: 34px; }
   .hbs-val { display: block; font-size: 30px; font-weight: 500; margin-top: var(--sp-1); font-variant-numeric: tabular-nums; }
@@ -298,7 +264,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .home-week { display: flex; align-items: baseline; gap: var(--sp-2); }
   .hw-val { font-size: 24px; font-weight: 500; color: var(--accent-text); font-variant-numeric: tabular-nums; }
   .hw-goal { font-size: var(--fs-base); color: var(--muted); }
-  .home-empty-all { text-align: center; color: var(--muted); font-size: var(--fs-md); padding: 40px var(--sp-7); line-height: 1.8; }
 
   /* ===== 오늘 탭 ===== */
   .today-head { display: flex; align-items: center; justify-content: space-between; padding: calc(env(safe-area-inset-top) + 14px) 2px var(--sp-4); }
@@ -310,11 +275,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .ws-day { flex: 1; min-width: 0; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3) 0; border-radius: var(--radius-btn); background: transparent; font-weight: 500; }
   .ws-day.sel { background: var(--surface2); }
   .ws-lb { font-size: var(--fs-xs); color: var(--muted); }
-  .ws-c { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--fs-base); font-weight: 500; background: var(--tl-none); color: var(--muted); }
-  .ws-c.green, .lt-c.green { background: var(--tl-green); color: var(--on-tl); }
-  .ws-c.yellow, .lt-c.yellow { background: var(--tl-yellow); color: var(--on-tl); }
-  .ws-c.red, .lt-c.red { background: var(--tl-red); color: var(--on-tl); }
-  .ws-c.today { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+  .lt-c.green { background: var(--tl-green); color: var(--on-tl); }
+  .lt-c.yellow { background: var(--tl-yellow); color: var(--on-tl); }
+  .lt-c.red { background: var(--tl-red); color: var(--on-tl); }
   .folder-tabs { display: flex; gap: var(--sp-1); padding: 0 var(--sp-2); }
   .folder-tabs button { flex: none; padding: var(--sp-4) var(--sp-7); font-size: var(--fs-md); font-weight: 500; border-radius: var(--radius-btn) var(--radius-btn) 0 0; background: transparent; color: var(--muted); }
   .folder-tabs button.sel { background: var(--surface); color: var(--text); }
@@ -324,13 +287,8 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .rt-row { display: grid; grid-template-columns: var(--c-idx) var(--c-sit) 1fr var(--c-res); align-items: stretch; min-height: 58px; border-bottom: 1px solid var(--border); user-select: none; -webkit-user-select: none; }
   .rt-row:last-child { border-bottom: 0; }
   .rt-row.imp { background: var(--row-important); }
-  .rt-idx { display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); color: var(--muted); font-weight: 500; }
-  .rt-sit { display: flex; align-items: center; padding: 0 var(--sp-2); font-size: var(--fs-sm); color: var(--muted); line-height: 1.3; word-break: keep-all; }
-  .rt-name { display: flex; align-items: center; gap: var(--sp-2); padding: 0 var(--sp-4); font-size: var(--fs-lg); font-weight: 500; word-break: keep-all; min-width: 0; }
   .rt-res { flex: none; flex-direction: column; gap: 1px; padding: 0; border-radius: 0; background: transparent; font-size: 22px; line-height: 1; }
   .rt-res.r { background: color-mix(in srgb, var(--tl-red) 14%, transparent); }
-  .rt-val { font-size: var(--fs-xs); color: var(--muted); font-weight: 500; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rt-frame { position: absolute; top: 0; bottom: 0; left: calc(var(--c-idx) + var(--c-sit)); right: var(--c-res); border: 2px solid var(--accent); border-radius: var(--radius-btn); pointer-events: none; }
   .lg { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--tl-yellow); }
   .lg.hatch { background: repeating-linear-gradient(135deg, var(--text) 0 2px, transparent 2px 4px); opacity: .7; }
   /* 도장: 달성 = 실선 이중 테두리 + 찍히는 애니메이션, 절반 = 점선 */
@@ -362,8 +320,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .rt-empty { text-align: center; color: var(--muted); font-size: var(--fs-base); padding: var(--sp-8) var(--sp-4); line-height: 1.7; }
   .pill { display: inline-block; padding: 2px var(--sp-4); border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 500; white-space: nowrap;
     background: color-mix(in srgb, var(--p) var(--pill-bg-pct), transparent); color: color-mix(in srgb, var(--p) var(--pill-fg-pct), var(--pill-fg-base)); }
-  .fab { position: fixed; right: calc(max(0px, (100vw - 560px) / 2) + 16px); bottom: calc(env(safe-area-inset-bottom) + 84px); width: 64px; height: 64px; border-radius: 50%; flex: none; padding: 0;
-    background: var(--accent); color: var(--on-accent); font-size: 34px; font-weight: 300; box-shadow: 0 6px 18px rgba(0,0,0,.35); z-index: 25; }
   /* 주간 카드 */
   .wk-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); margin-bottom: var(--sp-4); overflow: hidden; }
   .wk-head { display: flex; align-items: center; gap: var(--sp-3); padding-right: var(--sp-3); min-height: 44px; }
@@ -393,7 +349,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .mq.over::after { content: '★'; position: absolute; top: -1px; right: 1px; font-size: var(--fs-2xs); line-height: 1; color: #fff; text-shadow: 0 0 2px rgba(0,0,0,.55); }
   .mc-f { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); margin-top: var(--sp-3); font-size: var(--fs-xs); color: var(--muted); }
   .mc-f b { color: var(--text); font-weight: 500; }
-  .rate-t { font-size: var(--fs-lg); font-weight: 500; margin-bottom: var(--sp-4); }
   .lt-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--sp-2); }
   .lt-c { aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); font-weight: 500; background: var(--tl-none); color: var(--muted); }
   .lt-c.faint { opacity: .35; }
@@ -429,7 +384,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .bm-c.today { box-shadow: 0 0 0 1.5px var(--accent); }
   .bm-c.ok { background: var(--rc); color: #14141c; font-weight: 500; }
   .bm-c.low { background: color-mix(in srgb, var(--rc) 32%, var(--surface2)); color: var(--text); }
-  .bd-grid { display: grid; grid-template-columns: repeat(31, minmax(0, 1fr)); gap: 2px; }
   .bd { aspect-ratio: 1; border-radius: 50%; background: transparent; border: 1px solid var(--border); cursor: pointer; }
   .bd.ok { background: var(--tl-green); border-color: var(--tl-green); }
   .bd.low { background: var(--tl-none); border-color: var(--tl-none); }
@@ -448,13 +402,11 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .scan-x { position: absolute; bottom: calc(env(safe-area-inset-bottom) + 28px); flex: none; width: 140px; background: rgba(255,255,255,.2); color: #fff; z-index: 2; }
   /* 레벨·상점 */
   .lv-chip { flex: none; padding: var(--sp-2) var(--sp-5); border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent-text); font-size: var(--fs-base); font-weight: 500; }
-  .lv-big { font-size: 34px; font-weight: 500; letter-spacing: -1px; }
   .lv-next { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--sp-4); }
   .tt-row { display: flex; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-3) 0 2px; }
   .tt { flex: none; display: flex; flex-direction: column; align-items: center; padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-cell); background: var(--surface2); font-size: var(--fs-sm); font-weight: 500; opacity: .45; white-space: nowrap; }
   .tt small { font-size: var(--fs-2xs); font-weight: 500; color: var(--muted); }
   .tt.on { opacity: 1; box-shadow: inset 0 0 0 1.5px var(--accent); }
-  .lv-big span { font-size: var(--fs-xl); color: var(--muted); font-weight: 500; margin-left: var(--sp-2); letter-spacing: 0; }
   .lv-sub { display: flex; justify-content: space-between; font-size: var(--fs-sm); color: var(--muted); }
   .lv-row { display: flex; gap: var(--sp-3); margin-top: var(--sp-6); }
   .lv-row > div { flex: 1; min-width: 0; background: var(--surface2); border-radius: var(--radius-btn); padding: var(--sp-5) var(--sp-1); text-align: center; }
@@ -468,7 +420,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .shop-x { flex: none; width: 28px; height: 28px; padding: 0; border-radius: var(--radius-md); background: var(--surface2); color: var(--muted); font-size: var(--fs-sm); }
   .rest-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border-radius: var(--radius-btn); padding: var(--sp-3) var(--sp-5); margin: var(--sp-4) 0 0; font-size: var(--fs-base); }
   .rest-bar button { flex: none; padding: var(--sp-1) var(--sp-5); border-radius: var(--radius-md); background: var(--surface); font-size: var(--fs-sm); }
-  .ws-c.rest, .lt-c.rest { background: var(--surface2); font-size: var(--fs-md); }
+  .lt-c.rest { background: var(--surface2); font-size: var(--fs-md); }
   .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 70; }
   .confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: confetti-fall 2s linear forwards; }
   @keyframes confetti-fall { to { top: 105%; opacity: .2; } }
@@ -498,23 +450,12 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
 
   /* ---- 시간 기록 ---- */
   #tab-time .folder-tabs.sm { margin-bottom: var(--sp-4); }
-  .tl-cur { border-width: 2px; }
-  .tl-cur.idle { text-align: center; color: var(--muted); line-height: 1.6; }
-  .tl-cur-top { display: flex; align-items: center; gap: var(--sp-5); }
-  .tl-big { font-size: 34px; }
-  .tl-cur-name { flex: 1; font-size: var(--fs-xl); font-weight: 500; }
-  .tl-cur-name small { display: block; font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-top: 2px; }
-  .tl-elapsed { font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .tl-warn { margin-top: var(--sp-4); padding: var(--sp-4) var(--sp-5); border-radius: var(--radius-cell); background: rgba(245,158,11,.16); color: var(--warn); font-size: var(--fs-base); line-height: 1.45; }
   .tl-actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-4); }
   .tl-sm { flex: none; padding: var(--sp-4) var(--sp-6); font-size: var(--fs-base); border-radius: var(--radius-cell); background: var(--surface2); }
   .tl-sm.on { background: var(--accent); color: var(--on-accent); }
   .tl-sm.stop, .tl-sm.danger { color: var(--tl-red); }
   .tl-sm.save { background: var(--accent); color: var(--on-accent); }
-  .tl-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
-  .tl-cb { flex: none; padding: var(--sp-5) var(--sp-1); border-radius: var(--radius-btn); background: var(--surface2); border: 2px solid transparent; font-size: var(--fs-base); font-weight: 500; line-height: 1.35; }
-  .tl-cb .e { display: block; font-size: 24px; margin-bottom: 2px; }
-  .tl-cb.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, var(--surface2)); }
   .tl-row { display: flex; align-items: stretch; gap: var(--sp-4); padding: var(--sp-4) 0; border-bottom: 1px solid var(--border); cursor: pointer; }
   .tl-row:last-child { border-bottom: none; }
   .tl-bar-c { flex: none; width: 5px; border-radius: 3px; }
@@ -524,10 +465,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-tag { font-size: var(--fs-2xs); padding: 1px var(--sp-2); border-radius: var(--radius-md); background: var(--surface2); color: var(--muted); font-weight: 500; }
   .tl-tag.on { background: var(--accent-soft); color: var(--accent-text); }
   .tl-gridwrap { max-height: 48vh; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-btn); background: var(--surface); -webkit-overflow-scrolling: touch; }
-  .tl-grid { display: grid; grid-template-columns: 26px repeat(7, minmax(0, 1fr)); }
-  .tl-gh { position: sticky; top: 0; z-index: 3; background: var(--surface); font-size: var(--fs-sm); font-weight: 500; text-align: center; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border); line-height: 1.25; }
-  .tl-gh small { font-weight: 500; color: var(--muted); }
-  .tl-gh.today, .tl-gh.today small { color: var(--accent-text); }
   .tl-hl { height: 11px; font-size: var(--fs-2xs); line-height: 11px; color: var(--muted); text-align: right; padding-right: 3px; font-variant-numeric: tabular-nums; }
   .tc { display: block; height: 11px; border-left: 1px solid var(--border); border-top: 1px solid transparent; cursor: pointer; }
   .tc.h { border-top-color: var(--border); }
@@ -589,7 +526,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     :root:root:root { --bg: #fff; --surface: #fff; --surface2: #f1f2f4; --border: #d4d4d8; --text: #111; --muted: #555; --tl-green: #15803d; --tl-red: #b91c1c; color-scheme: light; }
     html, body { background: #fff !important; color: #111 !important; }
     body { max-width: none; padding: 0; }
-    header, .tabbar, .toast, #fabAdd, #timeSeg, .no-print, .modal-bg { display: none !important; }
+    header, .tabbar, .toast, #timeSeg, .no-print, .modal-bg { display: none !important; }
     #tab-time .card { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
     .tl-print-title { display: block; font-size: var(--fs-xl); font-weight: 500; margin-bottom: var(--sp-4); }
     .tl-rhy i, .tl-bar .b i, .tl-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -598,11 +535,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .bm-wrap { position: relative; border-radius: var(--radius-card); overflow: hidden; background: #0b0f17; }
   .bm-canvas { display: block; width: 100%; height: 400px; }
   .bm-legend { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-5); font-size: var(--fs-xs); color: var(--muted); margin: var(--sp-3) 2px var(--sp-5); }
-  .bm-fields { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-2); margin-bottom: var(--sp-5); }
-  .bm-f { background: var(--surface); border-radius: var(--radius-cell); padding: var(--sp-3) var(--sp-1); text-align: center; font-size: var(--fs-xs); color: var(--muted); }
-  .bm-f b { display: block; font-size: var(--fs-base); color: var(--text); }
-  .bm-f .bar { height: 4px; border-radius: 2px; background: var(--surface2); margin-top: var(--sp-2); overflow: hidden; }
-  .bm-f .bar i { display: block; height: 100%; }
   .bm-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 70%; overflow-y: auto; background: var(--surface); border-radius: var(--radius-card) var(--radius-card) 0 0; padding: var(--sp-6) var(--sp-6) var(--sp-6); box-shadow: 0 -6px 20px rgba(0,0,0,.4); }
   .bm-sheet h3 { font-size: var(--fs-lg); margin-right: 30px; }
   .bm-sheet .x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--surface2); color: var(--text); }
@@ -624,7 +556,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tabbar button { color: var(--faint); padding: var(--sp-5) 0; }
   .tabbar button .ti { font-size: 23px; }
   .tabbar button.on { color: var(--text); }
-  .tabbar button[hidden] { display: none; }
   /* 탭 안 하위 탭 = 밑줄 글자 */
   #todaySeg, #statSeg { gap: 18px; padding: 0 2px; margin: 2px 0 var(--sp-2); }
   #todaySeg button, #statSeg button { padding: var(--sp-2) 0 5px; border-radius: 0; background: transparent; color: var(--faint); font-size: var(--fs-md); font-weight: 400; border-bottom: 2px solid transparent; }
@@ -774,11 +705,10 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   #tab-hr .stat { background: transparent; border-radius: 0; padding: var(--sp-2) 0; }
   #tab-hr .stat .l { text-transform: none; letter-spacing: 0; }
   #tab-hr .cal-nav button { background: transparent; color: var(--muted); border-radius: 50%; }
-  #tab-hr .hist-item, #tab-hr .history-item { border-radius: 0; }
+  #tab-hr .hist-item { border-radius: 0; }
   /* 심박 › 측정 */
   .hrv-dial { max-width: 236px; margin: var(--sp-2) auto var(--sp-4); }
   #tab-measure .measure-guide { font-size: var(--fs-base); color: var(--muted); line-height: 1.6; background: transparent; padding: 0; }
-  #tab-measure #countdown { display: none; }   /* 남은 시간은 다이얼 가운데에 */
   #tab-measure .dual > .card { background: transparent !important; border-top: 0; padding: var(--sp-3) 0; text-align: center; }
   #tab-measure .big-metric { font-weight: 500; }
   #measureBtn { border-radius: var(--radius-pill); background: var(--hrv); color: var(--on-hrv); padding: 13px; }
@@ -843,6 +773,85 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .bm-wrap.nd .bm-sheet .acts .bm-pill.main { border-color: transparent; background: var(--violet); }
   .bm-wrap.nd .bm-sheet .x { background: transparent; color: #9AA0C3; }
   #tab-books .bw, #tab-books .bm-c { --rc: var(--violet) !important; }   /* 주간·월간 칸: 무지개 대신 보라 한 색 */
+
+  /* ===================== Night Dial M4 — 내정보 · 시트 · 라이트 대비 · 빈 상태 ===================== */
+  /* 하위 탭(밑줄): 쉬는 탭 글자는 --muted (대비 4.5 이상). --faint 는 아래 탭 아이콘·다이얼 시각 숫자에만 */
+  #todaySeg button, #statSeg button, #timeSeg button, #hrSeg button, #bookSeg button { color: var(--muted); }
+  #todaySeg button.sel, #statSeg button.sel, #timeSeg button.sel, #hrSeg button.sel, #bookSeg button.sel { color: var(--text); }
+  .tl-sec small, .tl-wnav .t small { color: var(--muted); }
+  .lg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+  .lg-dot.g { background: var(--tl-green); } .lg-dot.y { background: var(--tl-yellow); } .lg-dot.r { background: var(--tl-red); }
+  .streak-fire { color: var(--z4-text); font-size: 28px; }
+  .streak-num, .kcal-row b { color: var(--z4-text); }
+  .big-metric.hrv { color: var(--violet-text); }
+  .cal-day, .mc-x, .miss-chip .mc-x { color: var(--text); }
+  .mq { color: var(--text); }
+  .tl-tag.on { color: var(--text); }
+  .cal-note { font-size: 11px; color: var(--muted); }
+  .tl-bar em.dn, .tl-sum em.dn, .sheet-item.danger, .tl-sm.stop, .tl-sm.danger { color: var(--tl-red-text); }
+  .rr-fail, .tl-warn { color: var(--z4-text); }
+  .rr-status { background: transparent !important; padding: var(--sp-2) 0; font-size: var(--fs-sm); }
+  .tt { opacity: 1; background: transparent; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); }
+  .tt.lock { color: var(--muted); }
+  .tt.on { box-shadow: none; border-color: var(--violet); color: var(--text); }
+  .sec-title { text-transform: none; letter-spacing: 0; font-size: var(--fs-sm); }
+  #tab-workout .chart-wrap { height: 150px; }
+  /* 내정보: 보라 고리 머리 + 머리선 줄 + 알약 */
+  .lv-head { display: flex; align-items: center; gap: var(--sp-6); margin: var(--sp-1) 0 var(--sp-3); }
+  .lv-ring { width: 116px; flex: none; }
+  .lv-ring svg.dial { width: 100%; display: block; }
+  .lv-info { min-width: 0; }
+  .lv-title { font-size: var(--fs-xl); font-weight: 500; }
+  .lv-sub2 { font-size: var(--fs-sm); color: var(--muted); margin-top: 3px; }
+  .lv-row { gap: 0; margin-top: var(--sp-5); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .lv-row > div { background: transparent; border-radius: 0; padding: var(--sp-5) var(--sp-1); }
+  .lv-row b { font-weight: 500; }
+  .lv-row small { font-size: var(--fs-xs); }
+  .lv-pill { display: inline-flex; width: auto; gap: 5px; padding: 9px var(--sp-6); margin-top: var(--sp-5); border-radius: var(--radius-pill); background: var(--surface2); color: var(--text); font-size: var(--fs-base); font-weight: 500; }
+  .shop-row { border-bottom: 0; border-top: 1px solid var(--border); }
+  .shop-buy { border-radius: var(--radius-pill); background: var(--violet); color: var(--on-violet); padding: 7px var(--sp-6); font-weight: 500; }
+  .shop-x { background: transparent; border-radius: 50%; color: var(--muted); }
+  .shop-use { background: var(--violet); color: var(--on-violet); }
+  .set-sec { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; margin: 0; }
+  .set-sec:last-child { border-bottom: 1px solid var(--border); }
+  .set-sec summary { padding: var(--sp-6) 0; font-size: var(--fs-lg); display: flex; align-items: center; }
+  .set-sec summary::after { content: '›'; margin-left: auto; float: none; font-size: 20px; line-height: 1; color: var(--muted); transition: transform .15s; }
+  .set-sec[open] summary::after { content: '›'; transform: rotate(90deg); }
+  .set-body { padding: 0 0 var(--sp-6); }
+  .settings-row { border-bottom: 0; border-top: 1px solid var(--border); gap: var(--sp-4); }
+  .toggle { background: transparent; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); padding: 2px; }
+  .toggle button { border-radius: var(--radius-pill); color: var(--muted); padding: 6px var(--sp-5); }
+  .toggle button.sel { background: var(--text); color: var(--bg); }
+  #tab-me .controls button, #tab-me .set-body .btn-primary { border-radius: var(--radius-pill); padding: 11px; font-size: var(--fs-base); font-weight: 500; }
+  #tab-me .set-body .btn-primary { background: var(--text); color: var(--bg); }
+  #tab-me input[type=number], #tab-me input[type=text]:not(.text-input) { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); padding: 6px var(--sp-3); font: inherit; }
+  .habit-add-btn { border: 0; border-top: 1px solid var(--border); border-radius: 0; background: transparent; color: var(--muted); justify-content: flex-start; padding: var(--sp-5) 0; font-weight: 400; }
+  .ord-item { border-radius: 0; background: transparent; border-top: 1px solid var(--border); }
+  /* 시트·창: 표면 #1F2645, 위 모서리 26px, 머리선 줄, 주 버튼은 알약 하나 */
+  .modal-bg { background: rgba(3,4,11,.55); }
+  .modal { background: var(--surface); padding: var(--sp-6) var(--sp-7) calc(env(safe-area-inset-bottom) + var(--sp-7)); }
+  .modal::before { content: ''; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--border-strong); margin: 0 auto var(--sp-5); }
+  .modal h2 { font-size: var(--fs-xl); font-weight: 500; }
+  .modal .field { border-bottom: 0; border-top: 1px solid var(--border); }
+  .modal .settings-row { border-top: 1px solid var(--border); }
+  .modal .seg, .modal .toggle { background: transparent; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); padding: 2px; }
+  .modal .seg button, .modal .toggle button { border-radius: var(--radius-pill); color: var(--muted); }
+  .modal .seg button.sel, .modal .toggle button.sel { background: var(--text); color: var(--bg); }
+  .modal .chip { background: transparent; border: 1px solid var(--border-strong); color: var(--muted); font-weight: 400; }
+  .modal .chip.sel { background: var(--text); border-color: var(--text); color: var(--bg); }
+  .modal .btn-primary, .modal .btn-go { background: var(--text); color: var(--bg); border-radius: var(--radius-pill); font-weight: 500; }
+  .modal .btn-stop { background: var(--tl-red); color: var(--on-red); border-radius: var(--radius-pill); }
+  .modal .btn-wide:not(.btn-primary):not(.btn-go):not(.btn-stop) { background: transparent; border: 1px solid var(--border-strong); color: var(--text); border-radius: var(--radius-pill); margin-top: var(--sp-3); }
+  .modal .text-input, .modal .num-input { border-radius: var(--radius-btn); }
+  .modal .pill-btn { border-radius: var(--radius-pill); }
+  .sheet-item { background: transparent; border-top: 1px solid var(--border); border-radius: 0; margin: 0; padding: var(--sp-6) 0; font-size: var(--fs-md); font-weight: 400; }
+  .sheet-item:first-child { border-top: 0; }
+  .modal .stars .star { border-radius: 50%; }
+  .modal .tl-sm { border-radius: var(--radius-pill); }
+  .modal .tl-sm.save, .modal .tl-sm.on { background: var(--text); color: var(--bg); }
+  .wr-hl, .wr-c { border-radius: var(--radius-btn); }
+  /* 빈 상태 */
+  .rt-empty, .empty-hist, .chart-empty { color: var(--muted); font-size: var(--fs-base); line-height: 1.6; }
 </style>
 <script src="metrics.js"></script>
 <script src="book-map.js"></script>
@@ -851,7 +860,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
 
 <header>
   <h1 id="headerTitle">오늘</h1>
-  <div class="hdr-r"><div class="status" id="connStatus" style="display:none;"><span class="dot" id="dot"></span><span id="statusText">미연결</span></div><button class="lv-badge" id="lvBadge" aria-label="레벨 · 내정보 열기">1</button></div>
+  <div class="hdr-r"><button class="lv-badge" id="lvBadge" aria-label="레벨 · 내정보 열기">1</button></div>
 </header>
 
 <!-- ===================== 오늘 ===================== -->
@@ -894,7 +903,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <div class="sec-title" id="habitDetail" style="margin:24px 2px 12px;">습관 상세</div>
   <div class="card">
     <div class="streak-box">
-      <span class="streak-fire">🔥</span>
+      <i class="ti ti-flame streak-fire" aria-hidden="true"></i>
       <span class="streak-num" id="hStreakNum">0</span>
       <span class="streak-txt">일 연속</span>
     </div>
@@ -906,7 +915,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     </div>
     <div class="cal-grid" id="hCalGrid"></div>
     <div class="cal-legend">
-      <span>🔥 달성</span><span>💪 절반</span><span>💤 부족</span>
+      <span><i class="lg-dot g"></i>달성</span><span><i class="lg-dot y"></i>절반</span><span><i class="lg-dot r"></i>부족</span>
     </div>
     <div class="cal-month-stat" id="hCalMonthStat"></div>
   </div>
@@ -972,7 +981,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     </div>
   </div>
   <div class="pct" id="pct">최대심박 대비 --%</div>
-  <div class="ladder hidden" id="ladder"></div>
   <div class="hr-z2">
     <div class="hr-z2-h"><span class="l">이번 주 Zone 2</span><span><span class="weekly-val" id="weeklyVal">0</span> <span class="weekly-goal" id="weeklyGoal">/ 150분</span></span></div>
     <div class="progress-bg"><div class="progress-fill" id="weeklyProgress" style="width:0%"></div></div>
@@ -993,7 +1001,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <div class="card">
     <div class="chart-wrap">
       <canvas id="chart"></canvas>
-      <div class="chart-empty" id="chartEmpty">운동을 시작하면 그래프가 표시됩니다</div>
+      <div class="chart-empty" id="chartEmpty">심박계를 연결하고 시작을 누르면 그래프가 그려져요</div>
     </div>
   </div>
 
@@ -1002,7 +1010,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
       <div class="stat"><div class="v" id="sTime">0:00</div><div class="l">시간</div></div>
       <div class="stat"><div class="v" id="sAvg">--</div><div class="l">평균</div></div>
       <div class="stat"><div class="v" id="sMax">--</div><div class="l">최대</div></div>
-      <div class="stat"><div class="v" style="color:var(--z2)" id="sZ2">0:00</div><div class="l">Zone 2</div></div>
+      <div class="stat"><div class="v" style="color:var(--accent-text)" id="sZ2">0:00</div><div class="l">Zone 2</div></div>
     </div>
     <div class="kcal-row"><b id="sKcal">0</b> kcal 소모</div>
   </div>
@@ -1021,7 +1029,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
       <button id="calNext">›</button>
     </div>
     <div class="cal-grid" id="calGrid"></div>
-    <div class="cal-legend"><span>🔥 1시간+</span><span>💪 30분+</span><span>💤 30분 미만</span></div>
+    <div class="cal-legend"><span><i class="lg-dot g"></i>1시간 이상</span><span><i class="lg-dot y"></i>30분 이상</span><span><i class="lg-dot r"></i>30분 미만</span></div>
     <div class="cal-month-stat" id="calMonthStat"></div>
   </div>
   <div class="hr-sec">이번 주 Zone 2 누적</div>
@@ -1040,7 +1048,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <div class="measure-guide"><i class="ti ti-bed" aria-hidden="true"></i> 아침 기상 직후, 누운 상태에서 측정하세요.<br>2분간 안정시 심박과 HRV(심박변이도)를 기록합니다.</div>
     <div class="hrv-dial" id="hrvDial"></div>
     <div class="rr-status rr-wait" id="rrStatus">측정 대기 중</div>
-    <div class="countdown hidden" id="countdown"></div>
 
     <div class="dual" style="margin-bottom:12px;">
       <div class="card" style="background:var(--surface2);border:none;">
@@ -1062,7 +1069,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <div class="card">
     <div class="chart-wrap">
       <canvas id="hrvChart"></canvas>
-      <div class="chart-empty" id="hrvChartEmpty">측정 기록이 쌓이면 추세가 표시됩니다</div>
+      <div class="chart-empty" id="hrvChartEmpty">두 번 이상 재면 추세가 보여요</div>
     </div>
   </div>
 
@@ -1086,9 +1093,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   <button data-tab="time" role="tab" aria-selected="false" aria-label="시간"><i class="ti ti-clock" aria-hidden="true"></i><span class="sr-only">시간</span></button>
   <button data-tab="books" role="tab" aria-selected="false" aria-label="독서"><i class="ti ti-book" aria-hidden="true"></i><span class="sr-only">독서</span></button>
   <button data-tab="hr" role="tab" aria-selected="false" aria-label="심박"><i class="ti ti-heart" aria-hidden="true"></i><span class="sr-only">심박</span></button>
-  <!-- 통계·내정보는 아래 탭에서 빠졌다 (통계 = 오늘 › 기록, 내정보 = 레벨 원). switchTab 이 6개 버튼을 모두 찾으므로 숨겨서 남긴다 -->
-  <button data-tab="stats" role="tab" aria-selected="false" hidden>통계</button>
-  <button data-tab="me" role="tab" aria-selected="false" hidden>내정보</button>
 </nav>
 
 <!-- 습관 추가·수정 모달 -->
@@ -1105,9 +1109,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <div class="field">
       <label>타임필터</label>
       <div class="seg" id="hTod">
-        <button data-t="morning">☀️ 오전</button>
-        <button data-t="afternoon">☕ 오후</button>
-        <button data-t="evening">🌙 저녁</button>
+        <button data-t="morning">오전</button>
+        <button data-t="afternoon">오후</button>
+        <button data-t="evening">저녁</button>
         <button data-t="anytime">하루</button>
       </div>
     </div>
@@ -1122,10 +1126,10 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     <div class="field">
       <label>유형</label>
       <div class="seg" id="hType">
-        <button data-t="time">⏱️ 시간</button>
-        <button data-t="count">🔢 횟수</button>
-        <button data-t="measure">📊 수치</button>
-        <button data-t="check">✅ 체크</button>
+        <button data-t="time">시간</button>
+        <button data-t="count">횟수</button>
+        <button data-t="measure">수치</button>
+        <button data-t="check">체크</button>
       </div>
       <div class="hint" id="hTypeLock" style="display:none;margin-top:6px;font-size:11px;color:var(--muted);">유형은 기록이 있어서 바꿀 수 없어요</div>
     </div>
@@ -1157,7 +1161,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
       <div class="chips" id="hColors"></div>
     </div>
     <div class="settings-row" style="border-bottom:0;">
-      <div><label>🔥 중요</label><div class="hint">루틴 표에서 강조돼요</div></div>
+      <div><label>중요</label><div class="hint">루틴 표에서 강조돼요</div></div>
       <div class="toggle" id="hImp">
         <button data-i="0">끔</button>
         <button data-i="1">켬</button>
@@ -1222,7 +1226,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
       <div style="display:flex;gap:6px;margin-top:8px;">
         <input type="text" id="bkIsbn" class="text-input" style="flex:1;min-width:0;margin-top:0;" inputmode="numeric" maxlength="13" placeholder="13자리 입력 → 자동 채우기">
         <button class="pill-btn" type="button" id="bkIsbnGo">조회</button>
-        <button class="pill-btn" type="button" id="bkIsbnScan" aria-label="바코드 스캔">📷</button>
+        <button class="pill-btn" type="button" id="bkIsbnScan" aria-label="바코드 스캔"><i class="ti ti-scan" aria-hidden="true"></i></button>
       </div></div>
     <div class="field"><label>분야</label><div class="chips" id="bkCats"></div><div id="bkCatHint" class="hidden" style="font-size:12px;color:#888;margin-top:6px;"></div></div>
     <div class="settings-row">
@@ -1315,7 +1319,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
     </div>
     <div style="padding:12px 0;display:none;" id="pCheckRow">
       <div class="seg" id="pCheck">
-        <button data-c="1">✅ 완료</button>
+        <button data-c="1">완료</button>
         <button data-c="0">○ 해제</button>
       </div>
     </div>
@@ -1447,7 +1451,7 @@ function autoStartWorkout() {
 }
 function onDisconnect() {
   S.connected = false;
-  if (S.active) toast('⚠ 연결 끊김 — 운동은 계속 기록 중');
+  if (S.active) toast('연결 끊김 — 운동은 계속 기록 중');
   updateConnUI();
 }
 async function reconnect() {
@@ -1495,7 +1499,7 @@ function updateBPM(bpm, rr) {
   lbl.textContent = ZONE_NAMES[z]; lbl.style.background = 'transparent';
   lbl.style.color = z === 0 ? 'var(--muted)' : ZONE_COLORS[z];
   document.getElementById('pct').textContent = '최대심박 대비 ' + pctOfMax(bpm) + '%';
-  updateLadder(z); renderHrGauge(bpm);
+  renderHrGauge(bpm);
 
   // 측정 탭 실시간 표시
   document.getElementById('mBpm').textContent = bpm;
@@ -1513,17 +1517,6 @@ function updateBPM(bpm, rr) {
     const live = rmssd(S.measRR.slice(-60));
     if (live) document.getElementById('mHrv').textContent = live;
   }
-}
-function updateLadder(active) {
-  const lad = document.getElementById('ladder');
-  if (lad.children.length === 0) {
-    for (let i = 1; i <= 5; i++) {
-      const d = document.createElement('div');
-      d.className = 'lz'; d.style.background = ZONE_COLORS[i]; d.textContent = 'Z' + i;
-      lad.appendChild(d);
-    }
-  }
-  [...lad.children].forEach((el, i) => el.classList.toggle('active', i + 1 === active));
 }
 
 // ====================== 운동 세션 ======================
@@ -1590,7 +1583,7 @@ function recoverActiveSession() {
   });
   localStorage.setItem('hr_sessions', JSON.stringify(sessions.slice(0,100)));
   localStorage.removeItem('hr_active_session');
-  setTimeout(() => toast('⚠ 중단된 운동 ' + fmtTime(saved.elapsed) + ' 자동 복구됨'), 600);
+  setTimeout(() => toast('중단된 운동 ' + fmtTime(saved.elapsed) + ' 자동 복구됨'), 600);
 }
 
 // ====================== 심박 화면 그리기 (Night Dial M2) — 화면 표시만. 연결·기록 흐름은 위 함수들 그대로 ======================
@@ -1639,7 +1632,6 @@ function toggleMeasure() {
   S.measuring = true; S.measRR = []; S.measBPM = []; S.measCountdown = MEASURE_DURATION; S.hasRR = false; S.lastRRtime = 0;
   document.getElementById('measureBtn').textContent = '■ 측정 중단';
   document.getElementById('measureBtn').classList.add('btn-stop');
-  document.getElementById('countdown').classList.remove('hidden');
   document.getElementById('mHrv').textContent = '--';
   requestWakeLock();
   S.measTick = setInterval(measTickFn, 1000);
@@ -1648,11 +1640,10 @@ function toggleMeasure() {
 }
 function measTickFn() {
   S.measCountdown--;
-  document.getElementById('countdown').textContent = '남은 시간 ' + fmtTime(S.measCountdown);
   // RR 수신 여부 판정 (시작 10초 후)
   const elapsed = MEASURE_DURATION - S.measCountdown;
   if (elapsed === 10) {
-    if (!S.hasRR) setRRStatus('fail', '⚠ 이 기기는 RR 데이터를 송출하지 않습니다 — HRV 측정 불가 (안정시 심박만 기록)');
+    if (!S.hasRR) setRRStatus('fail', '이 기기는 RR 데이터를 송출하지 않습니다 — HRV 측정 불가 (안정시 심박만 기록)');
     else setRRStatus('ok', '✓ RR 데이터 수신 중 — HRV 측정 가능');
   }
   renderHrvDial();
@@ -1663,7 +1654,6 @@ function finishMeasure() {
   S.measuring = false;
   document.getElementById('measureBtn').textContent = '측정 시작 (2분)';
   document.getElementById('measureBtn').classList.remove('btn-stop');
-  document.getElementById('countdown').classList.add('hidden');
   renderHrvDial();
 
   const rhr = S.measBPM.length ? Math.round(Math.min(...S.measBPM)) : null; // 안정시 = 측정 중 최저
@@ -1691,7 +1681,7 @@ function getMeasures() {
 function renderMeasureHistory() {
   const wrap = document.getElementById('measureHistory');
   const m = getMeasures();
-  if (!m.length) { wrap.innerHTML = '<div class="empty-hist">아직 측정 기록이 없습니다</div>'; return; }
+  if (!m.length) { wrap.innerHTML = '<div class="empty-hist">아직 측정 기록이 없어요. 위 측정 시작으로 첫 기록을 남겨요</div>'; return; }
   wrap.innerHTML = m.map((x, i) => {
     const d = new Date(x.date);
     const ds = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -1853,7 +1843,7 @@ function renderHistory() {
   if (typeof checkLevelUp === 'function' && typeof xpMeta === 'function') try { checkLevelUp(); } catch(e) {}
   const wrap = document.getElementById('history');
   const sessions = getSessions();
-  if (!sessions.length) { wrap.innerHTML = '<div class="empty-hist">아직 운동 기록이 없습니다</div>'; return; }
+  if (!sessions.length) { wrap.innerHTML = '<div class="empty-hist">아직 운동 기록이 없어요. 심박계를 연결하고 시작을 눌러요</div>'; return; }
   const cutoff = todayStart().getTime() - 6 * 864e5;   // 오늘 포함 7일
   const idx = sessions.map((s, i) => i).sort((a, b) => sessions[b].date - sessions[a].date);   // i = 원래 위치 (삭제·CSV 에 필요)
   const recent = idx.filter(i => sessions[i].date >= cutoff), older = idx.filter(i => sessions[i].date < cutoff);
@@ -1868,7 +1858,7 @@ function renderHistory() {
         <div class="hist-sub">${fmtTime(s.duration)} · 평균 ${s.avg} · ${s.kcal ?? 0}kcal</div></div>
       <div class="hist-right">
         <div class="hist-z2"><div class="b">${z2pct}%</div><div class="s">Zone 2</div></div>
-        <button class="icon-btn" onclick="exportCSV(${i})">⬇</button>
+        <button class="icon-btn" onclick="exportCSV(${i})" aria-label="CSV 내려받기"><i class="ti ti-download" aria-hidden="true"></i></button>
         <button class="icon-btn" onclick="deleteSession(${i})">✕</button>
       </div></div>`;
   }).join('');
@@ -2292,7 +2282,7 @@ function syncConflict(r, first) {
   old.sort().slice(0, Math.max(0, old.length - 2)).forEach(k => localStorage.removeItem(k));
   const kept = storeSafetyCopy(key, text, 'hr-backup_conflict_' + ts + '.json');
   if (kept === 'downloaded') toast('저장 공간이 부족해 이 기기 기록을 파일로 내려받았어요');
-  else if (!kept) toast('⚠ 이 기기 기록을 따로 보관하지 못했어요 — 선택하기 전에 내보내기를 해 두세요');
+  else if (!kept) toast('이 기기 기록을 따로 보관하지 못했어요 — 선택하기 전에 내보내기를 해 두세요');
   SYNC.keptHow = kept;
   SYNC.conflictOpen = true; SYNC.remote = r;
   syncSetStatus('conflict', '다른 기기에서 더 최신 기록이 있어요 — 선택이 필요해요');
@@ -2301,18 +2291,18 @@ function syncConflict(r, first) {
 function syncShowConflict(r, bkKey, first) {
   let box = document.getElementById('syncConflictBox'); if (box) box.remove();
   box = document.createElement('div'); box.id = 'syncConflictBox';
-  box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;';
+  box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(3,4,11,.6);display:flex;align-items:flex-end;justify-content:center;';
   const when = r.updatedAt ? syncFmtTime(Date.parse(r.updatedAt)) : '알 수 없음';
-  box.innerHTML = '<div style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:18px;max-width:420px;width:100%;">' +
-    '<div style="font-size:16px;font-weight:700;margin-bottom:8px;">다른 기기에서 더 최신 기록이 있습니다</div>' +
+  box.innerHTML = '<div style="background:var(--surface);color:var(--text);border-radius:26px 26px 0 0;padding:22px 20px calc(env(safe-area-inset-bottom) + 20px);max-width:560px;width:100%;">' +
+    '<div style="font-size:18px;font-weight:500;margin-bottom:8px;">다른 기기에 더 최신 기록이 있어요</div>' +
     '<div style="font-size:13px;line-height:1.6;color:var(--muted);">' +
     (first ? '이 기기는 처음 연결인데, 서버에 이미 기록이 있어요.<br>' : '') +
     '서버 기록: ' + esc(r.device || '기기 미상') + ' · ' + esc(when) + '<br>' +
     '이 기기에서 아직 올리지 못한 변경: ' + SYNC.dirty.size + '개 항목<br>' +
     '어느 쪽을 골라도 이 기기의 지금 기록은 ' + (SYNC.keptHow === 'stored' ? '<b>' + esc(bkKey) + '</b> 에 보관돼요.' : SYNC.keptHow === 'downloaded' ? '방금 내려받은 파일로 보관돼요.' : '<b>보관하지 못했어요 — 먼저 내보내기를 해 두세요.</b>') + '</div>' +
     '<div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">' +
-    '<button class="btn-primary" id="syncUseServer" style="padding:12px;">서버 기록 사용</button>' +
-    '<button id="syncUseLocal" style="padding:12px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:10px;">이 기기 기록으로 덮어쓰기</button></div></div>';
+    '<button class="btn-primary" id="syncUseServer" style="padding:13px;border-radius:999px;background:var(--text);color:var(--bg);font-weight:500;">서버 기록 사용</button>' +
+    '<button id="syncUseLocal" style="padding:13px;background:transparent;color:var(--text);border:1px solid var(--border-strong);border-radius:999px;">이 기기 기록으로 덮어쓰기</button></div></div>';
   document.body.appendChild(box);
   document.getElementById('syncUseServer').onclick = () => {
     const res = syncApplyRemote(r);
@@ -2395,10 +2385,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ====================== UI 헬퍼 ======================
-function setStatus(t) { document.getElementById('statusText').textContent = t; }
+function setStatus(t) { const el = document.getElementById('hrConnText'); if (el) el.textContent = t; }   // 연결 중 안내는 심박 화면 연결 줄에
 function updateConnUI() {
-  document.getElementById('dot').classList.toggle('on', S.connected);
-  setStatus(S.connected ? (S.device?.name || '연결됨') : (S.active ? '연결 끊김 (기록 중)' : '미연결'));
   // 운동 중(S.active)이면 연결이 끊겨도 종료 버튼을 유지해 저장 가능하게 함
   document.getElementById('connectRow').classList.toggle('hidden', S.connected || S.active);
   document.getElementById('workoutControls').classList.toggle('hidden', !S.connected && !S.active);
@@ -2430,9 +2418,9 @@ function sessionsByDay() {
 }
 function dayMood(sec) {
   const min = sec / 60;
-  if (min >= 60) return { emoji: '🔥', cls: 'green' };
-  if (min >= 30) return { emoji: '💪', cls: 'yellow' };
-  if (sec > 0) return { emoji: '💤', cls: 'red' };
+  if (min >= 60) return { emoji: '', cls: 'green' };
+  if (min >= 30) return { emoji: '', cls: 'yellow' };
+  if (sec > 0) return { emoji: '', cls: 'red' };
   return null;
 }
 function currentStreak() {
@@ -2468,7 +2456,7 @@ function renderCalendar() {
   }
   document.getElementById('calGrid').innerHTML = html;
   document.getElementById('calMonthStat').innerHTML =
-    `<span>🔥 <b>${cntG}</b></span><span>💪 <b>${cntY}</b></span><span>💤 <b>${cntR}</b></span><span>운동 <b>${cntG + cntY + cntR}</b>일</span><span>합계 <b>${fmtDur(monthSec / 60)}</b></span>`;
+    `<span><i class="lg-dot g"></i><b>${cntG}</b></span><span><i class="lg-dot y"></i><b>${cntY}</b></span><span><i class="lg-dot r"></i><b>${cntR}</b></span><span>운동 <b>${cntG + cntY + cntR}</b>일</span><span>합계 <b>${fmtDur(monthSec / 60)}</b></span>`;
 }
 function calShift(delta) {
   if (calYear === undefined) { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
@@ -2579,9 +2567,9 @@ function renderHabitCalendar(){
     const has = logs[key]!==undefined;
     const ach = has ? habitAchievement(h, logs[key]) : null;
     let cls='cal-cell', emoji='';
-    if(ach==='green'){ cls+=' green'; emoji='🔥'; g++; }
-    else if(ach==='yellow'){ cls+=' yellow'; emoji='💪'; y++; }
-    else if(ach==='red'){ cls+=' red'; emoji='💤'; r++; }
+    if(ach==='green'){ cls+=' green'; g++; }
+    else if(ach==='yellow'){ cls+=' yellow'; y++; }
+    else if(ach==='red'){ cls+=' red'; r++; }
     else cls+=' no-data';
     if(cd.getTime()===today.getTime()) cls+=' today';
     if(cd.getTime()>today.getTime()) cls+=' future';
@@ -2589,11 +2577,11 @@ function renderHabitCalendar(){
     const ago = Math.round((today.getTime()-cd.getTime())/864e5);
     const hasNote = !!(notes[key]);
     if(!isFuture) cls+=' clickable';
-    html += `<div class="${cls}"${isFuture?'':` role="button" tabindex="0" onclick="openPastModal('${calHabitId}',${ago})"`}><span class="cal-day">${day}</span>${emoji?`<span class="cal-emoji">${emoji}</span>${h.type!=='check'?`<span class="cal-min">${esc(cellVal(h, logs[key]))}</span>`:''}`:''}${hasNote?'<span class="cal-note">📝</span>':''}</div>`;
+    html += `<div class="${cls}"${isFuture?'':` role="button" tabindex="0" onclick="openPastModal('${calHabitId}',${ago})"`}><span class="cal-day">${day}</span>${emoji?`<span class="cal-emoji">${emoji}</span>${h.type!=='check'?`<span class="cal-min">${esc(cellVal(h, logs[key]))}</span>`:''}`:''}${hasNote?'<i class="ti ti-note cal-note" aria-label="메모"></i>':''}</div>`;
   }
   document.getElementById('hCalGrid').innerHTML = html;
   document.getElementById('hCalMonthStat').innerHTML =
-    `<span>🔥 <b>${g}</b></span><span>💪 <b>${y}</b></span><span>💤 <b>${r}</b></span><span>실천 <b>${g+y+r}</b>일</span>`;
+    `<span><i class="lg-dot g"></i><b>${g}</b></span><span><i class="lg-dot y"></i><b>${y}</b></span><span><i class="lg-dot r"></i><b>${r}</b></span><span>실천 <b>${g+y+r}</b>일</span>`;
   renderHabitTrend();
 }
 let trendSel = null, trendGeo = null;   // 점을 눌러 고른 날 {key,d} / 마지막 그림의 점 좌표
@@ -2740,7 +2728,7 @@ function refreshPastModal(){
     b.classList.toggle('sel', !!d && d.getTime()===t.getTime());
   });
   const cur = d ? (getHabitLogs()[h.id]||{})[dayKey(d)] : undefined;
-  const curTxt = cur===undefined ? '기록 없음' : (h.type==='check' ? (cur>=1?'✅ 완료':'미완료') : cur+(h.unit||''));
+  const curTxt = cur===undefined ? '기록 없음' : (h.type==='check' ? (cur>=1?'완료':'미완료') : cur+(h.unit||''));
   document.getElementById('pCur').textContent = d ? '이 날의 현재 기록: '+curTxt : '';
   // 기존 기록이 있으면 수정 모드(덮어쓰기)로 미리 채움
   const note = d ? ((getHabitNotes()[h.id]||{})[dayKey(d)]||'') : '';
@@ -2932,7 +2920,7 @@ function renderHabitSummary(){
 const DEFAULT_CATS = [{name:'성장',color:'#fde2e2'},{name:'건강',color:'#d5f5f3'},{name:'공부',color:'#ece4fb'},
   {name:'관계',color:'#fbdde3'},{name:'생활',color:'#ecf7c8'},{name:'모닝루틴',color:'#fff6b0'}];
 const TOD_LABEL = { anytime:'하루', morning:'오전', afternoon:'오후', evening:'저녁' };
-const TOD_ICON = { morning:'☀️', afternoon:'☕', evening:'🌙' };
+const TOD_ICON = { morning:'', afternoon:'', evening:'' };   // 화면 글자에는 이모지를 쓰지 않는다 (예전 아이콘 자리)
 const WD = ['일','월','화','수','목','금','토'];
 
 function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -3214,7 +3202,7 @@ function renderRoutine(c) {
   let sch = 0, gr = 0;
   c.vis.forEach(h => { if (sched(c, h, selDate)) { sch++; if (dach(c, h, selDate) === 'green') gr++; } });
   const allNow = sch > 0 && gr === sch;
-  if (prevAll[dk] === false && allNow) { setTimeout(() => { toast('🎉 오늘 습관을 모두 달성했어요!'); confetti(); }, 450); }
+  if (prevAll[dk] === false && allNow) { setTimeout(() => { toast('오늘 습관을 모두 달성했어요!'); confetti(); }, 450); }
   prevAll[dk] = allNow;
   const wrap = document.getElementById('routineTable');
   const rv = c.rest[dk], memo = rv === 'sick' ? getSickDays()[dk] : '';
@@ -3226,7 +3214,7 @@ function renderRoutine(c) {
     return;
   }
   const doneBox = nDone ? `<details class="td-done"${todayDoneOpen ? ' open' : ''} ontoggle="todayDoneOpen=this.open"><summary><i class="ti ti-chevron-right" aria-hidden="true"></i>끝낸 ${nDone}개 보기</summary>${done}</details>` : '';
-  wrap.innerHTML = restBar + (nLeft ? left : '<div class="rt-empty">남은 것이 없어요</div>') + add + doneBox;
+  wrap.innerHTML = restBar + (nLeft ? left : '<div class="rt-empty">오늘 할 것을 다 끝냈어요</div>') + add + doneBox;
 }
 
 function renderWeekCards(c, today) {
@@ -3250,8 +3238,8 @@ function renderWeekCards(c, today) {
     const tt = totalText(h, a, true);
     const foot = (tt ? tt + ' · ' : '') + a.ach + '/' + a.sch + '일';
     return `<div class="wk-card"><div class="wk-head"><div class="wk-idx">${idx + 1}</div>${pillHtml(h.category)}` +
-      `<span class="wk-nm">${h.important ? '🔥 ' : ''}${esc(h.icon)} ${esc(h.name)}</span>` +
-      `<button class="wk-memo" onclick="weekMemo('${h.id}')" aria-label="이번 주 메모">📝</button></div>` +
+      `<span class="wk-nm">${h.important ? '<i class="ti ti-flame td-imp" aria-label="중요"></i> ' : ''}${esc(h.icon)} ${esc(h.name)}</span>` +
+      `<button class="wk-memo" onclick="weekMemo('${h.id}')" aria-label="이번 주 메모"><i class="ti ti-note" aria-hidden="true"></i></button></div>` +
       `<div class="wk-cells">${cells}</div><div class="wk-foot">${foot}</div></div>`;
   }).join('');
 }
@@ -3270,12 +3258,12 @@ function renderMonthCards(c, today) {
     days.forEach(d => {
       const v = dval(c, h, d), ach = v === undefined ? null : habitAchievement(h, v), fut = d.getTime() > today.getTime();
       const ago = Math.round((today.getTime() - d.getTime()) / 864e5), off = !sched(c, h, d) && v === undefined;
-      const bg = ach === 'green' ? ` style="background:${h.color}"` : ach === 'yellow' ? ` style="background:repeating-linear-gradient(135deg,${h.color} 0 3px,color-mix(in srgb,${h.color} 28%,var(--surface2)) 3px 6px)"` : '';
+      const bg = ach === 'green' ? ` style="background:${h.color};color:${inkOn(h.color)}"` : ach === 'yellow' ? ` style="background:repeating-linear-gradient(135deg,${h.color} 0 3px,color-mix(in srgb,${h.color} 28%,var(--surface2)) 3px 6px);color:var(--text)"` : '';
       cells += `<div class="mo-c ${ach === 'green' || ach === 'yellow' ? 'on' : ''} ${off ? 'off' : ''} ${ach === 'red' ? 'r' : ''} ${d.getTime() === today.getTime() ? 'today' : ''}"${bg}${fut ? '' : ` role="button" tabindex="0" onclick="openPastModal('${h.id}',${ago})"`}>${d.getDate()}</div>`;
     });
     const a = aggHabit(c, h, days, today, true), tt = totalText(h, a, true);
     return `<div class="wk-card"><div class="wk-head"><div class="wk-idx">${idx + 1}</div>${pillHtml(h.category)}` +
-      `<span class="wk-nm">${h.important ? '🔥 ' : ''}${esc(h.icon)} ${esc(h.name)}</span></div>` +
+      `<span class="wk-nm">${h.important ? '<i class="ti ti-flame td-imp" aria-label="중요"></i> ' : ''}${esc(h.icon)} ${esc(h.name)}</span></div>` +
       `<div class="mo-dow">${dows}</div><div class="mo-grid">${cells}</div><div class="wk-foot">${(tt ? tt + ' · ' : '') + a.ach + '/' + a.sch + '일'}</div></div>`;
   }).join('');
 }
@@ -3340,8 +3328,8 @@ function renderQuick() {
   if (h.type === 'time') {
     if (isToday) {
       b += HT.activeId === h.id
-        ? `<div class="timer-display" id="ht-disp">${fmtTime(Math.floor((Date.now() - HT.startTime) / 1000))}</div><button class="btn-stop btn-wide" onclick="stopHabitTimer()">■ 종료 · 기록</button>`
-        : `<button class="btn-go btn-wide" onclick="startHabitTimer('${h.id}')">▶ 타이머 시작</button>`;
+        ? `<div class="timer-display" id="ht-disp">${fmtTime(Math.floor((Date.now() - HT.startTime) / 1000))}</div><button class="btn-stop btn-wide" onclick="stopHabitTimer()"><i class="ti ti-player-stop" aria-hidden="true"></i> 끝내고 기록</button>`
+        : `<button class="btn-go btn-wide" onclick="startHabitTimer('${h.id}')"><i class="ti ti-player-play" aria-hidden="true"></i> 타이머 시작</button>`;
     }
     if (HT.activeId !== h.id) {
       b += `<div class="habit-ctrls" style="margin-top:10px;"><input class="num-input" id="qlMin" type="number" placeholder="분 직접 입력"><button style="flex:none;padding:13px 16px;" onclick="quickAddMin()">추가</button></div>`;
@@ -3400,7 +3388,7 @@ function endHabit(id) {
 function showArchived() {
   const list = getHabits().map(normHabit).filter(h => h.archived);
   if (!list.length) { toast('보관된 습관이 없어요'); return; }
-  openSheet('보관된 습관 (눌러서 복원)', list.map(h => ({ label: '↩ ' + h.icon + ' ' + h.name, fn: () => archiveHabit(h.id, false) })));
+  openSheet('보관된 습관 (눌러서 복원)', list.map(h => ({ label: h.icon + ' ' + h.name + ' 복원', fn: () => archiveHabit(h.id, false) })));
 }
 function openHabitMonth(id) {
   switchTab('stats'); statView = 'light';
@@ -3504,8 +3492,8 @@ document.getElementById('hSave').onclick = () => {
 
 // ---------- ⋯ 메뉴 · 필터 · 날짜 이동 ----------
 document.getElementById('moreBtn').onclick = () => openSheet('메뉴', [
-  { label: '⚙ 설정', fn: () => goSettings('view') },
-  { label: '📦 보관된 습관', fn: showArchived },
+  { label: '설정', fn: () => goSettings('view') },
+  { label: '보관된 습관', fn: showArchived },
   { label: '이 날 쉬는 날·아픈 날', fn: () => restSheet(dayKey(selDate)) },
   { label: '시간대 필터: ' + TOD_LABEL[todayFilter], fn: () => document.getElementById('filterBtn').click() },
 ]);
@@ -3533,10 +3521,10 @@ document.getElementById('lvBadge').onclick = openLevelScreen;
 })();
 function restSheet(dk) {
   const d = parseDayKey(dk), sick = getSickDays()[dk] !== undefined, rest = !!getRestDays()[dk];
-  const items = sick ? [{ label: '🤒 아픈 날 해제 (이 날만)', fn: () => unmarkSick(dk) }]
-    : rest ? [{ label: '🛌 쉬는 날 해제 (이용권 1개 돌려받음)', fn: () => markRest(dk, false) }]
-    : [{ label: '🤒 아픈 날로 지정 (무료 · 며칠이든)', fn: () => markSick(dk) },
-       { label: '🛌 쉬는 날로 지정 (이용권 ' + getTokens() + '개 보유)', fn: () => markRest(dk, true) }];
+  const items = sick ? [{ label: '아픈 날 해제 (이 날만)', fn: () => unmarkSick(dk) }]
+    : rest ? [{ label: '쉬는 날 해제 (이용권 1개 돌려받음)', fn: () => markRest(dk, false) }]
+    : [{ label: '아픈 날로 지정 (무료 · 며칠이든)', fn: () => markSick(dk) },
+       { label: '쉬는 날로 지정 (이용권 ' + getTokens() + '개 보유)', fn: () => markRest(dk, true) }];
   openSheet((d.getMonth() + 1) + '/' + d.getDate() + ' ' + WD[d.getDay()], items);
 }
 // 아픈 날: 이용권 없이 무료. 이 날부터 N일(1~14) 한꺼번에, 사유 메모 선택. 이미 쉬는 날(이용권)인 날은 그대로 둔다.
@@ -3548,7 +3536,7 @@ function markSick(dk) {
   const sk = getSickDays(), r = getRestDays(); let added = 0;
   for (let i = 0; i < n; i++) { const k = dayKey(addDays(parseDayKey(dk), i)); if (r[k]) continue; sk[k] = String(memo).trim().slice(0, 40); added++; }
   localStorage.setItem('sick_days', JSON.stringify(sk));
-  toast('🤒 아픈 날 ' + added + '일로 지정했어요 — 푹 쉬세요'); refreshAllViews();
+  toast('아픈 날 ' + added + '일로 지정했어요 — 푹 쉬세요'); refreshAllViews();
 }
 function unmarkSick(dk) {
   const sk = getSickDays(); if (sk[dk] === undefined) return;
@@ -3593,7 +3581,7 @@ function renderStatBody() {
   if (statView === 'week') {
     const days = weekDays(statWeekStart);
     title.textContent = (days[0].getMonth() + 1) + '/' + days[0].getDate() + ' ~ ' + (days[6].getMonth() + 1) + '/' + days[6].getDate();
-    body.innerHTML = c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'week')).join('') + '</div>' + '<div class="cal-legend"><span>달성 = 습관 색 꽉 참</span><span><i class="lg hatch"></i>절반 = 줄무늬</span><span>회색 = 못 함</span></div>' : '<div class="rt-empty">습관을 추가하면 표시돼요</div>';
+    body.innerHTML = c.vis.length ? '<div class="stat-grid">' + c.vis.map(h => habitCard(c, h, days, today, 'week')).join('') + '</div>' + '<div class="cal-legend"><span>달성 = 습관 색 꽉 참</span><span><i class="lg hatch"></i>절반 = 줄무늬</span><span>회색 = 못 함</span></div>' : '<div class="rt-empty">습관이 없어요. 오늘 탭의 + 습관으로 추가해요</div>';
     return;
   }
   title.textContent = statY + '년 ' + (statM + 1) + '월';
@@ -3605,9 +3593,9 @@ function renderStatBody() {
     days.forEach(d => {
       const lt = dayLight(c, d, today);
       if (lt === 'green') g++; else if (lt === 'yellow') y++; else if (lt === 'red') r++;
-      html += `<div class="lt-c ${lt} ${d.getTime() > today.getTime() && lt !== 'rest' ? 'faint' : ''}">${lt === 'rest' ? (c.rest[dayKey(d)] === 'sick' ? '🤒' : '🛌') : d.getDate()}</div>`;
+      html += `<div class="lt-c ${lt} ${d.getTime() > today.getTime() && lt !== 'rest' ? 'faint' : ''}">${lt === 'rest' ? (c.rest[dayKey(d)] === 'sick' ? '아픔' : '쉼') : d.getDate()}</div>`;
     });
-    html += `</div><div class="cal-month-stat"><span>🟢 초록불 <b>${g}</b>회</span><span>🟡 노란불 <b>${y}</b>회</span><span>🔴 빨간불 <b>${r}</b>회</span></div></div>`;
+    html += `</div><div class="cal-month-stat"><span><i class="lg-dot g"></i>초록불 <b>${g}</b>회</span><span><i class="lg-dot y"></i>노란불 <b>${y}</b>회</span><span><i class="lg-dot r"></i>빨간불 <b>${r}</b>회</span></div></div>`;
     body.innerHTML = html;
     return;
   }
@@ -3619,8 +3607,8 @@ function habitCard(c, h, days, today, mode) {
   days.forEach(d => {
     const sc = sched(c, h, d), fut = d.getTime() > today.getTime(), ach = dach(c, h, d);
     let cls = 'mq', st = '';
-    if (ach === 'green') { cls += ' on'; st = ` style="background:${h.color}"`; const v = dval(c, h, d); if ((h.type === 'time' || h.type === 'count') && v >= h.goal * 1.5) cls += ' over'; }   // 목표의 1.5배 이상 = 모서리 ★
-    else if (ach === 'yellow') { cls += ' on'; st = ` style="background:repeating-linear-gradient(135deg,${h.color} 0 3px,color-mix(in srgb,${h.color} 28%,var(--tl-none)) 3px 6px)"`; }
+    if (ach === 'green') { cls += ' on'; st = ` style="background:${h.color};color:${inkOn(h.color)}"`; const v = dval(c, h, d); if ((h.type === 'time' || h.type === 'count') && v >= h.goal * 1.5) cls += ' over'; }   // 목표의 1.5배 이상 = 모서리 ★
+    else if (ach === 'yellow') { cls += ' on'; st = ` style="background:repeating-linear-gradient(135deg,${h.color} 0 3px,color-mix(in srgb,${h.color} 28%,var(--tl-none)) 3px 6px);color:var(--text)"`; }
     else if (!sc || fut) cls += ' faint';
     cells += `<div class="${cls}"${st}>${d.getDate()}</div>`;
   });
@@ -3628,7 +3616,7 @@ function habitCard(c, h, days, today, mode) {
   const pct = a.sch ? Math.round(a.ach / a.sch * 100) : 0;
   const tt = totalText(h, a, false);
   return `<div class="mc" role="button" tabindex="0" onclick="openHabitDetail('${h.id}')"><div class="mc-t">${esc(h.icon)} ${esc(h.name)}</div><div class="mc-cal">${cells}</div>` +
-    `<div class="mc-f"><span>◔ <b>${pct}%</b></span><span>✔ <b>${a.ach}</b></span>${tt ? `<span><b>${tt}</b></span>` : ''}</div></div>`;
+    `<div class="mc-f"><span><b>${pct}%</b></span><span>달성 <b>${a.ach}</b>일</span>${tt ? `<span><b>${tt}</b></span>` : ''}</div></div>`;
 }
 function openHabitDetail(id) {
   calHabitId = id; renderHabitCalPills();
@@ -3649,12 +3637,12 @@ function renderStatsExtra() {
   const woMin = Math.round(todayWO.reduce((a, s) => a + s.duration, 0) / 60);
   let html = '<div class="sec-title" style="margin:24px 2px 12px;">운동</div><div class="card"><div class="sec-title" style="margin:0 0 10px;">오늘 운동</div>';
   if (woMin > 0) {
-    const woMood = woMin >= 60 ? '🔥' : woMin >= 30 ? '💪' : '💤';
+    const woMood = '<i class="lg-dot ' + (woMin >= 60 ? 'g' : woMin >= 30 ? 'y' : 'r') + '"></i>';
     const z2 = Math.round(todayWO.reduce((a, s) => a + (s.zoneSec[2] || 0), 0) / 60);
     html += `<div class="home-big-stat"><span class="hbs-mood">${woMood}</span><span class="hbs-val">${woMin}분</span><span class="hbs-sub">${todayWO.length}회 · Zone 2 ${z2}분</span></div>`;
   } else html += '<div class="home-empty-stat">아직 운동 전 — 운동 탭에서 시작</div>';
   html += '</div><div class="card"><div class="sec-title" style="margin:0 0 10px;">연속 기록</div><div class="streak-grid">';
-  const sk = [{ n: workoutStreak(), l: '🏃 운동' }].concat(habits.map(h => ({ n: habitStreak(h.id), l: esc(h.icon || '⭐') + ' ' + esc(h.name) })));
+  const sk = [{ n: workoutStreak(), l: '운동' }].concat(habits.map(h => ({ n: habitStreak(h.id), l: esc(h.icon || '⭐') + ' ' + esc(h.name) })));
   sk.sort((a, b) => b.n - a.n);   // 연속일 많은 순 → 습관이 늘어도 상위만 먼저 보인다
   const shown = streakOpen ? sk : sk.slice(0, 4);
   shown.forEach(x => { html += `<div class="sk-item ${x.n ? '' : 'zero'}"><div class="sk-num">${x.n}</div><div class="sk-lbl">${x.l}</div></div>`; });
@@ -3721,7 +3709,7 @@ function renderStatReport() {
     let h = `<div class="sec-title" style="margin:24px 2px 10px;">${woY}년 ${woM + 1}월 보고</div>`;
     if (!cur.n && !hs.length) { box.innerHTML = h + '<div class="card empty-hist">이 달에는 운동·습관 기록이 없어요</div>'; return; }
     h += `<div class="card"><div class="tl-h">① 한 줄 요약 <small>(지난달 대비)</small></div><div class="tl-sum"><div><b>${cur.n}</b>회<small>운동 ${repEm(cur.n - prev.n, nf)}</small></div><div><b>${repMin(cur.min)}</b><small>총 운동 시간 ${repEm(cur.min - prev.min, repMin)}</small></div><div><b>${repMin(cur.z2)}</b><small>Zone 2 ${repEm(cur.z2 - prev.z2, repMin)}</small></div><div><b>${avgPct == null ? '—' : Math.round(avgPct)}</b>%<small>습관 평균 달성률</small></div></div>${repPartialNote(woY, woM)}</div>`;
-    h += `<div class="card"><div class="tl-h">② 습관별 달성률 <small>(지난달 대비 %p)</small></div>${repBars(hs.sort((a, b) => b.pct - a.pct).map(x => ({ n: esc(x.h.icon || '⭐') + ' ' + esc(x.h.name), v: x.pct, c: hexOk(x.h.color) ? x.h.color : undefined, t: Math.round(x.pct) + '% <small>' + x.a.ach + '/' + x.a.sch + '일</small>', d: repEm(x.dp, nf) })))}<div class="tl-note">🟢 초록불 ${g}일 · 🟡 노란불 ${yl}일 · 🔴 빨간불 ${r}일</div></div>`;
+    h += `<div class="card"><div class="tl-h">② 습관별 달성률 <small>(지난달 대비 %p)</small></div>${repBars(hs.sort((a, b) => b.pct - a.pct).map(x => ({ n: esc(x.h.icon || '⭐') + ' ' + esc(x.h.name), v: x.pct, c: hexOk(x.h.color) ? x.h.color : undefined, t: Math.round(x.pct) + '% <small>' + x.a.ach + '/' + x.a.sch + '일</small>', d: repEm(x.dp, nf) })))}<div class="tl-note">초록불 ${g}일 · 노란불 ${yl}일 · 빨간불 ${r}일</div></div>`;
     h += `<div class="card"><div class="tl-h">③ 주별 운동</div><table class="tl-tbl"><tr><th>주</th><th>횟수</th><th>총 시간</th><th>Zone 2</th><th>운동한 날</th></tr>${repMonthWeeks(woY, woM).map(w => { const s = sum(w.days); return `<tr><td class="l">${w.label}</td><td>${s.n}</td><td>${repMin(s.min)}</td><td>${repMin(s.z2)}</td><td>${s.days}</td></tr>`; }).join('')}</table></div>`;
     h += `<div class="card"><div class="tl-h">④ 요일별 평균 운동 시간 <small>(오늘까지 지난 그 요일 기준)</small></div>${repWeekdayBars(minOf, woY, woM, repMin, '#7fa3e0')}</div>`;
     let best = 0, run = 0, gap = 0, bestGap = 0;
@@ -3901,7 +3889,7 @@ function checkLevelUp() {
   if (st.li.level > m.lastLevel) {
     const gained = coinsEarned(st.li.level) - coinsEarned(m.lastLevel);
     m.lastLevel = st.li.level; saveXpMeta(m);
-    toast('🎉 Lv.' + st.li.level + ' 달성! +' + gained + '코인'); confetti();
+    toast('Lv.' + st.li.level + ' 달성! +' + gained + '코인'); confetti();
   }
   return st;
 }
@@ -3923,7 +3911,7 @@ function markRest(dk, on) {
     const t = getTokens();
     if (t < 1) { toast('쉬는 날 이용권이 없어요 — Lv 화면 상점에서 구입'); return; }
     if (!confirm(lbl + '을(를) 쉬는 날로 지정할까요?\n이용권 1개가 사용돼요 (남은 ' + t + '개).\n쉬는 날은 달성률·신호등에서 빠지고 습관 XP는 0이에요.')) return;
-    setTokens(t - 1); r[dk] = 1; toast('🛌 쉬는 날로 지정했어요');
+    setTokens(t - 1); r[dk] = 1; toast('쉬는 날로 지정했어요');
   } else {
     delete r[dk]; setTokens(getTokens() + 1); toast('쉬는 날을 해제했어요 · 이용권 1개 돌려받음');
   }
@@ -3959,7 +3947,7 @@ function delShopItem(id) {
 function xpForLevel(L) { let t = 0; for (let i = 1; i < L; i++) t += Math.round(10 * Math.pow(i, 1.5)); return t; }
 function nextTitleHtml(L, total) {
   const ts = xpTitles().slice().sort((a, b) => a.level - b.level), nx = ts.find(t => t.level > L);
-  const ladder = ts.map(t => `<span class="tt ${t.level <= L ? 'on' : ''}">${esc(t.name)}<small>Lv.${t.level}</small></span>`).join('');
+  const ladder = ts.map(t => `<span class="tt ${t.level <= L ? 'on' : 'lock'}">${esc(t.name)}<small>Lv.${t.level}</small></span>`).join('');
   const nxt = nx ? `<div class="lv-next">다음 칭호 <b>${esc(nx.name)}</b> · Lv.${nx.level}까지 ${nx.level - L}레벨, 약 ${Math.max(0, xpForLevel(nx.level) - total).toLocaleString()}XP 남음</div>` : '<div class="lv-next">마지막 칭호에 도달했어요 — 레벨은 계속 올라가요!</div>';
   return nxt + `<div class="tt-row">${ladder}</div>`;
 }
@@ -3968,19 +3956,18 @@ function renderLevelScreen() {
   const todayXP = st.byDay[today] || 0, pct = Math.min(100, Math.round(st.li.into / st.li.need * 100));
   const items = [BUILTIN_REST].concat(getShopItems());
   document.getElementById('lvBody').innerHTML =
-    `<div class="lv-big">Lv.${st.li.level} <span>${esc(titleFor(st.li.level))}</span></div>` +
-    `<div class="progress-bg" style="margin:10px 0 6px;"><div class="progress-fill" style="width:${pct}%"></div></div>` +
-    `<div class="lv-sub"><span>다음 레벨까지 ${st.li.need - st.li.into}XP</span><span>${st.li.into} / ${st.li.need}</span></div>` +
+    `<div class="lv-head"><div class="lv-ring">${Dial.svg({ n: 48, cells: Array.from({ length: 48 }, (_, i) => i < Math.round(pct / 100 * 48) ? { color: 'var(--violet)' } : null), now: 0, labels: false, label: '레벨 ' + st.li.level + ', 다음 레벨까지 ' + pct + '%', center: { lines: [{ t: String(st.li.level), y: 112, size: 40, fill: 'var(--violet-text)', w: 500 }, { t: 'Lv', y: 78, size: 12, fill: 'var(--muted)' }] } })}</div>` +
+    `<div class="lv-info"><div class="lv-title">${esc(titleFor(st.li.level))}</div><div class="lv-sub2">다음 레벨까지 ${st.li.need - st.li.into}XP</div><div class="lv-sub2">${st.li.into} / ${st.li.need} XP</div></div></div>` +
     nextTitleHtml(st.li.level, st.total) +
-    `<div class="lv-row"><div><b>${todayXP}</b> / ${cap}<small>오늘 XP</small></div><div><b>🪙 ${Math.max(0, st.balance)}</b><small>코인</small></div><div><b>🛌 ${getTokens()}</b><small>쉬는 날 이용권</small></div></div>` +
-    `<div class="lv-sub" style="margin-top:10px;"><span>🛌 쉬는 날 · 🤒 아픈 날: [오늘] 탭 위 요일 날짜를 <b>길게 누르기</b> (아픈 날은 이용권 없이 무료)</span></div>` +
-    (unusedRewards().length ? `<div class="lv-sub" style="margin-top:6px;"><span>🎁 아직 안 쓴 보상 <b>${unusedRewards().length}개</b> · 설정 &gt; 상점에서 사용 체크</span></div>` : '') +
-    `<button class="habit-add-btn" style="margin-top:12px;padding:11px;" onclick="openWrap()">📅 결산 보기</button>` +
-    `<div class="sec-title" style="margin:18px 2px 4px;">상점</div><div class="lv-sub" style="margin-bottom:8px;"><span>구입하면 코인이 빠지고 구입 내역에 기록돼요. 실제 보상은 직접 누려요 🙂</span></div>` +
-    items.map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">🪙 ${it.cost}</span>` +
+    `<div class="lv-row"><div><b>${todayXP}</b> / ${cap}<small>오늘 XP</small></div><div><b>${Math.max(0, st.balance)}</b><small>코인</small></div><div><b>${getTokens()}</b><small>쉬는 날 이용권</small></div></div>` +
+    `<div class="lv-sub" style="margin-top:10px;"><span>쉬는 날 · 아픈 날: 오늘 탭의 날짜를 길게 누르거나 ⋯ 메뉴에서 지정해요 (아픈 날은 이용권 없이 무료)</span></div>` +
+    (unusedRewards().length ? `<div class="lv-sub" style="margin-top:6px;"><span>아직 안 쓴 보상 <b>${unusedRewards().length}개</b> · 아래 설정 › 상점에서 사용 체크</span></div>` : '') +
+    `<button class="lv-pill" onclick="openWrap()"><i class="ti ti-calendar-stats" aria-hidden="true"></i> 결산 보기</button>` +
+    `<div class="sec-title" style="margin:18px 2px 4px;">상점</div><div class="lv-sub" style="margin-bottom:8px;"><span>구입하면 코인이 빠지고 구입 기록에 남아요. 실제 보상은 직접 누려요.</span></div>` +
+    items.map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">${it.cost}코인</span>` +
       `<button class="shop-buy" ${st.balance < it.cost ? 'disabled' : ''} onclick="buyItem('${it.id}')">구입</button>` +
       (it.id === BUILTIN_REST.id ? '' : `<button class="shop-x" onclick="delShopItem('${it.id}')" aria-label="삭제">✕</button>`) + `</div>`).join('') +
-    `<button class="habit-add-btn" style="margin-top:8px;" onclick="addShopItem()">＋ 상점 품목 추가</button>`;
+    `<button class="td-add" onclick="addShopItem()"><i class="ti ti-plus" aria-hidden="true"></i> 상점 품목 추가</button>`;
 }
 // ---------- 결산 ----------
 let wrapYear = new Date().getFullYear();
@@ -4043,12 +4030,12 @@ function renderWrap() {
   const topBuy = Object.keys(pn).sort((a, b) => pn[b] - pn[a])[0];
   if (lvE > lvS) hl.push(`Lv.${lvS} → <b>Lv.${lvE}</b> 로 성장했어요`);
   document.getElementById('wrapBody').innerHTML =
-    (hl.length ? `<div class="wr-hl">${hl.map(x => `<div>✨ ${x}</div>`).join('')}</div>` : '<div class="rt-empty">이 해의 기록이 아직 없어요</div>') +
-    `<div class="sec-title" style="margin:14px 2px 8px;">✅ 습관</div><div class="wr-grid">${wrapStat(gTotal + '회', '목표 달성')}${wrapStat(yTotal + '회', '절반 달성')}${wrapStat(greenDays + '일', '초록불 날')}${wrapStat((bestS ? bestS.best : 0) + '일', '최장 연속')}</div>` +
-    `<div class="sec-title" style="margin:14px 2px 8px;">📚 독서</div><div class="wr-grid">${wrapStat(doneBooks.length + '권', '완독')}${wrapStat(pagesRead + '쪽', '읽은 쪽수')}${wrapStat(goodDays + '일', `하루 ${thr}쪽 이상`)}${wrapStat(avg === '—' ? avg : '★ ' + avg, '평균 별점')}</div>` +
+    (hl.length ? `<div class="wr-hl">${hl.map(x => `<div>${x}</div>`).join('')}</div>` : '<div class="rt-empty">이 해의 기록이 아직 없어요</div>') +
+    `<div class="sec-title" style="margin:14px 2px 8px;">습관</div><div class="wr-grid">${wrapStat(gTotal + '회', '목표 달성')}${wrapStat(yTotal + '회', '절반 달성')}${wrapStat(greenDays + '일', '초록불 날')}${wrapStat((bestS ? bestS.best : 0) + '일', '최장 연속')}</div>` +
+    `<div class="sec-title" style="margin:14px 2px 8px;">독서</div><div class="wr-grid">${wrapStat(doneBooks.length + '권', '완독')}${wrapStat(pagesRead + '쪽', '읽은 쪽수')}${wrapStat(goodDays + '일', `하루 ${thr}쪽 이상`)}${wrapStat(avg === '—' ? avg : '★ ' + avg, '평균 별점')}</div>` +
     (Object.keys(catN).length ? `<div class="hint" style="margin:6px 2px 0;">분야별: ${Object.keys(catN).map(k => esc(k) + ' ' + catN[k] + '권').join(' · ')}</div>` : '') +
-    `<div class="sec-title" style="margin:14px 2px 8px;">❤️ 운동</div><div class="wr-grid">${wrapStat(ss.length + '회', '운동 횟수')}${wrapStat(fmtDur(sec / 60), '총 운동 시간')}${wrapStat(fmtDur(z2 / 60), 'Zone 2 누적')}${wrapStat(Math.round(kcal).toLocaleString() + 'kcal', '소모 칼로리')}${wrapStat(wDays.length + '일', '운동한 날')}${wrapStat(wbest + '일', '최장 연속')}${wrapStat(fmtDur(longest / 60), '가장 긴 운동')}</div>` +
-    `<div class="sec-title" style="margin:14px 2px 8px;">🏆 레벨 · 상점</div><div class="wr-grid">${wrapStat(xpY.toLocaleString(), '올해 얻은 XP')}${wrapStat('Lv.' + lvS + ' → ' + lvE, '레벨')}${wrapStat(ps.length + '회', '구입')}${wrapStat('🪙 ' + spent, '쓴 코인')}</div>` +
+    `<div class="sec-title" style="margin:14px 2px 8px;">운동</div><div class="wr-grid">${wrapStat(ss.length + '회', '운동 횟수')}${wrapStat(fmtDur(sec / 60), '총 운동 시간')}${wrapStat(fmtDur(z2 / 60), 'Zone 2 누적')}${wrapStat(Math.round(kcal).toLocaleString() + 'kcal', '소모 칼로리')}${wrapStat(wDays.length + '일', '운동한 날')}${wrapStat(wbest + '일', '최장 연속')}${wrapStat(fmtDur(longest / 60), '가장 긴 운동')}</div>` +
+    `<div class="sec-title" style="margin:14px 2px 8px;">레벨 · 상점</div><div class="wr-grid">${wrapStat(xpY.toLocaleString(), '올해 얻은 XP')}${wrapStat('Lv.' + lvS + ' → ' + lvE, '레벨')}${wrapStat(ps.length + '회', '구입')}${wrapStat(spent + '코인', '쓴 코인')}</div>` +
     (topBuy ? `<div class="hint" style="margin:6px 2px 0;">가장 많이 산 것: ${esc(topBuy)} × ${pn[topBuy]}</div>` : '');
 }
 document.getElementById('wrPrev').onclick = () => wrapShift(-1);
@@ -4227,14 +4214,14 @@ function stopScan() {
 document.getElementById('scanCancel').onclick = stopScan;
 function openAddBook() {
   const items = [];
-  items.push({ label: '📷 ISBN 스캔', fn: () => startScan() });
-  items.push({ label: '⌨ ISBN 입력', fn: () => {
+  items.push({ label: 'ISBN 바코드 스캔', fn: () => startScan() });
+  items.push({ label: 'ISBN 번호 입력', fn: () => {
     const isbn = (prompt('ISBN 13자리 (978 또는 979로 시작)') || '').replace(/[^0-9]/g, '');
     if (!isbn) return;
     if (!validEan13(isbn)) { toast('올바른 ISBN이 아니에요 (13자리, 978/979 시작)'); return; }
     lookupIsbn(isbn);
   } });
-  items.push({ label: '✍ 직접 입력', fn: () => openBookModal(null, {}) });
+  items.push({ label: '직접 입력', fn: () => openBookModal(null, {}) });
   openSheet('책 추가', items);
 }
 
@@ -4300,7 +4287,7 @@ document.getElementById('bkSave').onclick = () => {
 };
 function bookActions(id) {
   const b = getBooks().find(x => x.id === id); if (!b) return;
-  const items = [{ label: '📖 읽은 기록 보기', fn: () => openBookDetail(id) }, { label: '수정하기', fn: () => openBookModal(id) }];
+  const items = [{ label: '읽은 기록 보기', fn: () => openBookDetail(id) }, { label: '수정하기', fn: () => openBookModal(id) }];
   if (b.status === 'reading') items.push({ label: '중단하기', fn: () => setBookStatus(id, 'dropped') });
   if (b.status === 'dropped') items.push({ label: '다시 읽기', fn: () => setBookStatus(id, 'reading') });
   items.push({ label: '삭제하기', danger: true, fn: () => {
@@ -4322,7 +4309,7 @@ function saveBookLog(id, dk, pageRaw, note) {
   logs[id][dk] = { page, note: String(note || '').trim().slice(0, 200) };
   saveBookLogs(logs); renderBooks();
   const e = bookTimeline(b, logs)[dk];
-  toast(e.from + '→' + e.page + '쪽 (+' + e.read + '쪽)' + (e.read >= readThreshold() ? ' ✅' : ''));
+  toast(e.from + '→' + e.page + '쪽 (+' + e.read + '쪽)' + (e.read >= readThreshold() ? ' · 목표 달성' : ''));
   if (page >= b.endPage && b.status === 'reading') openFinish(id, dk);
   return true;
 }
@@ -4333,7 +4320,7 @@ let FIN = null;
 function openFinish(id, dk) {
   FIN = { id, dk, rating: 0 };
   const b = getBooks().find(x => x.id === id);
-  document.getElementById('finTitle').textContent = '🎉 「' + b.title + '」 완독!';
+  document.getElementById('finTitle').textContent = '「' + b.title + '」 다 읽었어요';
   document.getElementById('finReview').value = '';
   refreshFinish(); document.getElementById('finModal').classList.add('show');
 }
@@ -4343,7 +4330,7 @@ document.getElementById('finSave').onclick = () => {
   if (!(FIN.rating >= 1)) { toast('별점을 골라 주세요 (1~5)'); return; }
   const a = getBooks(), b = a.find(x => x.id === FIN.id); if (!b) return;
   b.status = 'done'; b.rating = FIN.rating; b.review = document.getElementById('finReview').value.trim().slice(0, 200); b.finishedAt = FIN.dk;
-  saveBooks(a); document.getElementById('finModal').classList.remove('show'); renderBooks(); toast('완독 처리했어요 🎉');
+  saveBooks(a); document.getElementById('finModal').classList.remove('show'); renderBooks(); toast('완독 처리했어요');
 };
 document.getElementById('finLater').onclick = () => document.getElementById('finModal').classList.remove('show');
 // 주간·월간 칸을 눌러 그날 기록 보기·수정
@@ -4395,7 +4382,7 @@ function renderBookDetail() {
     `<div class="lv-row"><div><b>${days}일</b><small>${esc(from || '')} ~ ${b.status === 'done' ? esc(to || '') : '오늘'}</small></div><div><b>${readTotal}쪽</b><small>읽은 쪽수 (전체 ${span}쪽)</small></div><div><b>${good}일</b><small>하루 ${t}쪽 이상</small></div></div>` +
     `${b.status === 'done' && b.review ? `<div class="bkd-rev">“${esc(b.review)}”</div>` : ''}` +
     `<div class="sec-title" style="margin:16px 2px 8px;">읽은 기록 ${keys.length}일</div>` +
-    (rows || '<div class="rt-empty" style="padding:14px;">아직 읽은 기록이 없어요</div>');
+    (rows || '<div class="rt-empty" style="padding:14px;">아직 읽은 기록이 없어요. 쪽수를 기록하면 여기에 쌓여요</div>');
 }
 document.getElementById('bkdClose').onclick = () => document.getElementById('bkdModal').classList.remove('show');
 document.getElementById('bkdMore').onclick = () => { document.getElementById('bkdModal').classList.remove('show'); bookActions(bkdId); };
@@ -4441,7 +4428,7 @@ function renderBookToday() {
   const logs = getBookLogs(), tk = dayKey(new Date()), t = readThreshold();
   const list = getBooks().filter(b => b.status === 'reading').sort((a, b) => bookLastLog(b, logs).localeCompare(bookLastLog(a, logs)) || (b.daily10 ? 1 : 0) - (a.daily10 ? 1 : 0));
   const add = '<button class="bk-add" onclick="openAddBook()"><i class="ti ti-plus" aria-hidden="true"></i> 책 추가</button>';
-  if (!list.length) return '<div class="rt-empty">읽고 있는 책이 없어요.</div>' + add;
+  if (!list.length) return '<div class="rt-empty">읽고 있는 책이 없어요. 아래 책 추가로 시작해요.</div>' + add;
   const b = list.find(x => x.id === bookTodayId) || list[0];
   const tl = bookTimeline(b, logs), e = tl[tk], readToday = e ? e.read : 0, last = bookLastPage(tl);
   const read = last === null ? 0 : Math.max(0, last - b.startPage + 1), span = b.endPage - b.startPage + 1, pr = bookProgress(b, logs);
@@ -4479,7 +4466,7 @@ function renderBookWeek() {
   const logs = getBookLogs(), days = weekDays(bookWeekStart), t = readThreshold(), tk = dayKey(new Date());
   const rows = bookRows(days[0], days[6]);
   const nav = `<div class="stat-nav" style="margin-top:0;"><button onclick="bookShift(-1)">‹</button><div class="cal-title">${days[0].getMonth() + 1}/${days[0].getDate()} ~ ${days[6].getMonth() + 1}/${days[6].getDate()}</div><button onclick="bookShift(1)">›</button></div>`;
-  if (!rows.length) return nav + '<div class="rt-empty">이번 주에 읽은 책이 없어요</div>';
+  if (!rows.length) return nav + '<div class="rt-empty">이번 주에 읽은 기록이 없어요. 오늘 탭에서 쪽수를 기록해요</div>';
   return nav + rows.map(b => {
     const tl = bookTimeline(b, logs);
     const cells = days.map(d => {
@@ -4522,7 +4509,7 @@ function renderBookMonth() {
   const logs = getBookLogs(), days = monthDaysOf(bookY, bookM), t = readThreshold(), tk = dayKey(new Date());
   const rows = bookRows(days[0], days[days.length - 1]);
   const nav = `<div class="stat-nav" style="margin-top:0;"><button onclick="bookShift(-1)">‹</button><div class="cal-title">${bookY}년 ${bookM + 1}월</div><button onclick="bookShift(1)">›</button></div>`;
-  if (!rows.length) return nav + '<div class="rt-empty">이 달에 읽은 책이 없어요</div>';
+  if (!rows.length) return nav + '<div class="rt-empty">이 달에 읽은 기록이 없어요. 오늘 탭에서 쪽수를 기록해요</div>';
   return nav + bookMonthReport(bookY, bookM) + rows.map(b => {
     const tl = bookTimeline(b, logs); let sum = 0;
     let cells = '';
@@ -4569,7 +4556,7 @@ function shelfListHtml() {
   let html = filtering ? `<div class="bk-meta" style="margin:4px 2px 6px;">${list.length}권 (읽는 중·중단 포함)</div>` : '';
   html += list.length ? list.map(b => { const sp = bookSpan(b, logs); return `<div class="bk-row" role="button" tabindex="0" onclick="openBookDetail('${b.id}')"><div class="bk-top">${coverHtml(b)}<div class="bk-info"><div class="bk-title">${esc(b.title)}</div>` +
     `<div class="bk-meta">${esc(b.author)} · ${esc(b.category)}${b.status === 'done' ? '' : ` · <b>${b.status === 'reading' ? '읽는 중' : '중단'} ${bookProgress(b, logs)}%</b>`}</div><div class="bk-meta">${esc((sp.from || '').slice(0, 4))} ${md(sp.from)} ~ ${b.status === 'reading' ? '오늘' : md(sp.to)}</div>${b.status === 'done' ? `<div class="stars-ro">${'★'.repeat(b.rating || 0)}${'☆'.repeat(5 - (b.rating || 0))}</div>` : ''}` +
-    `${b.review ? `<div class="bk-meta">${esc(b.review)}</div>` : ''}</div></div></div>`; }).join('') : `<div class="rt-empty">${filtering ? '조건에 맞는 책이 없어요' : '완독한 책이 아직 없어요'}</div>`;
+    `${b.review ? `<div class="bk-meta">${esc(b.review)}</div>` : ''}</div></div></div>`; }).join('') : `<div class="rt-empty">${filtering ? '조건에 맞는 책이 없어요. 필터를 풀어 보세요' : '다 읽은 책이 아직 없어요'}</div>`;
   const other = books.filter(b => b.status === 'dropped');
   if (other.length && !filtering) html += '<div class="sec-title" style="margin:16px 2px 8px;">중단한 책</div>' + other.map(b => `<div class="shop-row" role="button" tabindex="0" onclick="openBookDetail('${b.id}')"><span class="shop-nm">${esc(b.title)}</span><span class="lv-date">중단</span></div>`).join('');
   return html;
@@ -4610,7 +4597,7 @@ let bookMap = null, bookMapQ = '';
 function bookMapStore() { const s = {}; ['book_list', 'book_logs', 'book_targets', 'book_links'].forEach(k => { s[k] = readJSON(k, null); }); return s; }
 function bookMapClose() { if (bookMap) { bookMap.destroy(); bookMap = null; } }
 function renderBookMap(body) {
-  if (!window.HRMetrics || !window.BookMap) { body.innerHTML = '<div class="rt-empty">지도 파일(metrics.js·book-map.js)을 불러오지 못했어요</div>'; return; }
+  if (!window.HRMetrics || !window.BookMap) { body.innerHTML = '<div class="rt-empty">지도를 불러오지 못했어요. 새로고침해 보세요 (metrics.js · book-map.js)</div>'; return; }
   const st = bookMapStore(), data = HRMetrics.mapData(st, Date.now());
   const counts = {}; data.books.forEach(b => { counts[b.category] = (counts[b.category] || 0) + 1; });
   const legend = Object.keys(counts).sort((a, b) => BOOK_CATS.indexOf(a) - BOOK_CATS.indexOf(b)).map(c => `<div><i class="bk-dot" style="background:${bookCatColor(c)}"></i><b>${esc(c)}</b> ${counts[c]}권</div>`).join('');
@@ -4618,7 +4605,7 @@ function renderBookMap(body) {
     `<div class="bm-legend2" aria-hidden="true">${legend}</div>` +
     `<div class="bm-acts"><button class="bm-pill" onclick="const q=document.getElementById('bmQ');q.scrollIntoView({block:'center'});q.focus()"><i class="ti ti-search" aria-hidden="true"></i> 책 찾기</button><button class="bm-pill" onclick="openAddBook()"><i class="ti ti-plus" aria-hidden="true"></i> 책 추가</button></div>` +
     `<div id="bmSheet"></div></div>` +
-    `<div class="bm-hint">빛 알갱이 1개 = 읽은 10쪽 · 꽉 찬 원 = 다 읽음 · 흰 원 = 읽는 중 · 테두리만 = 중단 · 주황 점 = 다시 분류할 후보. 성단을 누르면 확대, 빈 곳을 누르면 전체.</div>` +
+    `<div class="bm-hint">빛 알갱이 = 읽은 쪽 (많이 읽은 분야일수록 성단이 커요) · 꽉 찬 원 = 다 읽음 · 흰 원 = 읽는 중 · 테두리만 = 중단 · 주황 점 = 다시 분류할 후보. 성단을 누르면 확대, 빈 곳을 누르면 전체.</div>` +
     (safeUrl(settings.insightsUrl) ? `<a class="bm-pill wide" id="bmInsights" href="${esc(safeUrl(settings.insightsUrl))}" target="_blank" rel="noopener noreferrer">AI 인사이트 열기 ↗</a>` : '') +
     `<input class="text-input" id="bmQ" type="search" placeholder="제목·감상·메모 검색" aria-label="책 검색" value="${esc(bookMapQ)}" style="width:100%;">` +
     `<div id="bmRes"></div>`;
@@ -4632,7 +4619,7 @@ function bookMapSearch(st) {
   const el = document.getElementById('bmRes'); if (!el) return;
   if (!bookMapQ.trim()) { el.innerHTML = ''; return; }
   const r = HRMetrics.searchBooks(st, bookMapQ, 30);
-  el.innerHTML = r.length ? r.map(b => `<div class="bm-res" data-id="${esc(b.id)}" role="button" tabindex="0">${esc(b.title)} <small>${esc(b.category)} · ${b.matched.join('·')}</small></div>`).join('') : '<div class="rt-empty">찾는 책이 없어요</div>';
+  el.innerHTML = r.length ? r.map(b => `<div class="bm-res" data-id="${esc(b.id)}" role="button" tabindex="0">${esc(b.title)} <small>${esc(b.category)} · ${b.matched.join('·')}</small></div>`).join('') : '<div class="rt-empty">찾는 책이 없어요. 다른 낱말로 찾아보세요</div>';
   el.querySelectorAll('.bm-res').forEach(d => d.onclick = () => { if (bookMap) bookMap.select(d.dataset.id, true); document.getElementById('bmCanvas').scrollIntoView({ block: 'start', behavior: 'smooth' }); });
 }
 // 분야 시트 (성단을 눌렀을 때): 읽은 쪽, 완독/목표, 후보, 목표 바꾸기, 책 추가
@@ -4645,7 +4632,7 @@ function bookMapGenreSheet(g) {
     `<h3><i class="bk-dot" style="background:${g.color}"></i>${esc(g.cat)} <small>${g.pages.toLocaleString()}쪽 읽음</small></h3>` +
     `<div class="bar"><i style="width:${pct}%;background:${g.color}"></i></div>` +
     `<div class="m">${g.books}권 중 ${g.done}권 다 읽음${g.reading ? ' · 읽는 중 ' + g.reading + '권' : ''}${f.target != null ? ' · 평생 목표 ' + (f.completed || 0) + '/' + f.target + '권' : ''}${f.candidates ? ' · 다시 분류할 후보 ' + f.candidates + '권' : ''}</div>` +
-    `<div class="m">${g.pagesPerParticle > 10 ? '빛 알갱이 1개 = ' + g.pagesPerParticle + '쪽 (600개로 묶음)' : '빛 알갱이 1개 = 10쪽'}. 책을 누르면 연결된 책이 보여요.</div>` +
+    `<div class="m">책을 누르면 연결된 책이 보여요.</div>` +
     `<div class="acts">${BOOK_CATS.includes(g.cat) ? `<button class="bm-pill" onclick="editTarget('${g.cat}')">목표 바꾸기</button>` : ''}<button class="bm-pill main" onclick="openAddBook()"><i class="ti ti-plus" aria-hidden="true"></i> 책 추가</button></div>`;
   document.getElementById('bmX').onclick = () => bookMap && bookMap.reset();
 }
@@ -4966,13 +4953,13 @@ function tlSwitch(catId) {
   const now = Date.now(), cur = tlCur();
   if (cur && cur.catId === catId) return;   // 지금 하는 활동을 또 누르면 아무 일도 없음
   try { if (cur) tlFinish(cur, now); tlSaveCur({ catId, start: now }); }
-  catch (e) { console.error('tlSwitch', e); toast('⚠ 저장하지 못했어요 (저장 공간 부족일 수 있어요)'); }
+  catch (e) { console.error('tlSwitch', e); toast('저장하지 못했어요 (저장 공간 부족일 수 있어요)'); }
   tlRender();
 }
 function tlStop() {
   const cur = tlCur(); if (!cur) return;
   try { tlFinish(cur, Date.now()); tlSaveCur(null); }
-  catch (e) { console.error('tlStop', e); toast('⚠ 저장하지 못했어요 (저장 공간 부족일 수 있어요)'); }
+  catch (e) { console.error('tlStop', e); toast('저장하지 못했어요 (저장 공간 부족일 수 있어요)'); }
   tlRender();
 }
 
@@ -4984,9 +4971,9 @@ function tlPct(x) { return x == null ? '—' : Math.round(x * 100) + '%'; }
 const TL_DOW = ['월', '화', '수', '목', '금', '토', '일'];
 function tlDot(c) { return `<i class="tl-dot" style="background:${tlColor(c.color)}"></i>`; }
 function tlBars(rank, showDelta, clickable) {
-  if (!rank.length) return '<div class="empty-hist">기록이 없어요</div>';
+  if (!rank.length) return '<div class="empty-hist">이 기간에는 기록이 없어요</div>';
   const mx = Math.max(...rank.map(r => r.min), 1);
-  return rank.map(r => `<div class="tl-bar${clickable ? ' clk' : ''}${clickable && TLS.hl === r.id ? ' hl' : ''}"${clickable ? ` data-act="hlcat" data-cat="${esc(r.id)}"` : ''}><span class="n">${esc(r.info.emoji)} ${esc(r.info.name)}${r.info.archived ? ' <small>(보관)</small>' : ''}</span><span class="b"><i style="width:${(r.min / mx * 100).toFixed(1)}%;background:${tlColor(r.info.color)}"></i></span><b>${tlH1(r.min)}h <small>${tlPct(r.pct)}</small>${showDelta ? ' <em class="' + (r.delta == null ? '' : r.delta >= 0 ? 'up' : 'dn') + '">' + (r.delta == null ? '' : (r.delta >= 0 ? '+' : '−') + tlH1(Math.abs(r.delta)) + 'h') + '</em>' : ''}</b></div>`).join('');
+  return rank.map(r => `<div class="tl-bar${clickable ? ' clk' : ''}${clickable && TLS.hl === r.id ? ' hl' : ''}"${clickable ? ` data-act="hlcat" data-cat="${esc(r.id)}"` : ''}><span class="n">${esc(r.info.name)}${r.info.archived ? ' <small>(보관)</small>' : ''}</span><span class="b"><i style="width:${(r.min / mx * 100).toFixed(1)}%;background:${tlColor(r.info.color)}"></i></span><b>${tlH1(r.min)}h <small>${tlPct(r.pct)}</small>${showDelta ? ' <em class="' + (r.delta == null ? '' : r.delta >= 0 ? 'up' : 'dn') + '">' + (r.delta == null ? '' : (r.delta >= 0 ? '+' : '−') + tlH1(Math.abs(r.delta)) + 'h') + '</em>' : ''}</b></div>`).join('');
 }
 function tlImpRows(st) {
   const base = st.impBase, row = (k, c) => `<div class="tl-bar"><span class="n">${k}</span><span class="b"><i style="width:${base > 0 ? (st.imp[k] / base * 100).toFixed(1) : 0}%;background:${c}"></i></span><b>${tlH1(st.imp[k])}h <small>${base > 0 ? tlPct(st.imp[k] / base) : '—'}</small></b></div>`;
@@ -5005,7 +4992,7 @@ function tlRender() {
     if (TLS.pane === 'rec') tlRenderRec(body);
     else if (TLS.pane === 'week') tlRenderWeek(body);
     else tlRenderMonth(body);
-  } catch (e) { console.error('tlRender', e); body.innerHTML = '<div class="card">시간 기록 화면을 그리다 문제가 생겼어요. 기록 자체는 안전해요.<br><small>' + esc(e && e.message || e) + '</small></div>'; }
+  } catch (e) { console.error('tlRender', e); body.innerHTML = '<div class="card">화면을 그리다 문제가 생겼어요. 기록은 안전해요. 다른 탭을 눌렀다 돌아와 보세요.<br><small>' + esc(e && e.message || e) + '</small></div>'; }
   if (TLS.pane === 'rec') tlTickStart(); else tlTickStop();
 }
 function tlTickStop() { if (TLS.tickT) { clearInterval(TLS.tickT); TLS.tickT = null; } }
@@ -5020,6 +5007,13 @@ function tlTickStart() {
   }, 1000);
 }
 
+// 최근 14일 동안 가장 오래 쓴 분류 5개 (지금 하는 분류는 늘 포함, 기록이 없으면 분류 순서대로)
+function tlTopCats(live, cur, now) {
+  const from = tlDayStart(now) - 13 * TL_DAY, st = tlStats(tlResolve(tlEntriesFor(from, now, now), now), from, now, live, now);
+  const top = live.slice().sort((a, b) => (st.byCat[b.id] || 0) - (st.byCat[a.id] || 0) || (a.order || 0) - (b.order || 0)).slice(0, 5);
+  if (cur) { const c = live.find(x => x.id === cur.catId); if (c && !top.includes(c)) top[top.length - 1] = c; }
+  return live.filter(c => top.includes(c));   // 화면에서는 원래 분류 순서대로
+}
 // ---------- 지금 화면 (다이얼이 지금까지 채워짐 + 흰 점, 가운데 = 하는 일 + 경과) ----------
 function tlNowDialSvg(cats, cur, now) {
   const ds = tlDayStart(now), dd = tlDayCells(ds, now, cats);
@@ -5037,15 +5031,18 @@ function tlRenderRec(body) {
     const ci = tlCatInfo(cats, cur.catId), el = now - cur.start;
     h += `<div class="tl-now-h"><span>지금 기록 중</span><small>${esc(tlMD(cur.start))} ${esc(tlHM(cur.start))}부터</small></div>`;
     h += `<div class="tl-now-dial" id="tlNowDial">${tlNowDialSvg(cats, cur, now)}</div>`;
-    h += (el > 12 * 3600000 ? '<div class="tl-warn">⚠ 12시간 넘게 이어지고 있어요. 정지하거나 시작 시각을 고쳐야 기록이 맞아요</div>' : '')
-      + (cur.start > now + 60000 ? '<div class="tl-warn">⚠ 시작 시각이 지금보다 미래예요 (다른 기기 시계가 어긋났을 수 있어요)</div>' : '');
+    h += (el > 12 * 3600000 ? '<div class="tl-warn">12시간 넘게 이어지고 있어요. 정지하거나 시작 시각을 고쳐야 기록이 맞아요</div>' : '')
+      + (cur.start > now + 60000 ? '<div class="tl-warn">시작 시각이 지금보다 미래예요 (다른 기기 시계가 어긋났을 수 있어요)</div>' : '');
   } else {
     h += '<div class="tl-now-h"><span>기록 중인 활동이 없어요</span></div>';
     h += `<div class="tl-now-dial" id="tlNowDial">${tlNowDialSvg(cats, null, now)}</div>`;
   }
-  // 분류 원: 누르면 전환(tlSwitch), 지금 하는 일은 꽉 찬 원
-  h += '<div class="tl-circles">' + cats.filter(c => !c.archived).map(c => { const on = cur && cur.catId === c.id;
-    return `<button class="tl-cc${on ? ' on' : ''}" data-act="switch" data-cat="${esc(c.id)}" style="--c:${tlColor(c.color)}" aria-pressed="${!!on}" aria-label="${esc(c.name)}${on ? ' 기록 중' : ' 시작'}"><span class="o" aria-hidden="true"></span><span class="n">${esc(c.name)}</span></button>`; }).join('') + '</div>';
+  // 분류 원: 누르면 전환(tlSwitch), 지금 하는 일은 꽉 찬 원. 최근 14일 많이 쓴 5개만 먼저 (지금 하는 분류는 늘 포함), 나머지는 "전체"
+  const circle = c => { const on = cur && cur.catId === c.id;
+    return `<button class="tl-cc${on ? ' on' : ''}" data-act="switch" data-cat="${esc(c.id)}" style="--c:${tlColor(c.color)}" aria-pressed="${!!on}" aria-label="${esc(c.name)}${on ? ' 기록 중' : ' 시작'}"><span class="o" aria-hidden="true"></span><span class="n">${esc(c.name)}</span></button>`; };
+  const live = cats.filter(c => !c.archived), top = tlTopCats(live, cur, now), rest = live.filter(c => !top.includes(c));
+  h += '<div class="tl-circles">' + top.map(circle).join('') + '</div>';
+  if (rest.length) h += `<details class="tl-more tl-allcats"${TLS.allCats ? ' open' : ''} ontoggle="TLS.allCats=this.open"><summary><i class="ti ti-chevron-right" aria-hidden="true"></i>전체 분류 ${live.length}개</summary><div class="tl-circles">${rest.map(circle).join('')}</div></details>`;
   if (cur) h += `<div class="tl-now-act"><input class="text-input" id="tlNote" maxlength="80" placeholder="한 줄 메모 (선택)" value="${esc(cur.note || '')}" aria-label="지금 활동 메모">`
     + `<div class="tl-pills"><button class="tl-pill" data-act="curstart">시작 시각 수정</button><button class="tl-pill stop" data-act="stop"><i class="ti ti-player-stop" aria-hidden="true"></i> 정지</button></div></div>`;
   // 오늘 합계 (분류별)
@@ -5054,7 +5051,7 @@ function tlRenderRec(body) {
   const rank = tlRank(st.byCat, cats, st.rec);
   h += '<div class="tl-sec">오늘 합계</div>';
   h += rank.length ? rank.map(r => `<div class="tl-tot"><i class="tl-dot" style="background:${tlColor(r.info.color)}"></i><span class="n">${esc(r.info.name)}${autoCats.has(r.id) ? ' <span class="tl-auto">자동</span>' : ''}</span><span class="v">${esc(tlFmtMin(r.min).trim())}</span></div>`).join('')
-    : '<div class="tl-tot empty">아직 기록이 없어요</div>';
+    : '<div class="tl-tot empty">오늘 기록이 아직 없어요. 위 분류를 누르면 시작돼요</div>';
   // 오늘 기록 (하나씩 편집) — 접어 둔다
   const list = entries.filter(e => e.start < ds + TL_DAY && (e.end == null ? now : e.end) > ds).sort((a, b) => b.start - a.start);
   if (list.length) {
@@ -5118,7 +5115,7 @@ function tlRenderWeek(body) {
   const rank = tlRank(st.byCat, cats, st.rec), mx = Math.max(1, ...rank.map(r => r.min));
   h += '<div class="tl-sec">분류별 합계 <small>지난주 대비</small></div>';
   h += rank.length ? rank.map(r => `<div class="tl-wbar${TLS.hl === r.id ? ' hl' : ''}" data-act="hlcat" data-cat="${esc(r.id)}" role="button" tabindex="0" aria-label="${esc(r.info.name)} 강조"><span class="n">${esc(r.info.name)}</span><span class="b"><i style="width:${(r.min / mx * 100).toFixed(1)}%;background:${tlColor(r.info.color)}"></i></span><b>${Math.round(r.min / 60)}h</b><small>${esc(tlDeltaText(r.min - (pst.byCat[r.id] || 0)))}</small></div>`).join('')
-    : '<div class="tl-tot empty">이 주에는 기록이 없어요</div>';
+    : '<div class="tl-tot empty">이 주에는 기록이 없어요. 격자의 빈 칸을 눌러 채울 수 있어요</div>';
   // 한 줄: 가장 많이 빈 날
   let emptySum = 0, nDays = 0, maxE = -1, maxD = -1;
   for (let d = 0; d < 7; d++) {
@@ -5231,7 +5228,7 @@ function tlEditorSave() {
     plan.upsert.push(ne);
     if (plan.notes.length && !confirm('이 기록을 저장하면 겹치는 기존 기록이 이렇게 바뀌어요:\n\n' + plan.notes.join('\n') + '\n\n계속할까요?')) return;
     tlCommit(months, plan);
-  } catch (e) { console.error('tlEditorSave', e); toast('⚠ 저장하지 못했어요 (저장 공간 부족일 수 있어요)'); return; }
+  } catch (e) { console.error('tlEditorSave', e); toast('저장하지 못했어요 (저장 공간 부족일 수 있어요)'); return; }
   document.getElementById('tlEditModal').classList.remove('show'); TLS.editing = null; TLS.sel = null;
   toast('저장했어요'); tlRender();
 }
@@ -5239,7 +5236,7 @@ function tlEditorDelete() {
   const o = TLS.editing; if (!o || !o.id) return;
   if (!confirm('이 기록을 삭제할까요?')) return;
   try { tlCommit(tlLoadMonths(o.start, o.end), { remove: [o.id], upsert: [], curChanged: false }); }
-  catch (e) { console.error('tlEditorDelete', e); toast('⚠ 삭제하지 못했어요'); return; }
+  catch (e) { console.error('tlEditorDelete', e); toast('삭제하지 못했어요'); return; }
   document.getElementById('tlEditModal').classList.remove('show'); TLS.editing = null; TLS.sel = null; toast('삭제했어요'); tlRender();
 }
 function tlFindStored(id) {
@@ -5256,7 +5253,7 @@ function tlEditCurStart() {
     const cats = tlCats(), months = tlLoadMonths(Math.min(ns, cur.start), now), plan = tlPlanInsert(tlFlat(months), { id: '__cur', start: ns, end: now, catId: cur.catId }, null, now, cats);
     if (plan.notes.length && !confirm('시작 시각을 바꾸면 겹치는 기존 기록이 이렇게 바뀌어요:\n\n' + plan.notes.join('\n') + '\n\n계속할까요?')) return;
     tlCommit(months, plan); tlSaveCur(Object.assign({}, cur, { start: ns }));
-  } catch (e) { console.error('tlEditCurStart', e); toast('⚠ 저장하지 못했어요'); return; }
+  } catch (e) { console.error('tlEditCurStart', e); toast('저장하지 못했어요'); return; }
   tlRender();
 }
 
@@ -5267,7 +5264,7 @@ function tlRenderCatMgr() {
     <input class="text-input e" data-f="emoji" maxlength="4" value="${esc(c.emoji)}"><input class="text-input n" data-f="name" maxlength="14" value="${esc(c.name)}"><input type="color" data-f="color" value="${tlColor(c.color)}">
     <select class="text-input" data-f="importance">${TL_IMP.map(x => `<option${c.importance === x ? ' selected' : ''}>${x}</option>`).join('')}</select>
     <button class="tl-mv" data-act="catup" data-i="${i}">▲</button><button class="tl-mv" data-act="catdn" data-i="${i}">▼</button>
-    <label class="tl-arch"><input type="checkbox" data-f="archived"${c.archived ? ' checked' : ''}>보관</label><button class="tl-mv" data-act="catdel" data-i="${i}" title="삭제">🗑</button></div>`).join('');
+    <label class="tl-arch"><input type="checkbox" data-f="archived"${c.archived ? ' checked' : ''}>보관</label><button class="tl-mv" data-act="catdel" data-i="${i}" title="삭제" aria-label="삭제"><i class="ti ti-trash" aria-hidden="true"></i></button></div>`).join('');
 }
 function tlCatEdit(i, f, v) {
   const list = tlCats(), c = list[i]; if (!c) return;
@@ -5276,13 +5273,13 @@ function tlCatEdit(i, f, v) {
   else if (f === 'color') c.color = tlColor(v);
   else if (f === 'importance') { if (!TL_IMP.includes(v)) return; c.importance = v; }
   else if (f === 'archived') { const cur = tlCur(); if (v && cur && cur.catId === c.id) { toast('지금 기록 중인 분류는 보관할 수 없어요'); tlRenderCatMgr(); return; } c.archived = !!v; }
-  try { tlSaveCats(list); } catch (e) { toast('⚠ 저장하지 못했어요'); }
+  try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); }
   tlRenderCatMgr();
 }
 function tlCatMove(i, dir) {
   const list = tlCats(), j = i + dir; if (j < 0 || j >= list.length) return;
   [list[i], list[j]] = [list[j], list[i]];
-  try { tlSaveCats(list); } catch (e) { toast('⚠ 저장하지 못했어요'); }
+  try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); }
   tlRenderCatMgr();
 }
 function tlCatUsed(id) {   // 저장된 모든 달의 기록 + 지금 기록 중인 활동에서 이 분류를 쓰는지
@@ -5299,20 +5296,20 @@ function tlCatDelete(i) {
   if (list.length <= 1) { toast('분류가 하나는 남아 있어야 해요'); return; }
   if (!confirm('"' + c.emoji + ' ' + c.name + '" 분류를 삭제할까요?')) return;
   list.splice(i, 1);
-  try { tlSaveCats(list); } catch (e) { toast('⚠ 저장하지 못했어요'); }
+  try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); }
   tlRenderCatMgr();
 }
 function tlCatAdd() {
   const list = tlCats();
   list.push({ id: 'c' + Date.now().toString(36), name: '새 분류', emoji: '🔸', color: TL_PALETTE[list.length % TL_PALETTE.length], importance: '보통', archived: false });
-  try { tlSaveCats(list); } catch (e) { toast('⚠ 저장하지 못했어요'); }
+  try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); }
   tlRenderCatMgr();
 }
 
 // ---------- 이벤트 ----------
 document.getElementById('timeSeg').addEventListener('click', ev => { const b = ev.target.closest('button[data-p]'); if (b) tlSetPane(b.dataset.p); });
 document.getElementById('timeBody').addEventListener('change', ev => {
-  if (ev.target.id === 'tlNote') { const cur = tlCur(); if (cur) { cur.note = ev.target.value.trim().slice(0, 80); try { tlSaveCur(cur); } catch (e) { toast('⚠ 메모를 저장하지 못했어요'); } } }
+  if (ev.target.id === 'tlNote') { const cur = tlCur(); if (cur) { cur.note = ev.target.value.trim().slice(0, 80); try { tlSaveCur(cur); } catch (e) { toast('메모를 저장하지 못했어요'); } } }
 });
 function tlAct(el) {
   const a = el.dataset.act, id = el.dataset.id, i = Number(el.dataset.i);
@@ -5380,14 +5377,14 @@ function updateHeader(name) {
   const titles = { time:'시간', books:'독서', hr:'심박', stats:'통계', me:'내정보' };
   document.querySelector('header').style.display = name === 'today' ? 'none' : '';   // 오늘 탭은 자체 헤더
   document.getElementById('headerTitle').textContent = titles[name] || '';
-  document.getElementById('connStatus').style.display = 'none';   // 심박 연결 상태는 화면 안 연결 줄(#hrConnText)에
   document.getElementById('lvBadge').classList.toggle('hidden', name === 'me');
 }
 function switchTab(name) {
   if (name === 'stats') { todayView = 'stats'; name = 'today'; }   // 통계는 아래 탭이 아니라 오늘 › 기록
   TABS.forEach(t => {
     document.getElementById('tab-' + t).hidden = (t !== name);
-    const tb = document.querySelector(`.tabbar button[data-tab="${t}"]`); tb.classList.toggle('on', t === name); tb.setAttribute('aria-selected', String(t === name));
+    const tb = document.querySelector(`.tabbar button[data-tab="${t}"]`);   // 통계·내정보는 아래 탭 버튼이 없다
+    if (tb) { tb.classList.toggle('on', t === name); tb.setAttribute('aria-selected', String(t === name)); }
   });
   curTab = name; updateHeader(name);
   if (name !== 'books') bookMapClose();   // 지도 애니메이션은 독서 탭에서만
@@ -5427,6 +5424,8 @@ document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switc
 
 // ====================== 설정 · 내정보 (Phase 5) ======================
 const APP_VERSION = '3.4', APP_VERSION_DATE = '2026-11-20';   // index.html 을 고쳐 배포할 때마다 같이 올린다
+// 색 위 글자색: 그 색과 대비가 더 큰 쪽 (짙은 남색 / 흰색)
+function inkOn(c) { if (!hexOk(c)) return 'var(--text)'; const n = parseInt(c.slice(1), 16), f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }, L = 0.2126 * f(n >> 16 & 255) + 0.7152 * f(n >> 8 & 255) + 0.0722 * f(n & 255); return (L + 0.05) / 0.0614 >= 1.05 / (L + 0.05) ? '#161B33' : '#FFFFFF'; }
 function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
 function wsDay() { return settings.weekStart === 'sun' ? 0 : 1; }                       // 주 시작 요일 (JS getDay 값)
 function weekOrder() { return [0, 1, 2, 3, 4, 5, 6].map(i => (wsDay() + i) % 7); }
@@ -5585,13 +5584,13 @@ function toggleUsed(id) {
   const ps = getPurchases(), p = ps.find(x => x.id === id); if (!p) return;
   p.usedAt = p.usedAt ? null : dayKey(new Date());
   localStorage.setItem('shop_purchases', JSON.stringify(ps));
-  toast(p.usedAt ? '✅ 사용 완료로 표시했어요' : '사용 전으로 되돌렸어요');
+  toast(p.usedAt ? '사용 완료로 표시했어요' : '사용 전으로 되돌렸어요');
   renderSettings(); renderLevelScreen();
 }
 function delPurchase(id) {
   const ps = getPurchases(), p = ps.find(x => x.id === id); if (!p) return;
   const rest = p.itemId === BUILTIN_REST.id;
-  if (!confirm(purchaseLabel(p) + ' (' + p.date + ') 구입 기록을 지울까요?\n🪙 ' + p.cost + '코인이 돌아와요.' + (rest ? '\n쉬는 날 이용권도 1개 줄어요.' : ''))) return;
+  if (!confirm(purchaseLabel(p) + ' (' + p.date + ') 구입 기록을 지울까요?\n' + p.cost + '코인이 돌아와요.' + (rest ? '\n쉬는 날 이용권도 1개 줄어요.' : ''))) return;
   localStorage.setItem('shop_purchases', JSON.stringify(ps.filter(x => x.id !== id)));
   if (rest) setTokens(getTokens() - 1);
   renderSettings(); renderLevelScreen();
@@ -5606,16 +5605,16 @@ function shopLogHtml() {
   if (shopLogFilter === 'unused') sorted = sorted.filter(p => p.itemId !== BUILTIN_REST.id && !p.usedAt);
   const thisYear = String(new Date().getFullYear());
   const dl = d => (String(d).slice(0, 4) === thisYear ? '' : String(d).slice(0, 4) + ' ') + Number(String(d).slice(5, 7)) + '/' + Number(String(d).slice(8, 10));
-  return `<div class="lv-row" style="margin:8px 0 12px;"><div><b>${ps.length}회</b><small>총 구입</small></div><div><b>🪙 ${total}</b><small>사용한 코인</small></div><div><b>🎁 ${unused}</b><small>안 쓴 보상</small></div></div>` +
+  return `<div class="lv-row" style="margin:8px 0 12px;"><div><b>${ps.length}회</b><small>총 구입</small></div><div><b>${total}</b><small>사용한 코인</small></div><div><b>${unused}</b><small>안 쓴 보상</small></div></div>` +
     `<div class="field" style="border:0;padding:0 0 8px;"><label>품목별</label>` +
-    Object.keys(by).sort((a, b) => by[b].n - by[a].n).map(k => `<div class="shop-row"><span class="shop-nm">${esc(k)}</span><span class="shop-cost">× ${by[k].n}</span><span class="shop-cost" style="min-width:64px;text-align:right;">🪙 ${by[k].c}</span></div>`).join('') + `</div>` +
+    Object.keys(by).sort((a, b) => by[b].n - by[a].n).map(k => `<div class="shop-row"><span class="shop-nm">${esc(k)}</span><span class="shop-cost">× ${by[k].n}</span><span class="shop-cost" style="min-width:64px;text-align:right;">${by[k].c}코인</span></div>`).join('') + `</div>` +
     `<div class="field" style="border:0;padding:0;"><label>구입 기록 (최근 순)</label>` +
-    `<div class="chips" style="margin:6px 0;"><button class="chip ${shopLogFilter ? '' : 'sel'}" onclick="setShopLogFilter('')">전체</button><button class="chip ${shopLogFilter ? 'sel' : ''}" onclick="setShopLogFilter('unused')">🎁 안 쓴 것 (${unused})</button></div>` +
+    `<div class="chips" style="margin:6px 0;"><button class="chip ${shopLogFilter ? '' : 'sel'}" onclick="setShopLogFilter('')">전체</button><button class="chip ${shopLogFilter ? 'sel' : ''}" onclick="setShopLogFilter('unused')">안 쓴 것 (${unused})</button></div>` +
     (sorted.length ? sorted.slice(0, shopLogN).map(p => {
       const isRest = p.itemId === BUILTIN_REST.id;
       const use = isRest ? '<span class="shop-use none">이용권</span>' : p.usedAt ? `<button class="shop-use done" onclick="toggleUsed('${p.id}')" aria-label="사용 취소">✓ ${esc(dl(p.usedAt))}</button>` : `<button class="shop-use" onclick="toggleUsed('${p.id}')">사용</button>`;
       return `<div class="shop-row"><span class="lv-date" style="min-width:48px;text-align:left;">${esc(dl(p.date))}</span><span class="shop-nm ${p.usedAt ? 'used' : ''}">${esc(purchaseLabel(p))}</span><span class="shop-cost">-${p.cost}</span>${use}<button class="shop-x" onclick="delPurchase('${p.id}')" aria-label="기록 삭제">✕</button></div>`;
-    }).join('') : '<div class="hint" style="margin:8px 0;">안 쓴 보상이 없어요 👍</div>') +
+    }).join('') : '<div class="hint" style="margin:8px 0;">안 쓴 보상이 없어요.</div>') +
     (sorted.length > shopLogN ? `<button class="more-btn" onclick="shopLogMore()">더보기 (${sorted.length - shopLogN}개 남음)</button>` : '') + `</div>`;
 }
 function sickListHtml() {
@@ -5633,37 +5632,37 @@ function renderSettings() {
   const tg = getTargets(), cap = xpCap(), used = storageBytes(), pct = Math.min(100, Math.round(used / (5 * 1048576) * 100));
   const nb = daysSinceBackup();
   let h = '';
-  h += secHtml('view', '🎨 화면',
+  h += secHtml('view', '화면',
     `<div class="settings-row"><div><label>테마</label><div class="hint">자동 = 폰 설정을 따라감</div></div>${togHtml('themeToggle', [['auto', '자동'], ['dark', '다크'], ['light', '라이트']], settings.theme || 'auto', 'setTheme')}</div>` +
     `<div class="settings-row"><div><label>주 시작 요일</label></div>${togHtml('wsToggle', [['mon', '월'], ['sun', '일']], settings.weekStart === 'sun' ? 'sun' : 'mon', 'setWeekStart')}</div>` +
     `<div class="settings-row"><div><label>초록불 기준</label><div class="hint">달성 비율 이상이면 초록 / 노란불 이상이면 노랑</div></div>` +
     `<div style="display:flex;gap:4px;align-items:center;font-size:12px;"><input type="number" id="lgGreen" min="1" max="100" value="${Math.round(lightGreen() * 100)}" style="width:54px;" onchange="setLight()">%<input type="number" id="lgYellow" min="1" max="99" value="${Math.round(lightYellow() * 100)}" style="width:54px;" onchange="setLight()">%</div></div>`);
-  h += secHtml('habit', '✅ 습관',
+  h += secHtml('habit', '습관',
     `<div class="field"><label>보관된 습관</label>` + (arch.length ? arch.map(a => `<div class="shop-row"><span class="shop-nm">${esc(a.icon)} ${esc(a.name)}</span><button class="shop-buy" onclick="archiveHabit('${a.id}',false);renderSettings()">복원</button><button class="shop-x" onclick="delArchived('${a.id}')" aria-label="삭제">✕</button></div>`).join('') : '<div class="hint" style="margin-top:6px;">없음</div>') + '</div>' +
-    `<div class="field"><label>🤒 아픈 날</label>` + sickListHtml() + `</div>` +
-    `<div class="field"><label>테마(카테고리)</label>` + allCats().map((c, i) => `<div class="shop-row"><span class="pill" style="--p:${hexOk(c.color) ? c.color : '#cccccc'}">${esc(c.name)}</span><span style="flex:1"></span><input type="color" value="${hexOk(c.color) ? c.color : '#cccccc'}" onchange="setCatColor(${i},this.value)" style="width:34px;height:28px;border:0;background:none;padding:0;"><button class="shop-x" onclick="renameCat(${i})" aria-label="이름 변경">✎</button><button class="shop-x" onclick="delCat(${i})" aria-label="삭제">✕</button></div>`).join('') +
+    `<div class="field"><label>아픈 날</label>` + sickListHtml() + `</div>` +
+    `<div class="field"><label>테마(카테고리)</label>` + allCats().map((c, i) => `<div class="shop-row"><span class="pill" style="--p:${hexOk(c.color) ? c.color : '#cccccc'}">${esc(c.name)}</span><span style="flex:1"></span><input type="color" value="${hexOk(c.color) ? c.color : '#cccccc'}" onchange="setCatColor(${i},this.value)" style="width:34px;height:28px;border:0;background:none;padding:0;"><button class="shop-x" onclick="renameCat(${i})" aria-label="이름 변경"><i class="ti ti-pencil" aria-hidden="true"></i></button><button class="shop-x" onclick="delCat(${i})" aria-label="삭제">✕</button></div>`).join('') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addCat()">＋ 테마 추가</button></div>` +
     `<div class="field" style="border:0;"><label>습관 순서</label><div class="hint" style="margin:4px 0 6px;">≡ 를 잡고 끌어서 바꿔요</div><div id="orderList">` +
     act.map(a => `<div class="ord-item" data-id="${a.id}"><span class="ord-h" aria-label="끌어서 이동">≡</span><span class="shop-nm">${esc(a.icon)} ${esc(a.name)}</span></div>`).join('') + (act.length ? '' : '<div class="hint">습관이 없어요</div>') + '</div></div>');
-  h += secHtml('book', '📚 독서',
+  h += secHtml('book', '독서',
     BOOK_CATS.map(c => `<div class="settings-row"><div><label>${c} 평생 목표 (권)</label></div><input type="number" min="0" value="${tg[c]}" onchange="setTarget('${c}',this.value)"></div>`).join('') +
     `<div class="settings-row"><div><label>하루 기준 쪽수</label><div class="hint">이 쪽수 이상 읽으면 초록 · 10XP (기본 10)</div></div><input type="number" min="1" max="500" value="${readThreshold()}" onchange="setDailyPages(this.value)"></div>`);
   const ig = insightGoals();
-  h += secHtml('goals', '🎯 목표 기준',
+  h += secHtml('goals', '목표 기준',
     `<div class="sub" style="font-size:12px;color:var(--muted);margin-bottom:6px;">통계·AI 조언이 비교하는 기준입니다.</div>` +
     `<div class="settings-row"><div><label>유튜브 하루 최대 (분)</label><div class="hint">기본 60</div></div><input type="number" min="1" max="1440" value="${ig.youtube_max_min_per_day}" onchange="setInsightGoal('youtube_max_min_per_day',this.value,1,1440)"></div>` +
     `<div class="settings-row"><div><label>수면 최소 (시간)</label><div class="hint">기본 7</div></div><input type="number" min="1" max="14" step="0.5" value="${ig.sleep_min_hours}" onchange="setInsightGoal('sleep_min_hours',this.value,1,14)"></div>` +
     `<div class="settings-row"><div><label>주간 Zone 2 (분)</label><div class="hint">비워 두면 심박 설정의 목표(${settings.goal || 150}분)</div></div><input type="number" min="30" max="600" placeholder="${settings.goal || 150}" value="${ig.zone2_weekly_min || ''}" onchange="setInsightGoal('zone2_weekly_min',this.value,30,600)"></div>` +
     `<div class="field" style="border:0;"><label>AI 인사이트 주소</label><div class="hint" style="margin:4px 0 6px;">claude.ai 에 올린 인사이트 페이지 주소. 넣으면 독서 &gt; 지도에 '열기' 버튼이 생겨요 (비우면 숨김)</div>` +
     `<input type="url" class="text-input" id="insightsUrl" placeholder="https://…" value="${esc(safeUrl(settings.insightsUrl))}" onchange="setInsightsUrl(this.value)" style="width:100%;"></div>`);
-  h += secHtml('reward', '🏆 레벨·보상',
+  h += secHtml('reward', '레벨·보상',
     `<div class="field"><label>칭호 편집</label>` + xpTitles().map((t, i) => `<div class="shop-row"><span style="font-size:12px;color:var(--muted)">Lv.</span><input type="number" min="1" value="${t.level}" style="width:60px;" onchange="setTitle(${i},'level',this.value)"><input type="text" class="text-input" maxlength="12" value="${esc(t.name)}" style="flex:1;min-width:0;" onchange="setTitle(${i},'name',this.value)"><button class="shop-x" onclick="delTitle(${i})" aria-label="삭제">✕</button></div>`).join('') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addTitle()">＋ 칭호 추가</button></div>` +
-    `<div class="field"><label>상점 품목 관리</label>` + (getShopItems().map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">🪙 ${it.cost}</span><button class="shop-x" onclick="editShopItem('${it.id}')" aria-label="수정">✎</button><button class="shop-x" onclick="delShopItem('${it.id}');renderSettings()" aria-label="삭제">✕</button></div>`).join('') || '<div class="hint" style="margin-top:6px;">직접 만든 품목이 없어요 (🛌 쉬는 날 이용권은 기본 제공)</div>') +
+    `<div class="field"><label>상점 품목 관리</label>` + (getShopItems().map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">${it.cost}코인</span><button class="shop-x" onclick="editShopItem('${it.id}')" aria-label="수정"><i class="ti ti-pencil" aria-hidden="true"></i></button><button class="shop-x" onclick="delShopItem('${it.id}');renderSettings()" aria-label="삭제">✕</button></div>`).join('') || '<div class="hint" style="margin-top:6px;">직접 만든 품목이 없어요. 쉬는 날 이용권은 기본으로 있어요.</div>') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addShopItem();renderSettings()">＋ 품목 추가</button></div>` +
     `<div class="settings-row" style="border:0;"><div><label>하루 XP 상한</label><div class="hint">기본 150</div></div><input type="number" min="10" value="${cap}" onchange="setXpCap(this.value)"></div>`);
-  h += secHtml('shop', '🛍 상점 · 구입 기록', shopLogHtml());
-  h += secHtml('hr', '❤️ 심박·신체',
+  h += secHtml('shop', '상점 · 구입 기록', shopLogHtml());
+  h += secHtml('hr', '심박·신체',
     `<div class="sub" style="font-size:12px;color:var(--muted);margin-bottom:6px;">Zone 계산과 칼로리 추정 기준을 설정합니다.</div>` +
     `<div class="settings-row"><div><label>나이</label><div class="hint">최대심박 = 220 − 나이</div></div><input type="number" id="ageInput" min="10" max="100" value="${settings.age}"></div>` +
     `<div class="settings-row"><div><label>안정시 심박수</label><div class="hint">측정 탭에서 잰 값 입력 시 정확도 ↑</div></div><input type="number" id="restInput" min="30" max="100" placeholder="--" value="${settings.rest || ''}"></div>` +
@@ -5672,7 +5671,7 @@ function renderSettings() {
     `<div class="settings-row"><div><label>성별</label><div class="hint">칼로리 공식 보정</div></div><div class="toggle" id="sexToggle"><button data-s="male" class="${settings.sex !== 'female' ? 'sel' : ''}" onclick="pickToggle('sexToggle',this)">남성</button><button data-s="female" class="${settings.sex === 'female' ? 'sel' : ''}" onclick="pickToggle('sexToggle',this)">여성</button></div></div>` +
     `<div class="settings-row"><div><label>주간 Zone 2 목표 (분)</label><div class="hint">일반 권장 150~180분</div></div><input type="number" id="goalInput" min="30" max="600" value="${settings.goal || 150}"></div>` +
     `<button class="btn-primary btn-wide" style="margin-top:12px;" onclick="saveHrSettings()">저장</button>`);
-  h += secHtml('sync', '🔄 동기화',
+  h += secHtml('sync', '동기화',
     `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6;">폰과 PC가 같은 기록을 보게 합니다. 비워 두면 지금처럼 이 기기에만 저장돼요. 설치 방법은 gas/README.md 를 보세요.</div>` +
     `<div class="field"><label>동기화 주소</label><input type="text" class="text-input" id="syncUrl" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(syncDraft().url != null ? syncDraft().url : syncCfg().url)}" oninput="syncDraftSave()" autocomplete="off" autocapitalize="off" spellcheck="false"></div>` +
     `<div class="field"><label>비밀키</label><input type="password" class="text-input" id="syncToken" value="${esc(syncDraft().token != null ? syncDraft().token : syncCfg().token)}" oninput="syncDraftSave()" autocomplete="off"></div>` +
@@ -5680,14 +5679,14 @@ function renderSettings() {
     `<div class="controls" style="margin:10px 0;"><button onclick="syncSaveCfg()" style="background:var(--surface2);">저장</button><button onclick="syncTest()" style="background:var(--surface2);">연결 테스트</button><button onclick="syncManual()" style="background:var(--surface2);">지금 동기화</button></div>` +
     `<div class="hint" id="syncStatusLine" style="line-height:1.7;"></div>` +
     `<div class="hint" style="margin-top:8px;line-height:1.7;">${syncKeyBytesHtml()}</div>`);
-  h += secHtml('data', '💾 데이터',
+  h += secHtml('data', '데이터',
     `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6;">심박·측정·습관·독서 기록 전체를 파일 하나로 저장합니다. 캐시 삭제나 폰 교체 전에 내보내두세요.</div>` +
-    `<div class="controls" style="margin-bottom:8px;"><button onclick="exportAllData();renderSettings()" style="background:var(--surface2);">⬇ 내보내기</button><button onclick="document.getElementById('importFile').click()" style="background:var(--surface2);">⬆ 가져오기</button></div>` +
+    `<div class="controls" style="margin-bottom:8px;"><button onclick="exportAllData();renderSettings()" style="background:var(--surface2);"><i class="ti ti-download" aria-hidden="true"></i> 내보내기</button><button onclick="document.getElementById('importFile').click()" style="background:var(--surface2);"><i class="ti ti-upload" aria-hidden="true"></i> 가져오기</button></div>` +
     `<div class="hint" style="margin:6px 0 14px;">마지막 백업: ${nb === null ? '없음' : nb === 0 ? '오늘' : nb + '일 전'}</div>` +
     `<div class="lv-sub"><span>저장 공간 사용량</span><span>${(used / 1048576).toFixed(1)}MB / 5MB</span></div>` +
     `<div class="progress-bg" style="margin:6px 0 4px;height:8px;"><div class="progress-fill" style="width:${pct}%;${pct > 70 ? 'background:var(--tl-red);' : ''}"></div></div>` +
-    (pct > 70 ? '<div class="hint" style="color:var(--tl-red);">⚠ 70%를 넘었어요. 백업하고 오래된 운동 기록을 정리하세요.</div>' : ''));
-  h += secHtml('info', 'ℹ️ 정보',
+    (pct > 70 ? '<div class="hint" style="color:var(--tl-red);">70%를 넘었어요. 백업하고 오래된 운동 기록을 정리하세요.</div>' : ''));
+  h += secHtml('info', '정보',
     `<div class="settings-row"><label>앱 버전</label><span>${APP_VERSION} (${APP_VERSION_DATE})</span></div><div class="settings-row"><label>schema_version</label><span>${esc(localStorage.getItem('schema_version') || '-')}</span></div>`);
   wrap.innerHTML = h;
   syncUpdateUI();
@@ -5730,7 +5729,7 @@ applyTheme();
 runMigrations();  // 날짜 키 변환 — 어떤 습관 렌더보다 먼저
 auditBackupKeys();
 recoverActiveSession();  // 지난 세션이 비정상 종료됐으면 복구 (렌더보다 먼저)
-updateLadder(0); renderZoneTime(); renderHistory(); renderMeasureHistory(); switchTab('today');
+renderZoneTime(); renderHistory(); renderMeasureHistory(); switchTab('today');
 syncInit();  // 동기화 주소/비밀키가 없으면 아무것도 하지 않음
 </script>
 </body>
