@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path'), assert = require('assert');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const m = html.match(/\/\* TL-CORE-BEGIN \*\/([\s\S]*?)\/\* TL-CORE-END \*\//);
 if (!m) { console.error('TL-CORE 구간을 찾지 못했습니다'); process.exit(2); }
-const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlSummary','TL_WORK','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj','tlImpBar','tlWasteTop','tlPrevSamePoint','tlCatRefs','tlNewCatId'];
+const names = ['TL_DAY','TL_MIN','TL_DEFAULT_CATS','tlParts','tlDayStart','tlDayKey','tlMonthKey','tlMonthStart','tlWeekStart','tlFromKst','tlResolve','tlClip','tlSplitDays','tlStats','tlRank','tlGrid','tlRibbon','tlSummary','TL_WORK','tlMonthReport','tlPlanInsert','tlCsv','tlCatInfo','tlMergeAdj','tlImpBar','tlWasteTop','tlPrevSamePoint','tlCatRefs','tlNewCatId','tlCatIntegrity'];
 const T = new Function(m[1] + '\nreturn {' + names.join(',') + '};')();
 const cats = T.TL_DEFAULT_CATS.map((c, i) => Object.assign({ order: i, archived: false }, c));
 const K = (y, mo, d, h = 0, mi = 0) => Date.UTC(y, mo - 1, d, h, mi) - 9 * 3600000;   // 한국 시간 -> epoch
@@ -517,6 +517,33 @@ t('새 분류 id (d): 저장 기록 어디에도 있는 id 와 겹치지 않음 
     assert(!all.has(id), r + ': ' + id + ' 가 이미 있음');
   }
   ['sleep', 'work', 'dev', 'phone'].forEach(id => assert.notStrictEqual(T.tlNewCatId({}, 0), id));
+});
+
+// ---- 분류 id 무결성: 지우거나 보관한 뒤 N개를 새로 만들어도 저장된 어떤 id 와도 안 겹침 / 중복·고아 점검은 읽기만 ----
+t('새 분류 N개: 분류를 지우거나 보관한 뒤에도, 같은 순간에 여럿 만들어도 저장된 어떤 id 와도 안 겹침', () => {
+  const st = CATSTORE(), now = K(2026, 11, 21, 15);
+  // 지운 분류 (목록엔 없고 옛 기록에만 남은 id) + 보관한 분류
+  const gone = 'c' + now.toString(36); st.time_log_2025_01.push(E('g1', K(2025, 1, 7), K(2025, 1, 7, 1), gone));
+  st.time_categories = st.time_categories.map(c => c.id === 'read' ? Object.assign({}, c, { archived: true }) : c);
+  const made = [];
+  for (let n = 0; n < 30; n++) {
+    const id = T.tlNewCatId(st, now + (n % 3));   // 같은 밀리초에 여러 번 포함
+    const stored = new Set([...st.time_categories.map(c => c.id), ...Object.keys(st).filter(k => /^time_log_/.test(k) && Array.isArray(st[k])).flatMap(k => st[k].map(e => e.catId)), st.time_current.catId, ...cats.map(c => c.id)]);
+    assert(!stored.has(id), n + ': ' + id + ' 이(가) 이미 저장돼 있음'); assert(!/트레이딩|개발|유튜브/.test(id), '이름에서 만든 id 아님');
+    made.push(id); st.time_categories.push({ id, name: '트레이딩·개발중 유튜브', emoji: '🔸', color: '#888888', importance: '보통', archived: false });
+  }
+  assert.strictEqual(new Set(made).size, 30); assert(!made.includes(gone), '지운 분류 id 를 다시 쓰지 않음');
+  assert(T.tlCatIntegrity(st).dup.length === 0);
+});
+t('분류 무결성 점검: 중복 id · 목록에 없는 id(기록·지금 기록 중)를 찾고, 입력은 바꾸지 않음', () => {
+  const st = CATSTORE(); delete st.habit_defs;
+  assert.deepStrictEqual(T.tlCatIntegrity(st), { dup: [], orphans: {}, ok: true }, '정상 데이터');
+  st.time_categories.push({ id: 'dev', name: '트레이딩·개발중 유튜브' }); st.time_log_2026_11.push(E('o1', K(2026, 11, 5), K(2026, 11, 5, 1), 'cgone'), E('o2', K(2026, 11, 6), K(2026, 11, 6, 1), 'cgone'));
+  st.time_current = { catId: 'cgone2', start: K(2026, 11, 20) };
+  const snap = JSON.stringify(st), r = T.tlCatIntegrity(st);
+  assert.deepStrictEqual(r.dup, ['dev']); assert.deepStrictEqual(r.orphans, { cgone: 2, cgone2: 1 }); assert.strictEqual(r.ok, false);
+  assert.strictEqual(JSON.stringify(st), snap, '점검은 데이터를 바꾸지 않음');
+  assert.strictEqual(T.tlCatIntegrity({}).ok, true, '빈 저장소');
 });
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
 process.exit(fail ? 1 : 0);
