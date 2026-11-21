@@ -251,10 +251,10 @@ function handSum(es, from, to, now, cs, noWork) {
   const OUT = ['work', 'sleep'], keep = c => c && !(noWork && OUT.includes(c));   // 둘째 줄 = 업무·수면 빼고
   const rec = mins.filter(keep).length, work = noWork ? mins.filter(c => OUT.includes(c)).length : 0;
   const base = mins.filter(c => keep(c) && c !== 'sleep'), impPct = base.length ? base.filter(c => imp(c) === '중요').length / base.length : null;
-  let focus = 0;
-  for (let i = 0; i < mins.length;) { let j = i; while (j < mins.length && mins[j] === mins[i]) j++; const c = mins[i]; if (keep(c) && c !== 'sleep' && imp(c) === '중요' && j - i >= 60) focus++; i = j; }
+  let focus = 0, focusMin = 0;
+  for (let i = 0; i < mins.length;) { let j = i; while (j < mins.length && mins[j] === mins[i]) j++; const c = mins[i]; if (keep(c) && c !== 'sleep' && imp(c) === '중요' && j - i >= 60) { focus++; focusMin += j - i; } i = j; }
   const period = (to - from) / 60000 - work, el = (end - from) / 60000 - work;
-  return { rec, cov: rec / period, covSoFar: now < to && el > 0 ? rec / el : null, impPct, focus };
+  return { rec, cov: rec / period, covSoFar: now < to && el > 0 ? rec / el : null, impPct, focus, focusMin, impMin: base.filter(c => imp(c) === '중요').length, total: period };
 }
 const pick = st => ({ rec: st.rec, cov: st.cov, covSoFar: st.covSoFar, impPct: st.impPct, focus: st.focus });
 function sameSum(got, want, msg) { ['rec', 'cov', 'impPct', 'focus'].forEach(k => near(got[k], want[k], msg + ' ' + k)); if (want.covSoFar == null) assert.strictEqual(got.covSoFar, null, msg + ' covSoFar'); else near(got.covSoFar, want.covSoFar, msg + ' covSoFar'); }
@@ -345,6 +345,22 @@ t('업무·수면 빼고: 수면 기록이 없는 기간 = 업무만 뺀 값', (
   [[from, to], [ws, ws + 7 * T.TL_DAY]].forEach(([f, t2]) => {
     const sm = T.tlSummary(segs, f, t2, cats, SUMNOW), w = T.tlStats(segs, f, t2, cats, SUMNOW, ['work']);
     assert.deepStrictEqual(pick(sm.nowork), pick(w)); assert.strictEqual(sm.nowork.wastePct, w.wastePct); near(sm.nowork.exMin, 16 * 60);
+  });
+});
+t('한 줄 요약 짝 값: 표시한 분자 ÷ 분모 = 표시한 %, 분자·분모 = 따로 계산한 값 (월·주 × 두 줄)', () => {
+  const h1 = m => +(m / 60).toFixed(1), pct = x => Math.round(x * 100);   // 화면과 같은 반올림 (tlH1·tlPct)
+  const ws = T.tlWeekStart(K(2026, 11, 4, 12));
+  const periods = [['월', T.tlMonthStart(2026, 11), T.tlMonthStart(2026, 12)], ['주', ws, ws + 7 * T.TL_DAY]];
+  periods.forEach(([nm, from, to]) => {
+    const sm = T.tlSummary(segsSum, from, to, cats, SUMNOW);
+    [['전체', sm.all, false], ['업무·수면 빼고', sm.nowork, true]].forEach(([row, st, nw]) => {
+      const m = nm + ' ' + row, hd = handSum(SUMES, from, to, SUMNOW, cats, nw);
+      assert.strictEqual(pct(h1(st.rec) / h1(st.total)), pct(st.cov), m + ' 기록률: ' + h1(st.rec) + ' / ' + h1(st.total));
+      near(st.total, hd.total, m + ' 기록률 분모'); near(st.rec, hd.rec, m + ' 기록률 분자');
+      assert.strictEqual(pct(st.impMin / st.impBase), pct(st.impPct), m + ' 중요'); near(st.impMin, hd.impMin, m + ' 중요 시간');
+      near(st.focusMin, hd.focusMin, m + ' 집중 블록 시간'); assert.strictEqual(st.focus, hd.focus);
+      assert.strictEqual(pct(st.wasteMin / st.rec), pct(st.wastePct), m + ' 낭비');
+    });
   });
 });
 console.log('\n결과: 통과 ' + pass + ' / 실패 ' + fail);
