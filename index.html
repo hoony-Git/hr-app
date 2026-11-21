@@ -4747,6 +4747,15 @@ function tlCatRefs(store, id) {
   const c = store && store.time_current;
   return { entries, running: !!(c && typeof c === 'object' && c.catId === id) };
 }
+// 분류 무결성 점검 (읽기만, 고치지 않음): 분류 목록 안 id 중복, 목록에 없는 id 를 가리키는 기록(달별 기록 + 지금 기록 중)
+function tlCatIntegrity(store) {
+  const list = Array.isArray(store && store.time_categories) ? store.time_categories : [], seen = {}, dup = [], orphans = {};
+  list.forEach(c => { if (c && typeof c.id === 'string') { seen[c.id] = (seen[c.id] || 0) + 1; if (seen[c.id] === 2) dup.push(c.id); } });
+  const add = id => { if (typeof id === 'string' && !seen[id]) orphans[id] = (orphans[id] || 0) + 1; };
+  Object.keys(store || {}).forEach(k => { const a = store[k]; if (TL_KEY_RE.test(k) && Array.isArray(a)) a.forEach(e => { if (e) add(e.catId); }); });
+  const c = store && store.time_current; if (c && typeof c === 'object') add(c.catId);
+  return { dup, orphans, ok: !dup.length && !Object.keys(orphans).length };
+}
 // 새 분류 id: 저장 기록 어디에도 없는 값 (분류 목록 + 모든 달 기록의 catId + 지금 기록 중). 겹치면 뒤에 _1, _2 … 를 붙인다
 function tlNewCatId(store, now) {
   const used = new Set(TL_DEFAULT_CATS.map(c => c.id));
@@ -5008,7 +5017,11 @@ function tlCats() {
   const list = ok ? a : TL_DEFAULT_CATS.map((c, i) => Object.assign({ order: i, archived: false }, c));
   return list.slice().sort((x, y) => (x.order || 0) - (y.order || 0));
 }
-function tlSaveCats(list) { list.forEach((c, i) => { c.order = i; }); localStorage.setItem('time_categories', JSON.stringify(list)); }
+function tlSaveCats(list) {
+  const ids = list.map(c => c && c.id);
+  if (ids.some(id => typeof id !== 'string' || !id) || new Set(ids).size !== ids.length) { console.warn('tlSaveCats: 분류 id 가 비었거나 겹쳐 저장하지 않음', ids); throw new Error('분류 id 중복'); }
+  list.forEach((c, i) => { c.order = i; }); localStorage.setItem('time_categories', JSON.stringify(list));
+}
 function tlCur() { const o = readJSON('time_current', null); return o && typeof o === 'object' && typeof o.catId === 'string' && isFinite(o.start) ? o : null; }
 function tlSaveCur(o) { if (o) localStorage.setItem('time_current', JSON.stringify(o)); else localStorage.removeItem('time_current'); }
 function tlLoadMonth(key) { const a = readJSON(key, []); return Array.isArray(a) ? a.filter(tlEntryValid) : []; }
@@ -5425,26 +5438,37 @@ function tlEditCurStart() {
 
 // ---------- 분류 관리 ----------
 function tlRenderCatMgr() {
-  const list = tlCats();
-  document.getElementById('tlCatBody').innerHTML = list.map((c, i) => `<div class="tl-cm${c.archived ? ' arch' : ''}" data-i="${i}">
-    <input class="text-input e" data-f="emoji" maxlength="4" value="${esc(c.emoji)}"><input class="text-input n" data-f="name" maxlength="14" value="${esc(c.name)}"><input type="color" data-f="color" value="${tlColor(c.color)}">
-    <select class="text-input" data-f="importance">${TL_IMP.map(x => `<option${c.importance === x ? ' selected' : ''}>${x}</option>`).join('')}</select>
-    <button class="tl-mv" data-act="catup" data-i="${i}">▲</button><button class="tl-mv" data-act="catdn" data-i="${i}">▼</button>
-    <label class="tl-arch"><input type="checkbox" data-f="archived"${c.archived ? ' checked' : ''}>보관</label><button class="tl-mv" data-act="catdel" data-id="${esc(c.id)}" title="삭제" aria-label="삭제"><i class="ti ti-trash" aria-hidden="true"></i></button></div>`).join('');
+  const list = tlCats(), chk = tlCatIntegrity(tlCatStore());
+  let warn = '';
+  if (!chk.ok) {   // 자동으로 고치지 않고 알리기만
+    const o = Object.keys(chk.orphans), n = o.reduce((x, k) => x + chk.orphans[k], 0);
+    warn = '<div class="tl-warn" id="tlCatWarn" role="alert"><b>분류 데이터 확인이 필요해요</b> (자동으로 고치지 않았어요)' +
+      (chk.dup.length ? '<br>같은 id 를 쓰는 분류가 여러 개: ' + chk.dup.map(esc).join(', ') : '') +
+      (o.length ? '<br>목록에 없는 분류를 가리키는 기록 ' + n + '개 (id: ' + o.map(esc).join(', ') + ') — 화면엔 "(없는 분류)"로 보여요' : '') + '</div>';
+  }
+  document.getElementById('tlCatBody').innerHTML = warn + list.map(c => `<div class="tl-cm${c.archived ? ' arch' : ''}" data-id="${esc(c.id)}">
+    <input class="text-input e" data-f="emoji" maxlength="4" value="${esc(c.emoji)}" aria-label="${esc(c.name)} 이모지"><input class="text-input n" data-f="name" maxlength="14" value="${esc(c.name)}" aria-label="분류 이름"><input type="color" data-f="color" value="${tlColor(c.color)}" aria-label="${esc(c.name)} 색">
+    <select class="text-input" data-f="importance" aria-label="${esc(c.name)} 중요도">${TL_IMP.map(x => `<option${c.importance === x ? ' selected' : ''}>${x}</option>`).join('')}</select>
+    <button class="tl-mv" data-act="catup" data-id="${esc(c.id)}" aria-label="${esc(c.name)} 위로">▲</button><button class="tl-mv" data-act="catdn" data-id="${esc(c.id)}" aria-label="${esc(c.name)} 아래로">▼</button>
+    <label class="tl-arch"><input type="checkbox" data-f="archived"${c.archived ? ' checked' : ''}>보관</label><button class="tl-mv" data-act="catdel" data-id="${esc(c.id)}" title="삭제" aria-label="${esc(c.name)} 삭제"><i class="ti ti-trash" aria-hidden="true"></i></button></div>`).join('');
 }
-function tlCatEdit(i, f, v) {
-  const list = tlCats(), c = list[i]; if (!c) return;
+// 분류 관리의 모든 동작은 줄 번호가 아니라 분류 id 로 찾는다 (창이 열린 사이 목록이 바뀌어도 다른 분류를 고치지 않게)
+function tlCatEdit(id, f, v) {
+  const list = tlCats(), c = list.find(x => x.id === id);
+  if (!c) { toast('분류 목록이 바뀌었어요 — 다시 확인해 주세요'); tlRenderCatMgr(); return; }
   if (f === 'name') { v = String(v).trim(); if (!v) { toast('이름은 비울 수 없어요'); tlRenderCatMgr(); return; } c.name = v.slice(0, 14); }
   else if (f === 'emoji') c.emoji = String(v).trim().slice(0, 4) || c.emoji;
   else if (f === 'color') c.color = tlColor(v);
   else if (f === 'importance') { if (!TL_IMP.includes(v)) return; c.importance = v; }
   else if (f === 'archived') { const cur = tlCur(); if (v && cur && cur.catId === c.id) { toast('지금 기록 중인 분류는 보관할 수 없어요'); tlRenderCatMgr(); return; } c.archived = !!v; }
-  try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); }
+  try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); tlRenderCatMgr(); return; }
   if (f === 'name' || (f === 'emoji' && String(v).trim())) return;   // 입력칸에 이미 보이는 값 — 다시 그리면 이어서 누른 버튼(휴지통 등)이 사라진다
   tlRenderCatMgr();
 }
-function tlCatMove(i, dir) {
-  const list = tlCats(), j = i + dir; if (j < 0 || j >= list.length) return;
+function tlCatMove(id, dir) {
+  const list = tlCats(), i = list.findIndex(x => x.id === id), j = i + dir;
+  if (i < 0) { tlRenderCatMgr(); return; }
+  if (j < 0 || j >= list.length) return;
   [list[i], list[j]] = [list[j], list[i]];
   try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); }
   tlRenderCatMgr();
@@ -5469,9 +5493,12 @@ function tlCatDelete(id) {   // id = 누른 줄의 분류 id (줄 번호가 아�
 }
 function tlCatAdd() {
   const list = tlCats();
-  list.push({ id: tlNewCatId(tlCatStore(), Date.now()), name: '새 분류', emoji: '🔸', color: TL_PALETTE[list.length % TL_PALETTE.length], importance: '보통', archived: false });
-  try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); }
+  const id = tlNewCatId(tlCatStore(), Date.now());
+  list.push({ id, name: '새 분류', emoji: '🔸', color: TL_PALETTE[list.length % TL_PALETTE.length], importance: '보통', archived: false });
+  try { tlSaveCats(list); } catch (e) { toast('저장하지 못했어요'); return; }
   tlRenderCatMgr();
+  const row = [...document.querySelectorAll('#tlCatBody .tl-cm')].find(r => r.dataset.id === id), n = row && row.querySelector('input[data-f="name"]');
+  if (n) { row.scrollIntoView({ block: 'center' }); n.focus(); n.select(); }
 }
 
 // ---------- 이벤트 ----------
@@ -5543,15 +5570,15 @@ document.getElementById('tlEditModal').addEventListener('click', ev => {
 document.getElementById('tlCatModal').addEventListener('click', ev => {
   if (ev.target.id === 'tlCatModal') { ev.target.classList.remove('show'); tlRender(); return; }
   const el = ev.target.closest('[data-act]'); if (!el) return;
-  if (el.dataset.act === 'catup') tlCatMove(Number(el.dataset.i), -1);
-  else if (el.dataset.act === 'catdn') tlCatMove(Number(el.dataset.i), 1);
+  if (el.dataset.act === 'catup') tlCatMove(el.dataset.id, -1);
+  else if (el.dataset.act === 'catdn') tlCatMove(el.dataset.id, 1);
   else if (el.dataset.act === 'catdel') tlCatDelete(el.dataset.id);
   else if (el.dataset.act === 'catadd') tlCatAdd();
   else if (el.dataset.act === 'catclose') { document.getElementById('tlCatModal').classList.remove('show'); tlRender(); }
 });
 document.getElementById('tlCatModal').addEventListener('change', ev => {
   const row = ev.target.closest('.tl-cm'), f = ev.target.dataset.f; if (!row || !f) return;
-  tlCatEdit(Number(row.dataset.i), f, f === 'archived' ? ev.target.checked : ev.target.value);
+  tlCatEdit(row.dataset.id, f, f === 'archived' ? ev.target.checked : ev.target.value);
 });
 
 // ====================== 탭 전환 ======================
@@ -5608,7 +5635,7 @@ document.addEventListener('keydown', e => {
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
 // ====================== 설정 · 내정보 (Phase 5) ======================
-const APP_VERSION = '3.7', APP_VERSION_DATE = '2026-11-21';   // index.html 을 고쳐 배포할 때마다 같이 올린다
+const APP_VERSION = '3.8', APP_VERSION_DATE = '2026-11-21';   // index.html 을 고쳐 배포할 때마다 같이 올린다
 // 색 위 글자색: 그 색과 대비가 더 큰 쪽 (짙은 남색 / 흰색)
 function inkOn(c) { if (!hexOk(c)) return 'var(--text)'; const n = parseInt(c.slice(1), 16), f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }, L = 0.2126 * f(n >> 16 & 255) + 0.7152 * f(n >> 8 & 255) + 0.0722 * f(n & 255); return (L + 0.05) / 0.0614 >= 1.05 / (L + 0.05) ? '#161B33' : '#FFFFFF'; }
 function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
@@ -5915,6 +5942,7 @@ runMigrations();  // 날짜 키 변환 — 어떤 습관 렌더보다 먼저
 auditBackupKeys();
 recoverActiveSession();  // 지난 세션이 비정상 종료됐으면 복구 (렌더보다 먼저)
 renderZoneTime(); renderHistory(); renderMeasureHistory(); switchTab('today');
+try { const chk = tlCatIntegrity(tlCatStore()); if (!chk.ok) console.warn('분류 무결성 점검: 문제 있음 (자동 수정 안 함) — 분류 관리에서 확인', { dup: chk.dup, orphans: Object.keys(chk.orphans).length }); } catch (e) { console.warn('분류 무결성 점검 실패', e); }
 syncInit();  // 동기화 주소/비밀키가 없으면 아무것도 하지 않음
 </script>
 </body>
