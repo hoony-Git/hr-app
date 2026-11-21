@@ -67,7 +67,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   body { padding: env(safe-area-inset-top) var(--sp-6) calc(env(safe-area-inset-bottom) + 80px); max-width: 560px; margin: 0 auto; }
 
   header { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-6) 2px var(--sp-4); position: sticky; top: 0; background: var(--bg); z-index: 20; }
-  header h1 { font-size: var(--fs-lg); font-weight: 500; letter-spacing: -0.3px; }
   header h1 span { color: var(--accent-text); }
   .status { font-size: var(--fs-sm); color: var(--muted); display: flex; align-items: center; gap: var(--sp-2); }
 
@@ -114,7 +113,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .ztbar { height: 100%; border-radius: var(--radius-sm); transition: width .4s; }
   .zttime { width: 56px; text-align: right; font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
 
-  .sec-title { font-size: var(--fs-base); font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin: 0 2px var(--sp-5); }
+  .sec-title { font-weight: 500; color: var(--muted); margin: 0 2px var(--sp-5); }
   .hist-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-btn); padding: var(--sp-5) var(--sp-6); margin-bottom: var(--sp-3); display: flex; align-items: center; justify-content: space-between; }
   .hist-date { font-size: var(--fs-md); font-weight: 500; }
   .hist-sub { font-size: var(--fs-sm); color: var(--muted); margin-top: 3px; }
@@ -130,10 +129,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .dual { display: flex; gap: var(--sp-5); }
   .dual .card { flex: 1; margin: 0; text-align: center; }
   .big-metric { font-size: 46px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
-  .big-metric.hrv { color: var(--hrv); }
   .metric-unit { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--sp-2); }
   .metric-name { font-size: var(--fs-base); font-weight: 500; margin-bottom: var(--sp-5); color: var(--muted); }
-  .rr-status { font-size: var(--fs-sm); padding: var(--sp-4) var(--sp-6); border-radius: var(--radius-cell); text-align: center; margin-bottom: var(--sp-5); }
+  .rr-status { border-radius: var(--radius-cell); text-align: center; margin-bottom: var(--sp-5); }
   .rr-ok { background: rgba(34,197,94,.12); color: var(--accent-text); }
   .rr-wait { background: var(--surface2); color: var(--muted); }
   .rr-fail { background: rgba(245,158,11,.12); color: var(--warn); }
@@ -155,7 +153,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .zr-bar { flex: 1; min-width: 0; height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
   .zr-bar div { height: 100%; border-radius: 4px; transition: width .4s; }
   .zr-v { flex: none; width: 52px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
-  .shop-use { flex: none; padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-pill); background: var(--accent); color: var(--on-accent); font-size: var(--fs-xs); font-weight: 500; white-space: nowrap; }
+  .shop-use { flex: none; padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 500; white-space: nowrap; }
   .shop-use.done { background: var(--surface2); color: var(--muted); }
   .shop-use.none { background: transparent; color: var(--muted); font-weight: 500; }
   .shop-nm.used { opacity: .5; text-decoration: line-through; }
@@ -168,27 +166,23 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .more-btn { width: 100%; margin: var(--sp-1) 0 var(--sp-3); padding: var(--sp-5); border-radius: var(--radius-btn); background: var(--surface2); font-size: var(--fs-base); font-weight: 500; color: var(--muted); }
 
   /* 탭바 */
-  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 560px; margin: 0 auto;
-    background: var(--surface); border-top: 1px solid var(--border); display: flex;
-    padding: var(--sp-3) var(--sp-3) calc(env(safe-area-inset-bottom) + 8px); z-index: 30; }
-  .tabbar button { flex: 1; flex-direction: column; gap: 3px; background: transparent; padding: var(--sp-3) 0; font-size: var(--fs-xs); font-weight: 500; color: var(--muted); border-radius: var(--radius-cell); }
+  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 560px; margin: 0 auto; display: flex; padding: var(--sp-3) var(--sp-3) calc(env(safe-area-inset-bottom) + 8px); z-index: 30; }
+  .tabbar button { flex: 1; flex-direction: column; gap: 3px; background: transparent; font-size: var(--fs-xs); font-weight: 500; border-radius: var(--radius-cell); }
   .tabbar button .ic { font-size: 21px; }
-  .tabbar button.on { color: var(--accent-text); }
 
   /* 설정 */
-  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-5) 0; border-bottom: 1px solid var(--border); }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-5) 0; }
   .settings-row:last-child { border-bottom: none; }
   .settings-row label { font-size: var(--fs-md); }
   .settings-row .hint { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; }
   input[type=number] { width: 90px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-md);
     color: var(--text); font-size: var(--fs-lg); padding: var(--sp-4) var(--sp-5); text-align: center; font-variant-numeric: tabular-nums; }
-  .toggle { display: flex; background: var(--surface2); border-radius: var(--radius-md); padding: 3px; }
-  .toggle button { flex: none; padding: var(--sp-3) var(--sp-5); font-size: var(--fs-sm); border-radius: var(--radius-sm); background: transparent; }
-  .toggle button.sel { background: var(--accent); color: var(--on-accent); }
-  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: flex-end; justify-content: center; z-index: 50; }
+  .toggle { display: flex; }
+  .toggle button { flex: none; font-size: var(--fs-sm); background: transparent; }
+  .modal-bg { position: fixed; inset: 0; display: none; align-items: flex-end; justify-content: center; z-index: 50; }
   .modal-bg.show { display: flex; }
-  .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: var(--sp-8) var(--sp-7) calc(env(safe-area-inset-bottom) + 22px); width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; }
-  .modal h2 { font-size: var(--fs-xl); margin-bottom: var(--sp-2); }
+  .modal { width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; }
+  .modal h2 { margin-bottom: var(--sp-2); }
   .modal .sub { font-size: var(--fs-base); color: var(--muted); margin-bottom: var(--sp-6); }
 
   .hidden { display: none !important; }
@@ -199,7 +193,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
 
   /* 습관 캘린더 */
   .streak-box { display: flex; align-items: center; justify-content: center; gap: var(--sp-3); margin-bottom: var(--sp-6); }
-  .streak-fire { font-size: 26px; }
   .streak-num { font-size: 30px; font-weight: 500; color: var(--z4); font-variant-numeric: tabular-nums; }
   .streak-txt { font-size: var(--fs-base); color: var(--muted); }
   .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-6); }
@@ -224,13 +217,13 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .cal-month-stat b { color: var(--text); font-weight: 500; }
 
   /* 습관 탭 */
-  .miss-chip { display: inline-flex; align-items: center; gap: var(--sp-1); margin: 0 var(--sp-2) var(--sp-2) 0; padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-5); border-radius: var(--radius-card); background: var(--surface2); font-size: var(--fs-base); }
+  .miss-chip { display: inline-flex; align-items: center; gap: var(--sp-1); margin: 0 var(--sp-2) var(--sp-2) 0; padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-5); border-radius: var(--radius-card); font-size: var(--fs-base); }
   .miss-chip .mc-txt { cursor: pointer; padding: 3px 0; }
   .miss-chip .mc-x { width: 22px; height: 22px; border-radius: 50%; padding: 0; flex: none; background: var(--border); color: var(--muted); font-size: var(--fs-xs); line-height: 1; }
   .preset-row { display: flex; margin-top: var(--sp-3); }
   .preset-btn { flex: 1; padding: var(--sp-5); background: var(--surface2); font-size: var(--fs-md); }
   .cal-cell.clickable { cursor: pointer; }
-  .cal-note { position: absolute; top: 2px; right: 3px; font-size: var(--fs-2xs); line-height: 1; }
+  .cal-note { position: absolute; top: 2px; right: 3px; line-height: 1; }
   .sum-row { padding: var(--sp-4) 0; border-top: 1px solid var(--border); }
   .sum-row:first-child { border-top: 0; }
   .sum-main { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-md); }
@@ -239,7 +232,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .habit-ctrls { display: flex; gap: var(--sp-3); align-items: center; }
   .num-input { flex: 1; min-width: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-btn); color: var(--text); font-size: var(--fs-lg); padding: var(--sp-5); text-align: center; font-variant-numeric: tabular-nums; }
   .timer-display { font-size: 34px; font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; margin: var(--sp-1) 0 var(--sp-4); color: var(--accent-text); }
-  .habit-add-btn { width: 100%; border: 2px dashed var(--border); background: transparent; color: var(--muted); padding: var(--sp-6); border-radius: var(--radius-btn); font-size: var(--fs-md); font-weight: 500; }
+  .habit-add-btn { width: 100%; font-size: var(--fs-md); }
   .habit-cal-pills { display: flex; gap: var(--sp-3); overflow-x: auto; margin-bottom: var(--sp-6); padding-bottom: var(--sp-1); -webkit-overflow-scrolling: touch; }
   .hcp { flex: none; padding: var(--sp-3) var(--sp-6); border-radius: var(--radius-pill); background: var(--surface2); font-size: var(--fs-base); color: var(--muted); border: none; cursor: pointer; white-space: nowrap; }
   .hcp.sel { background: var(--accent); color: var(--on-accent); }
@@ -270,10 +263,9 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .month-btn { flex: none; background: transparent; padding: var(--sp-1) 0; font-size: 24px; font-weight: 500; letter-spacing: -.5px; border-radius: var(--radius-md); }
   .th-right { display: flex; gap: var(--sp-3); align-items: center; }
   .hidden-date { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
-  .week-strip { display: flex; align-items: center; gap: 2px; margin-bottom: var(--sp-5); touch-action: pan-y; }
-  .ws-arrow { flex: none; width: 18px; padding: 0; background: transparent; color: var(--muted); font-size: 20px; border-radius: var(--radius-sm); }
-  .ws-day { flex: 1; min-width: 0; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3) 0; border-radius: var(--radius-btn); background: transparent; font-weight: 500; }
-  .ws-day.sel { background: var(--surface2); }
+  .week-strip { display: flex; align-items: center; margin-bottom: var(--sp-5); touch-action: pan-y; }
+  .ws-arrow { flex: none; padding: 0; background: transparent; border-radius: var(--radius-sm); }
+  .ws-day { flex: 1; min-width: 0; flex-direction: column; font-weight: 500; }
   .ws-lb { font-size: var(--fs-xs); color: var(--muted); }
   .lt-c.green { background: var(--tl-green); color: var(--on-tl); }
   .lt-c.yellow { background: var(--tl-yellow); color: var(--on-tl); }
@@ -317,7 +309,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .mo-c.today { box-shadow: 0 0 0 1.5px var(--accent); }
   .wc.today { box-shadow: 0 0 0 2px var(--accent); }
   .lg.r { background: var(--tl-red); }
-  .rt-empty { text-align: center; color: var(--muted); font-size: var(--fs-base); padding: var(--sp-8) var(--sp-4); line-height: 1.7; }
+  .rt-empty { color: var(--muted); font-size: var(--fs-base); line-height: 1.7; }
   .pill { display: inline-block; padding: 2px var(--sp-4); border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 500; white-space: nowrap;
     background: color-mix(in srgb, var(--p) var(--pill-bg-pct), transparent); color: color-mix(in srgb, var(--p) var(--pill-fg-pct), var(--pill-fg-base)); }
   /* 주간 카드 */
@@ -342,7 +334,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .mc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: var(--sp-4); min-width: 0; cursor: pointer; }
   .mc-t { font-size: var(--fs-base); font-weight: 500; margin-bottom: var(--sp-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mc-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
-  .mq { aspect-ratio: 1; border-radius: var(--radius-sm); font-size: var(--fs-2xs); display: flex; align-items: center; justify-content: center; background: var(--tl-none); color: var(--muted); }
+  .mq { aspect-ratio: 1; border-radius: var(--radius-sm); font-size: var(--fs-2xs); display: flex; align-items: center; justify-content: center; background: var(--tl-none); }
   .mq.on { color: var(--on-tl); }
   .mq.faint { opacity: .3; }
   .mq { position: relative; }
@@ -404,39 +396,36 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .lv-chip { flex: none; padding: var(--sp-2) var(--sp-5); border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent-text); font-size: var(--fs-base); font-weight: 500; }
   .lv-next { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--sp-4); }
   .tt-row { display: flex; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-3) 0 2px; }
-  .tt { flex: none; display: flex; flex-direction: column; align-items: center; padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-cell); background: var(--surface2); font-size: var(--fs-sm); font-weight: 500; opacity: .45; white-space: nowrap; }
+  .tt { flex: none; display: flex; flex-direction: column; align-items: center; padding: var(--sp-2) var(--sp-4); font-size: var(--fs-sm); font-weight: 500; white-space: nowrap; }
   .tt small { font-size: var(--fs-2xs); font-weight: 500; color: var(--muted); }
-  .tt.on { opacity: 1; box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .tt.on { opacity: 1; }
   .lv-sub { display: flex; justify-content: space-between; font-size: var(--fs-sm); color: var(--muted); }
-  .lv-row { display: flex; gap: var(--sp-3); margin-top: var(--sp-6); }
-  .lv-row > div { flex: 1; min-width: 0; background: var(--surface2); border-radius: var(--radius-btn); padding: var(--sp-5) var(--sp-1); text-align: center; }
+  .lv-row { display: flex; }
+  .lv-row > div { flex: 1; min-width: 0; text-align: center; }
   .lv-row b { display: block; font-size: 19px; font-variant-numeric: tabular-nums; }
-  .lv-row small { display: block; font-size: var(--fs-2xs); color: var(--muted); margin-top: 3px; }
-  .shop-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-4) 0; border-bottom: 1px solid var(--border); font-size: var(--fs-md); }
+  .lv-row small { display: block; color: var(--muted); margin-top: 3px; }
+  .shop-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-4) 0; font-size: var(--fs-md); }
   .shop-nm { flex: 1; min-width: 0; }
   .shop-cost { flex: none; color: var(--muted); font-variant-numeric: tabular-nums; }
   .lv-date { flex: none; color: var(--muted); font-size: var(--fs-xs); }
-  .shop-buy { flex: none; padding: var(--sp-3) var(--sp-6); border-radius: var(--radius-cell); background: var(--accent); color: var(--on-accent); font-size: var(--fs-base); }
-  .shop-x { flex: none; width: 28px; height: 28px; padding: 0; border-radius: var(--radius-md); background: var(--surface2); color: var(--muted); font-size: var(--fs-sm); }
-  .rest-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border-radius: var(--radius-btn); padding: var(--sp-3) var(--sp-5); margin: var(--sp-4) 0 0; font-size: var(--fs-base); }
-  .rest-bar button { flex: none; padding: var(--sp-1) var(--sp-5); border-radius: var(--radius-md); background: var(--surface); font-size: var(--fs-sm); }
+  .shop-buy { flex: none; font-size: var(--fs-base); }
+  .shop-x { flex: none; width: 28px; height: 28px; padding: 0; font-size: var(--fs-sm); }
+  .rest-bar { display: flex; align-items: center; justify-content: space-between; font-size: var(--fs-base); }
+  .rest-bar button { flex: none; padding: var(--sp-1) var(--sp-5); font-size: var(--fs-sm); }
   .lt-c.rest { background: var(--surface2); font-size: var(--fs-md); }
   .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 70; }
   .confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: confetti-fall 2s linear forwards; }
   @keyframes confetti-fall { to { top: 105%; opacity: .2; } }
   /* 내정보·설정 */
   .link-btn { float: right; font-size: var(--fs-sm); font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--accent-text); text-decoration: none; }
-  .set-sec { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); margin-bottom: var(--sp-4); }
-  .set-sec summary { padding: var(--sp-6); font-size: var(--fs-lg); font-weight: 500; cursor: pointer; list-style: none; }
+  .set-sec { margin-bottom: var(--sp-4); }
+  .set-sec summary { font-weight: 500; cursor: pointer; list-style: none; }
   .set-sec summary::-webkit-details-marker { display: none; }
-  .set-sec summary::after { content: '▾'; float: right; color: var(--muted); }
-  .set-sec[open] summary::after { content: '▴'; }
-  .set-body { padding: 0 var(--sp-6) var(--sp-6); }
-  .ord-item { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-5) var(--sp-3); background: var(--surface2); border-radius: var(--radius-btn); margin-bottom: var(--sp-2); touch-action: none; }
+  .ord-item { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-5) var(--sp-3); margin-bottom: var(--sp-2); touch-action: none; }
   .ord-item.dragging { opacity: .7; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
   .ord-h { flex: none; font-size: 20px; color: var(--muted); padding: 0 var(--sp-2); cursor: grab; touch-action: none; user-select: none; }
   /* 시트·모달 위젯 */
-  .sheet-item { flex: none; width: 100%; justify-content: flex-start; background: var(--surface2); margin-top: var(--sp-3); padding: var(--sp-6); font-size: var(--fs-lg); }
+  .sheet-item { flex: none; width: 100%; justify-content: flex-start; margin-top: var(--sp-3); }
   .sheet-item.danger { color: var(--tl-red); }
   .chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
   .chip { flex: none; padding: var(--sp-3) var(--sp-5); border-radius: var(--radius-pill); background: var(--surface2); font-size: var(--fs-base); font-weight: 500; }
@@ -463,7 +452,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-row-t { font-size: var(--fs-md); }
   .tl-row-t small { display: block; font-size: var(--fs-sm); color: var(--muted); margin-top: 2px; }
   .tl-tag { font-size: var(--fs-2xs); padding: 1px var(--sp-2); border-radius: var(--radius-md); background: var(--surface2); color: var(--muted); font-weight: 500; }
-  .tl-tag.on { background: var(--accent-soft); color: var(--accent-text); }
+  .tl-tag.on { background: var(--accent-soft); }
   .tl-gridwrap { max-height: 48vh; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-btn); background: var(--surface); -webkit-overflow-scrolling: touch; }
   .tl-hl { height: 11px; font-size: var(--fs-2xs); line-height: 11px; color: var(--muted); text-align: right; padding-right: 3px; font-variant-numeric: tabular-nums; }
   .tc { display: block; height: 11px; border-left: 1px solid var(--border); border-top: 1px solid transparent; cursor: pointer; }
@@ -475,7 +464,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .tl-bar.clk { cursor: pointer; border-radius: var(--radius-md); }
   .tl-bar.hl { background: var(--surface2); box-shadow: 0 0 0 4px var(--surface2); }
   .tl-legend { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-5); margin: var(--sp-3) 2px var(--sp-1); font-size: var(--fs-sm); color: var(--muted); }
-  .tl-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: var(--sp-2); vertical-align: -1px; }
+  .tl-dot { margin-right: var(--sp-2); vertical-align: -1px; }
   .tl-dot.auto { background: repeating-linear-gradient(45deg, var(--muted) 0 2px, transparent 2px 4px); }
   .tl-info { margin-top: var(--sp-4); font-size: var(--fs-md); line-height: 1.5; }
   #tlCellInfo:not(:empty) { position: fixed; left: 14px; right: 14px; bottom: calc(env(safe-area-inset-bottom) + 76px); max-width: 532px; margin: 0 auto; z-index: 25; }
@@ -548,7 +537,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .ti { line-height: 1; }
   header { padding-top: calc(env(safe-area-inset-top) + var(--sp-5)); }
-  header h1 { font-weight: 500; }
+  header h1 { font-size: var(--fs-lg); letter-spacing: -0.3px; font-weight: 500; }
   .hdr-r { display: flex; align-items: center; gap: var(--sp-4); }
   .lv-chip, .lv-badge { flex: none; width: 32px; height: 32px; padding: 0; border-radius: 50%; background: transparent; border: 1.5px solid var(--violet); color: var(--violet-text); font-size: var(--fs-xs); font-weight: 500; }
   /* 아래 탭: 아이콘 4개 */
@@ -610,7 +599,6 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   #tab-today #tab-stats { margin-top: var(--sp-3); }
   /* 동작 버튼은 알약, 시트는 26px */
   .btn-primary, .btn-go, .btn-stop, .btn-hrv, .btn-wide { border-radius: var(--radius-pill); }
-  .modal { border-radius: var(--radius-sheet) var(--radius-sheet) 0 0; }
 
   /* ===================== Night Dial M2 — 시간 · 심박 ===================== */
   #timeSeg, #hrSeg { display: flex; gap: 18px; padding: 0 2px; margin: 0 0 var(--sp-3); background: transparent; border-radius: 0; }
@@ -829,7 +817,7 @@ try { var _t = (JSON.parse(localStorage.getItem('hr_settings')) || {}).theme; if
   .ord-item { border-radius: 0; background: transparent; border-top: 1px solid var(--border); }
   /* 시트·창: 표면 #1F2645, 위 모서리 26px, 머리선 줄, 주 버튼은 알약 하나 */
   .modal-bg { background: rgba(3,4,11,.55); }
-  .modal { background: var(--surface); padding: var(--sp-6) var(--sp-7) calc(env(safe-area-inset-bottom) + var(--sp-7)); }
+  .modal { border-radius: var(--radius-sheet) var(--radius-sheet) 0 0; background: var(--surface); padding: var(--sp-6) var(--sp-7) calc(env(safe-area-inset-bottom) + var(--sp-7)); }
   .modal::before { content: ''; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--border-strong); margin: 0 auto var(--sp-5); }
   .modal h2 { font-size: var(--fs-xl); font-weight: 500; }
   .modal .field { border-bottom: 0; border-top: 1px solid var(--border); }
@@ -3939,7 +3927,11 @@ function addShopItem() {
   const a = getShopItems(); a.push({ id: 's' + Date.now(), name, emoji, cost });
   localStorage.setItem('shop_items', JSON.stringify(a)); renderLevelScreen();
 }
+// 쉬는 날 이용권도 상점에서 뺄 수 있다 (xp_meta.hideRest). 갖고 있는 이용권·구입 기록은 그대로, 설정 › 레벨·보상에서 다시 넣는다
+function restInShop() { return !xpMeta().hideRest; }
+function setRestInShop(on) { const m = xpMeta(); if (on) delete m.hideRest; else m.hideRest = true; saveXpMeta(m); renderLevelScreen(); renderSettings(); }
 function delShopItem(id) {
+  if (id === BUILTIN_REST.id) { if (confirm('「' + BUILTIN_REST.name + '」을 상점에서 뺄까요? (갖고 있는 이용권과 구입 내역은 남아요. 설정 › 레벨·보상에서 다시 넣을 수 있어요)')) setRestInShop(false); return; }
   const it = getShopItems().find(x => x.id === id); if (!it) return;
   if (!confirm('「' + it.name + '」을 상점에서 뺄까요? (구입 내역은 남아요)')) return;
   localStorage.setItem('shop_items', JSON.stringify(getShopItems().filter(x => x.id !== id))); renderLevelScreen();
@@ -3954,7 +3946,7 @@ function nextTitleHtml(L, total) {
 function renderLevelScreen() {
   const st = coinState(), today = dayKey(new Date()), cap = xpCap();
   const todayXP = st.byDay[today] || 0, pct = Math.min(100, Math.round(st.li.into / st.li.need * 100));
-  const items = [BUILTIN_REST].concat(getShopItems());
+  const items = (restInShop() ? [BUILTIN_REST] : []).concat(getShopItems());
   document.getElementById('lvBody').innerHTML =
     `<div class="lv-head"><div class="lv-ring">${Dial.svg({ n: 48, cells: Array.from({ length: 48 }, (_, i) => i < Math.round(pct / 100 * 48) ? { color: 'var(--violet)' } : null), now: 0, labels: false, label: '레벨 ' + st.li.level + ', 다음 레벨까지 ' + pct + '%', center: { lines: [{ t: String(st.li.level), y: 112, size: 40, fill: 'var(--violet-text)', w: 500 }, { t: 'Lv', y: 78, size: 12, fill: 'var(--muted)' }] } })}</div>` +
     `<div class="lv-info"><div class="lv-title">${esc(titleFor(st.li.level))}</div><div class="lv-sub2">다음 레벨까지 ${st.li.need - st.li.into}XP</div><div class="lv-sub2">${st.li.into} / ${st.li.need} XP</div></div></div>` +
@@ -3966,7 +3958,7 @@ function renderLevelScreen() {
     `<div class="sec-title" style="margin:18px 2px 4px;">상점</div><div class="lv-sub" style="margin-bottom:8px;"><span>구입하면 코인이 빠지고 구입 기록에 남아요. 실제 보상은 직접 누려요.</span></div>` +
     items.map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">${it.cost}코인</span>` +
       `<button class="shop-buy" ${st.balance < it.cost ? 'disabled' : ''} onclick="buyItem('${it.id}')">구입</button>` +
-      (it.id === BUILTIN_REST.id ? '' : `<button class="shop-x" onclick="delShopItem('${it.id}')" aria-label="삭제">✕</button>`) + `</div>`).join('') +
+      `<button class="shop-x" onclick="delShopItem('${it.id}')" aria-label="삭제">✕</button></div>`).join('') +
     `<button class="td-add" onclick="addShopItem()"><i class="ti ti-plus" aria-hidden="true"></i> 상점 품목 추가</button>`;
 }
 // ---------- 결산 ----------
@@ -5658,7 +5650,7 @@ function renderSettings() {
   h += secHtml('reward', '레벨·보상',
     `<div class="field"><label>칭호 편집</label>` + xpTitles().map((t, i) => `<div class="shop-row"><span style="font-size:12px;color:var(--muted)">Lv.</span><input type="number" min="1" value="${t.level}" style="width:60px;" onchange="setTitle(${i},'level',this.value)"><input type="text" class="text-input" maxlength="12" value="${esc(t.name)}" style="flex:1;min-width:0;" onchange="setTitle(${i},'name',this.value)"><button class="shop-x" onclick="delTitle(${i})" aria-label="삭제">✕</button></div>`).join('') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addTitle()">＋ 칭호 추가</button></div>` +
-    `<div class="field"><label>상점 품목 관리</label>` + (getShopItems().map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">${it.cost}코인</span><button class="shop-x" onclick="editShopItem('${it.id}')" aria-label="수정"><i class="ti ti-pencil" aria-hidden="true"></i></button><button class="shop-x" onclick="delShopItem('${it.id}');renderSettings()" aria-label="삭제">✕</button></div>`).join('') || '<div class="hint" style="margin-top:6px;">직접 만든 품목이 없어요. 쉬는 날 이용권은 기본으로 있어요.</div>') +
+    `<div class="field"><label>상점 품목 관리</label>` + (restInShop() ? '' : `<div class="shop-row"><span class="shop-nm">${BUILTIN_REST.emoji} ${BUILTIN_REST.name}</span><span class="shop-cost">상점에서 뺌</span><button class="shop-use" onclick="setRestInShop(true)">다시 넣기</button></div>`) + (getShopItems().map(it => `<div class="shop-row"><span class="shop-nm">${esc(it.emoji)} ${esc(it.name)}</span><span class="shop-cost">${it.cost}코인</span><button class="shop-x" onclick="editShopItem('${it.id}')" aria-label="수정"><i class="ti ti-pencil" aria-hidden="true"></i></button><button class="shop-x" onclick="delShopItem('${it.id}');renderSettings()" aria-label="삭제">✕</button></div>`).join('') || '<div class="hint" style="margin-top:6px;">직접 만든 품목이 없어요. 쉬는 날 이용권은 기본으로 있어요.</div>') +
     `<button class="habit-add-btn" style="margin-top:8px;padding:10px;" onclick="addShopItem();renderSettings()">＋ 품목 추가</button></div>` +
     `<div class="settings-row" style="border:0;"><div><label>하루 XP 상한</label><div class="hint">기본 150</div></div><input type="number" min="10" value="${cap}" onchange="setXpCap(this.value)"></div>`);
   h += secHtml('shop', '상점 · 구입 기록', shopLogHtml());

@@ -458,8 +458,9 @@
         if (QUALITY === 0.5) halve(g);
       });
     }
-    // 고르게 절반: 하나 걸러 하나 (피보나치 순서라 앞쪽 절반만 쓰면 위쪽 반구만 남는다)
-    function halve(g) { const P = g.pts, m = Math.ceil(g.full / 2), out = new Float32Array(m * 4); for (let i = 0; i < m; i++) out.set(P.subarray(i * 2 * 4, i * 2 * 4 + 4), i * 4); g.pts = out; g.n = m; }
+    // 고르게 절반: 고르게 건너뛰며 고른다 (피보나치 순서라 앞쪽 절반만 쓰면 위쪽 반구만 남는다)
+    // 절반으로 줄인 뒤에 분야당 최소 40 을 다시 지킨다 (원래 40 보다 적던 분야는 그대로)
+    function halve(g) { const P = g.pts, f = g.full, m = Math.min(f, Math.max(MIN_G, Math.ceil(f / 2))), out = new Float32Array(m * 4); for (let i = 0; i < m; i++) { const j = Math.floor(i * f / m); out.set(P.subarray(j * 4, j * 4 + 4), i * 4); } g.pts = out; g.n = m; }
     // 분야 1~12개: 6개까지는 한 바퀴, 그 이상은 안쪽 5개 + 바깥 나머지. 그다음 겹침을 밀어내 푼다 (고정된 계산이라 매번 같다)
     function place() {
       const G = S.G, k = G.length; if (!k) { S.ext = 200; return; }
