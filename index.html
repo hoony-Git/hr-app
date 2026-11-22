@@ -2056,8 +2056,9 @@ function shapeOk(k, v) {
 }
 // 안전 사본 보관. 사본이 저장 공간(약 5MB)을 차지해 앱 자체 저장을 막지 않도록, 여유가 없으면 파일로 내려받는다.
 // 반환: 'stored' (앱 안에 보관) / 'downloaded' (파일로 내려받음) / false (둘 다 실패)
+// 같은 키의 옛 사본은 새 사본이 덮어쓰므로 셈에서 뺀다 (안 빼면 두 번째 받아오기부터 매번 파일로 내려받음)
 function storeSafetyCopy(key, text, filename) {
-  try { if (storageBytes() + text.length * 2 <= 3.5 * 1048576) { localStorage.setItem(key, text); return 'stored'; } } catch(e) {}
+  try { if (storageBytes() - (localStorage.getItem(key) || '').length * 2 + text.length * 2 <= 3.5 * 1048576) { localStorage.setItem(key, text); return 'stored'; } } catch(e) {}
   try { downloadText(text, filename); return 'downloaded'; } catch(e) { return false; }
 }
 // 가져오기 직전 상태를 'backup_before_import' 에 보관. 둘 다 실패하면 false
@@ -5688,7 +5689,7 @@ document.addEventListener('keydown', e => {
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
 // ====================== 설정 · 내정보 (Phase 5) ======================
-const APP_VERSION = '3.9', APP_VERSION_DATE = '2026-11-22';   // index.html 을 고쳐 배포할 때마다 같이 올린다
+const APP_VERSION = '4.0', APP_VERSION_DATE = '2026-11-23';   // index.html 을 고쳐 배포할 때마다 같이 올린다
 // 색 위 글자색: 그 색과 대비가 더 큰 쪽 (짙은 남색 / 흰색)
 function inkOn(c) { if (!hexOk(c)) return 'var(--text)'; const n = parseInt(c.slice(1), 16), f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }, L = 0.2126 * f(n >> 16 & 255) + 0.7152 * f(n >> 8 & 255) + 0.0722 * f(n & 255); return (L + 0.05) / 0.0614 >= 1.05 / (L + 0.05) ? '#161B33' : '#FFFFFF'; }
 function hexOk(c) { return /^#[0-9a-fA-F]{6}$/.test(String(c || '')); }
